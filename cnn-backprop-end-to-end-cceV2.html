@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNN Backprop, End to End — A Fully Worked Numerical Example (CSE475)</title>
+<style>
+  :root{
+    --blue:#2b2bb2; --teal:#1c4e76; --red:#be202d; --darkred:#8c0014;
+    --green:#166e32; --purple:#6e208c; --orange:#e87814; --pale:#eef1fa;
+    --amber:#fdf6e7; --ink:#1c1c22;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:Georgia,'Times New Roman',serif; color:var(--ink); margin:0;
+       background:#fafafc; line-height:1.55; font-size:16.5px;}
+  .wrap{max-width:1000px; margin:0 auto; padding:26px 20px 60px;}
+  h1,h2,h3{font-family:'Segoe UI',Helvetica,Arial,sans-serif; line-height:1.25;}
+  h1{font-size:1.9em; margin:.2em 0 .1em; color:var(--blue);}
+  .subtitle{font-size:1.05em; color:#444; margin-bottom:6px;}
+  .src{font-size:.86em; color:#666; border-top:1px solid #ddd; border-bottom:1px solid #ddd;
+       padding:7px 2px; margin:14px 0 20px;}
+  .toc{background:var(--pale); border:1px solid #ccd3ea; border-radius:8px; padding:12px 18px; margin:16px 0 26px;}
+  .toc b{font-family:'Segoe UI',sans-serif;}
+  .toc a{color:var(--teal); text-decoration:none;}
+  .toc a:hover{text-decoration:underline;}
+  .toc ol{margin:6px 0 2px; padding-left:22px; columns:2; column-gap:34px;}
+  .toc li{margin:2px 0; font-size:.94em;}
+
+  .step{background:#fff; border:1px solid #d8dbe6; border-radius:10px;
+        box-shadow:0 1px 4px rgba(30,30,60,.08); margin:26px 0; padding:0 0 14px; overflow:hidden;}
+  .step-head{display:flex; align-items:center; gap:14px; padding:14px 18px 8px;}
+  .circ{flex:0 0 auto; width:44px; height:44px; border-radius:50%; color:#fff;
+        display:flex; align-items:center; justify-content:center;
+        font-family:'Segoe UI',sans-serif; font-weight:700; font-size:1.25em;}
+  .step-head h2{margin:0; font-size:1.32em;}
+  .brief{margin:6px 18px 12px; background:#e8eefb; border-left:5px solid var(--blue);
+         padding:8px 12px; border-radius:0 6px 6px 0; font-size:.97em;}
+  .brief b{font-family:'Segoe UI',sans-serif; color:var(--blue);}
+  .io{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 18px 12px;}
+  .in,.out{border-radius:7px; padding:9px 12px; font-size:.94em;}
+  .in{background:#eaf6ec; border:1.5px solid var(--green);}
+  .out{background:#fdf0e2; border:1.5px solid var(--orange);}
+  .in b{color:var(--green);} .out b{color:var(--orange);}
+  .in b,.out b{font-family:'Segoe UI',sans-serif;}
+  .detail{margin:0 18px 12px;}
+  .detail p{margin:.5em 0;}
+
+  .panel{display:grid; grid-template-columns:1fr 1.15fr; gap:14px; margin:0 18px 12px;}
+  .pl,.pr{border-radius:8px; padding:12px 14px; font-size:.95em;}
+  .pl{background:var(--pale); border:1px solid #c9d0ea;}
+  .pr{background:var(--amber); border:1px solid #ecd9a8;}
+  .pl h4,.pr h4{margin:0 0 8px; font-family:'Segoe UI',sans-serif; font-size:.95em;
+                letter-spacing:.02em;}
+  .pl h4{color:var(--teal);} .pr h4{color:#9a6a10;}
+  .eq{text-align:center; font-size:1.06em; margin:8px 0; padding:8px 6px;
+      background:#fff; border:1.5px solid var(--orange); border-radius:7px;}
+  .res{display:block; text-align:center; margin:10px auto 2px; padding:7px 10px;
+       background:#fff; border:2px solid var(--green); border-radius:7px;
+       font-weight:bold; font-size:1.03em; max-width:95%;}
+  .calc{font-size:.94em; margin:4px 0; overflow-x:auto;}
+  .calc div{margin:3px 0; white-space:nowrap;}
+
+  .callout{margin:0 18px 12px; background:#f5edfa; border-left:5px solid var(--purple);
+           padding:9px 13px; border-radius:0 7px 7px 0; font-size:.95em;}
+  .callout b{font-family:'Segoe UI',sans-serif; color:var(--purple);}
+  .callout.red{background:#fbecec; border-left-color:var(--red);}
+  .callout.red b{color:var(--red);}
+
+.maptag{font-family:'Segoe UI',sans-serif; font-size:.82em; background:#fbe9e9;
+          border:1px solid var(--red); color:var(--red); border-radius:10px;
+          padding:1px 9px; text-decoration:none; white-space:nowrap;}
+  .maptag:hover{background:var(--red); color:#fff;}
+  table{border-collapse:collapse;}
+  table.grid td{border:1px solid #8a8f9e; width:34px; height:30px; text-align:center;
+                background:#fff; font-size:.95em;}
+  table.mat{margin:4px auto;}
+  table.mat td{padding:2px 9px; text-align:right; font-size:.95em;}
+  table.mat{border-left:2px solid #333; border-right:2px solid #333;}
+  table.data{margin:8px auto; font-size:.93em;}
+  table.data th{border-bottom:2px solid #444; padding:4px 10px;
+                font-family:'Segoe UI',sans-serif; font-size:.92em;}
+  table.data td{padding:4px 10px; border-bottom:1px solid #ddd; text-align:center;}
+  table.sym{margin:6px 0; font-size:.9em;}
+  table.sym td{padding:2px 8px 2px 0; vertical-align:top;}
+  table.sym td:first-child{white-space:nowrap; color:var(--teal);}
+  .gl{font-size:.85em; color:#555; text-align:center;}
+
+  .algo{background:#f4f4f6; border:1px solid #d4d4dc; border-radius:8px; padding:10px 16px;
+        font-family:Consolas,'Courier New',monospace; font-size:.9em; margin:10px 0;}
+  .algo .cm{color:#777;}
+  .algo .map{color:var(--purple);}
+  .pos{color:var(--green);} .neg{color:var(--red);}
+  .zero{color:var(--red); font-weight:bold;}
+  .hl{background:#fff3c8; padding:0 3px; border-radius:3px;}
+  sup,sub{line-height:0;}
+  .svgbox{text-align:center; margin:12px 0;}
+  .footer{margin-top:34px; font-size:.86em; color:#666; border-top:1px solid #ddd; padding-top:10px;}
+  .c1{background:var(--blue);}  .c2{background:var(--teal);} .c3{background:var(--green);}
+  .c4{background:var(--purple);}.c5{background:var(--orange);} .c6{background:var(--red);}
+  @media (max-width:760px){
+    .panel,.io{grid-template-columns:1fr;}
+    .toc ol{columns:1;}
+    body{font-size:15.5px;}
+  }
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>CNN Backprop, End to End</h1>
+<div class="subtitle">A fully worked numerical example: conv → ReLU → flatten → fully connected → softmax → categorical cross-entropy — every number traceable by hand.</div>
+<div class="src">Companion to the CSE475 lecture <i>“CNN Backward Propagation”</i>, Part&nbsp;2 (Dr.&nbsp;Raihan&nbsp;Ul&nbsp;Islam, East West University). The numbers are identical to the Beamer deck and were machine-verified. Slide arithmetic is display-consistent at 4 decimal places; the Jacobian check in Step&nbsp;6 uses 6.</div>
+
+<div class="toc"><b>Contents</b>
+<ol start="0">
+  <li><a href="#sec0">The big idea &amp; the running example</a></li>
+  <li><a href="#step1">Conv forward: compute Z</a></li>
+  <li><a href="#step2">ReLU, then flatten</a></li>
+  <li><a href="#step3">FC forward: logits</a></li>
+  <li><a href="#step4">Softmax: logits → probabilities</a></li>
+  <li><a href="#step5">Cross-entropy loss</a></li>
+  <li style="list-style:none;">→ <a href="#map">The backward map (computation graph)</a></li>
+  <li value="6"><a href="#step6">δ<sub>z</sub> (delta) = p − y (derived &amp; verified)</a></li>
+  <li><a href="#step7">FC gradients: an outer product</a></li>
+  <li><a href="#step8">Backprop into the features</a></li>
+  <li><a href="#step9">Unflatten and the ReLU gate</a></li>
+  <li><a href="#step10">Conv kernel gradients, both slices</a></li>
+  <li><a href="#step11">Conv bias gradient</a></li>
+  <li><a href="#step12">SGD updates, all 24 parameters</a></li>
+  <li><a href="#step13">One step later — did it work?</a></li>
+</ol>
+</div>
+
+<!-- ==================== SECTION 0 ==================== -->
+<div class="step" id="sec0">
+  <div class="step-head"><span class="circ c1">0</span><h2>The Big Idea &amp; the Running Example</h2></div>
+  <div class="detail">
+    <p>Backpropagation is one chain rule applied layer by layer. This tutorial traces it through a complete —
+    if tiny — CNN classifier: a two-channel image patch goes through one convolution, a ReLU, a flatten,
+    one fully connected layer, and a softmax; categorical cross-entropy scores the prediction against a
+    one-hot label; then the error flows backward and every one of the network’s <b>24 parameters</b> is updated
+    by SGD. One example is defined below and reused in <em>every</em> step.</p>
+  </div>
+
+  <div class="svgbox">
+  <svg viewBox="0 0 940 96" width="100%" style="max-width:900px" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Helvetica,sans-serif">
+    <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#555"/></marker></defs>
+    <g font-size="13" text-anchor="middle">
+      <rect x="8"   y="22" width="92" height="46" rx="6" fill="#e7eaf7" stroke="#3a3aa0" stroke-width="2"/>
+      <text x="54" y="41" font-weight="bold">X</text><text x="54" y="58" font-size="11">3×3×2</text>
+      <rect x="152" y="22" width="92" height="46" rx="6" fill="#fdeede" stroke="#d97a12" stroke-width="2"/>
+      <text x="198" y="41" font-weight="bold">Z</text><text x="198" y="58" font-size="11">2×2</text>
+      <rect x="296" y="22" width="92" height="46" rx="6" fill="#e7f4ea" stroke="#2c7a3e" stroke-width="2"/>
+      <text x="342" y="41" font-weight="bold">A</text><text x="342" y="58" font-size="11">2×2</text>
+      <rect x="440" y="22" width="92" height="46" rx="6" fill="#e4eef4" stroke="#1c4e76" stroke-width="2"/>
+      <text x="486" y="41" font-weight="bold">a</text><text x="486" y="58" font-size="11">ℝ⁴</text>
+      <rect x="584" y="22" width="92" height="46" rx="6" fill="#f2e7f7" stroke="#6e208c" stroke-width="2"/>
+      <text x="630" y="41" font-weight="bold">z</text><text x="630" y="58" font-size="11">ℝ³</text>
+      <rect x="728" y="22" width="92" height="46" rx="6" fill="#fbe9f2" stroke="#b0287a" stroke-width="2"/>
+      <text x="774" y="41" font-weight="bold">p</text><text x="774" y="58" font-size="11">ℝ³</text>
+      <rect x="856" y="22" width="76" height="46" rx="6" fill="#fbe9e9" stroke="#be202d" stroke-width="2"/>
+      <text x="894" y="41" font-weight="bold">L</text><text x="894" y="58" font-size="11">scalar</text>
+    </g>
+    <g stroke="#555" stroke-width="1.6" marker-end="url(#ar)" fill="none">
+      <line x1="100" y1="45" x2="150" y2="45"/><line x1="244" y1="45" x2="294" y2="45"/>
+      <line x1="388" y1="45" x2="438" y2="45"/><line x1="532" y1="45" x2="582" y2="45"/>
+      <line x1="676" y1="45" x2="726" y2="45"/><line x1="820" y1="45" x2="854" y2="45"/>
+    </g>
+    <g font-size="10.5" fill="#444" text-anchor="middle">
+      <text x="125" y="38">conv + b</text><text x="269" y="38">ReLU</text>
+      <text x="413" y="38">flatten</text><text x="557" y="38">W<tspan baseline-shift="sub" font-size="8">fc</tspan>, b<tspan baseline-shift="sub" font-size="8">fc</tspan></text>
+      <text x="701" y="38">softmax</text><text x="838" y="38">CCE</text>
+    </g>
+  </svg>
+  </div>
+
+  <div class="panel">
+    <div class="pl">
+      <h4>THE RUNNING EXAMPLE — DATA &amp; PARAMETERS</h4>
+      <div style="display:flex; gap:22px; flex-wrap:wrap; justify-content:center;">
+        <div style="text-align:center;">Input X — channel 1<br>
+          <table class="grid"><tr><td>1</td><td>2</td><td>3</td></tr><tr><td>0</td><td>1</td><td>2</td></tr><tr><td>1</td><td>0</td><td>1</td></tr></table></div>
+        <div style="text-align:center;">Input X — channel 2<br>
+          <table class="grid"><tr><td>1</td><td>2</td><td>4</td></tr><tr><td>1</td><td>0</td><td>2</td></tr><tr><td>3</td><td>1</td><td>3</td></tr></table></div>
+        <div style="text-align:center;">Kernel W — ch.&nbsp;1 / ch.&nbsp;2<br>
+          <div style="display:flex; gap:10px; justify-content:center;">
+          <table class="grid"><tr><td>1</td><td>0</td></tr><tr><td>−1</td><td>1</td></tr></table>
+          <table class="grid"><tr><td>0</td><td>−1</td></tr><tr><td>1</td><td>0</td></tr></table></div>
+          bias b = 0</div>
+      </div>
+      <div style="text-align:center; margin-top:10px;">
+        W<sub>fc</sub> =
+        <table class="mat" style="display:inline-table; vertical-align:middle;">
+          <tr><td>−1</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td>−1</td></tr>
+          <tr><td>1</td><td>0</td><td>−1</td><td>1</td></tr></table>
+        &nbsp; b<sub>fc</sub> = [0, 0, 0]<sup>⊤</sup>
+      </div>
+      <p style="margin:8px 0 0; font-size:.92em;">Target: true class 1 → one-hot
+      <b>y = [1, 0, 0]<sup>⊤</sup></b>. &nbsp;Learning rate η (eta) = 0.1. Both biases start at 0 — the standard
+      initialisation; the weights are small integers so every product is mental arithmetic (in practice
+      they would be random; the mechanics are identical).</p>
+    </div>
+    <div class="pr">
+      <h4>BASIC FACTS &amp; CONVENTIONS</h4>
+      <table class="data">
+        <tr><th>object</th><th>shape</th><th># params</th></tr>
+        <tr><td>conv kernel W</td><td>(2, 2, 2)</td><td>8</td></tr>
+        <tr><td>conv bias b</td><td>scalar</td><td>1</td></tr>
+        <tr><td>FC weights W<sub>fc</sub></td><td>(3, 4)</td><td>12</td></tr>
+        <tr><td>FC biases b<sub>fc</sub></td><td>(3,)</td><td>3</td></tr>
+        <tr><td colspan="2"><b>total updated by SGD</b></td><td><b>24</b></td></tr>
+      </table>
+      <table class="sym">
+        <tr><td>c ∈ {1, 2}</td><td>input channels</td></tr>
+        <tr><td>(i, j), (m, n)</td><td>spatial positions (0-indexed)</td></tr>
+        <tr><td>k ∈ {1, 2, 3}</td><td>classes</td></tr>
+        <tr><td>j ∈ {1, …, 4}</td><td>flattened features</td></tr>
+        <tr><td>δ (delta)</td><td>error signal — ∂L/∂(a pre-activation)</td></tr>
+        <tr><td>η (eta)</td><td>learning rate</td></tr>
+        <tr><td>Σ (capital sigma)</td><td>summation</td></tr>
+        <tr><td>θ (theta)</td><td>a generic parameter in update rules</td></tr>
+        <tr><td>∂ (“partial”)</td><td>∂L/∂θ reads “partial L by partial θ”</td></tr>
+      </table>
+      <p style="font-size:.9em; margin:6px 0 0;">One filter of depth C<sub>in</sub> = 2, so C<sub>out</sub> = 1
+      and the conv output is a single 2×2 map. With C<sub>out</sub> = 1 we drop the output-channel index and
+      write W[m, n, c].</p>
+    </div>
+  </div>
+
+  <div class="detail">
+  <div class="algo">
+<span class="cm">— forward pass —</span><br>
+F1&nbsp;&nbsp;Z = conv(X, W) + b <span class="map">→ Step 1</span><br>
+F2&nbsp;&nbsp;A = ReLU(Z) <span class="map">→ Step 2</span><br>
+F3&nbsp;&nbsp;a = flatten(A) <span class="map">→ Step 2</span><br>
+F4&nbsp;&nbsp;z = W<sub>fc</sub>·a + b<sub>fc</sub> <span class="map">→ Step 3</span><br>
+F5&nbsp;&nbsp;p = softmax(z) <span class="map">→ Step 4</span><br>
+F6&nbsp;&nbsp;L = −Σ<sub>k</sub> y<sub>k</sub> ln p<sub>k</sub> <span class="map">→ Step 5</span><br>
+<span class="cm">— backward pass —</span><br>
+B1&nbsp;&nbsp;δ<sub>z</sub> = p − y <span class="map">→ Step 6</span><br>
+B2&nbsp;&nbsp;∂L/∂W<sub>fc</sub> = δ<sub>z</sub>·a<sup>⊤</sup>, &nbsp;∂L/∂b<sub>fc</sub> = δ<sub>z</sub> <span class="map">→ Step 7</span><br>
+B3&nbsp;&nbsp;∂L/∂a = W<sub>fc</sub><sup>⊤</sup>·δ<sub>z</sub> <span class="map">→ Step 8</span><br>
+B4&nbsp;&nbsp;δ = unflatten(∂L/∂a) ⊙ 1[Z &gt; 0] <span class="map">→ Step 9</span><br>
+B5&nbsp;&nbsp;∂L/∂W[:, :, c] = X<sub>c</sub> ⊛ δ <span class="map">→ Step 10</span><br>
+B6&nbsp;&nbsp;∂L/∂b = Σ<sub>i,j</sub> δ[i, j] <span class="map">→ Step 11</span><br>
+B7&nbsp;&nbsp;θ ← θ − η·∂L/∂θ&nbsp;&nbsp;(all 24 θ) <span class="map">→ Step 12</span>
+  </div>
+  </div>
+</div>
+
+<!-- ==================== STEP 1 ==================== -->
+<div class="step" id="step1">
+  <div class="step-head"><span class="circ c2">1</span><h2>Conv Forward: Compute Z</h2></div>
+  <div class="brief"><b>Brief:</b> slide the depth-2 kernel over the depth-2 input and sum everything — 8 products + bias per output cell (implements F1).</div>
+  <div class="io">
+    <div class="in"><b>Input:</b> X (two 3×3 channels), W (two 2×2 slices), b = 0 — as defined in Section 0.</div>
+    <div class="out"><b>Output:</b> Z = [[1, −1], [2, 1]] — the 2×2 pre-activation map.</div>
+  </div>
+  <div class="detail"><p>Each channel’s kernel slice performs its own 2×2 correlation against its own input
+  channel; depth simply <em>adds</em> the two results. Nothing mixes channels except this sum — a fact that
+  matters again in Step 10, where the gradient un-mixes the same way.</p></div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">Z[i, j] = Σ<sub>c</sub> Σ<sub>m</sub> Σ<sub>n</sub> X[i+m, j+n, c] · W[m, n, c] + b</div>
+      <table class="sym">
+        <tr><td>X[i+m, j+n, c]</td><td>receptive-field cell in channel c</td></tr>
+        <tr><td>W[m, n, c]</td><td>kernel weight at (m, n) in slice c</td></tr>
+        <tr><td>Σ<sub>m</sub> Σ<sub>n</sub></td><td>over the 2×2 kernel window</td></tr>
+        <tr><td>Σ<sub>c</sub></td><td>over the 2 input channels</td></tr>
+        <tr><td>b</td><td>one bias shared by all output cells</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS — per-channel decomposition</h4>
+      <div class="calc">
+        <div><b>Z[0,0]</b>&nbsp; ch.1: 1·1 + 2·0 + 0·(−1) + 1·1 = 2</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ch.2: 1·0 + 2·(−1) + 1·1 + 0·0 = −1 &nbsp;⇒&nbsp; 2 + (−1) + 0 = <b>1</b></div>
+        <div><b>Z[0,1]</b>&nbsp; ch.1: 2·1 + 3·0 + 1·(−1) + 2·1 = 3</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ch.2: 2·0 + 4·(−1) + 0·1 + 2·0 = −4 &nbsp;⇒&nbsp; 3 + (−4) + 0 = <b>−1</b></div>
+        <div><b>Z[1,0]</b>&nbsp; ch.1: 0·1 + 1·0 + 1·(−1) + 0·1 = −1</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ch.2: 1·0 + 0·(−1) + 3·1 + 1·0 = 3 &nbsp;⇒&nbsp; −1 + 3 + 0 = <b>2</b></div>
+        <div><b>Z[1,1]</b>&nbsp; ch.1: 1·1 + 2·0 + 0·(−1) + 1·1 = 2</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ch.2: 0·0 + 2·(−1) + 1·1 + 3·0 = −1 &nbsp;⇒&nbsp; 2 + (−1) + 0 = <b>1</b></div>
+      </div>
+      <span class="res">Z = [[1, −1], [2, 1]]</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STEP 2 ==================== -->
+<div class="step" id="step2">
+  <div class="step-head"><span class="circ c3">2</span><h2>ReLU, Then Flatten</h2></div>
+  <div class="brief"><b>Brief:</b> clamp negatives to zero, then unroll the 2×2 map into the 4-vector the classifier sees (implements F2, F3).</div>
+  <div class="io">
+    <div class="in"><b>Input:</b> Z = [[1, −1], [2, 1]].</div>
+    <div class="out"><b>Output:</b> A = [[1, 0], [2, 1]]; flattened features a = [1, 0, 2, 1]<sup>⊤</sup>.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">A = max(0, Z) &nbsp;&nbsp;·&nbsp;&nbsp; a = [A<sub>00</sub>, A<sub>01</sub>, A<sub>10</sub>, A<sub>11</sub>]<sup>⊤</sup></div>
+      <table class="sym">
+        <tr><td>max(0, ·)</td><td>elementwise ReLU</td></tr>
+        <tr><td>row-major flatten</td><td>(0,0), (0,1), (1,0), (1,1) — the same order is used to <em>unflatten</em> in Step 9</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <table class="data">
+        <tr><th>position</th><th>Z</th><th>A</th><th></th></tr>
+        <tr><td>(0,0)</td><td>1</td><td>1</td><td></td></tr>
+        <tr><td>(0,1)</td><td>−1</td><td>0</td><td class="zero">dead unit</td></tr>
+        <tr><td>(1,0)</td><td>2</td><td>2</td><td></td></tr>
+        <tr><td>(1,1)</td><td>1</td><td>1</td><td></td></tr>
+      </table>
+      <span class="res">a = [1, 0, 2, 1]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout red"><b>Remember (0,1).</b> The dead unit returns <em>twice</em> in the backward pass —
+  once in Step 7, once in Step 9 — and each appearance teaches something different.</div>
+</div>
+
+<!-- ==================== STEP 3 ==================== -->
+<div class="step" id="step3">
+  <div class="step-head"><span class="circ c4">3</span><h2>FC Forward: Logits</h2></div>
+  <div class="brief"><b>Brief:</b> each row of W<sub>fc</sub> takes a weighted vote over the 4 features to produce one class score (implements F4).</div>
+  <div class="io">
+    <div class="in"><b>Input:</b> a = [1, 0, 2, 1]<sup>⊤</sup>; W<sub>fc</sub>; b<sub>fc</sub> = 0.</div>
+    <div class="out"><b>Output:</b> logits z = [1, 2, 0]<sup>⊤</sup>.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">z<sub>k</sub> = Σ<sub>j=1..4</sub> W<sub>fc</sub>[k, j] · a<sub>j</sub> + b<sub>fc</sub>[k]</div>
+      <table class="sym">
+        <tr><td>W<sub>fc</sub>[k, j]</td><td>weight from feature j to class k</td></tr>
+        <tr><td>z<sub>k</sub></td><td>raw (unnormalised) score for class k</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <div class="calc">
+        <div>z<sub>1</sub> = (−1)(1) + (0)(0) + (1)(2) + (0)(1) + 0 = −1 + 0 + 2 + 0 = <b>1</b></div>
+        <div>z<sub>2</sub> = (1)(1) + (1)(0) + (1)(2) + (−1)(1) + 0 = 1 + 0 + 2 − 1 = <b>2</b></div>
+        <div>z<sub>3</sub> = (1)(1) + (0)(0) + (−1)(2) + (1)(1) + 0 = 1 + 0 − 2 + 1 = <b>0</b></div>
+      </div>
+      <span class="res">z = [1, 2, 0]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout red"><b>The model is currently wrong.</b> Largest logit: class 2. True class: 1 —
+  this example is a misclassification. Watch the gradients try to fix it.</div>
+</div>
+
+<!-- ==================== STEP 4 ==================== -->
+<div class="step" id="step4">
+  <div class="step-head"><span class="circ c5">4</span><h2>Softmax: Logits → Probabilities</h2></div>
+  <div class="brief"><b>Brief:</b> exponentiate, then normalise so the three scores become a probability distribution (implements F5).</div>
+  <div class="io">
+    <div class="in"><b>Input:</b> z = [1, 2, 0]<sup>⊤</sup>.</div>
+    <div class="out"><b>Output:</b> p = [0.2447, 0.6652, 0.0900]<sup>⊤</sup>.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">p<sub>k</sub> = e<sup>z<sub>k</sub></sup> / S, &nbsp;&nbsp; S = Σ<sub>j=1..3</sub> e<sup>z<sub>j</sub></sup></div>
+      <table class="sym">
+        <tr><td>e<sup>z<sub>k</sub></sup></td><td>positive, order-preserving score</td></tr>
+        <tr><td>S</td><td>normaliser — makes Σ<sub>k</sub> p<sub>k</sub> = 1</td></tr>
+      </table>
+      <p style="font-size:.88em;">Practical note: implementations compute
+      e<sup>z<sub>k</sub>−max z</sup>/Σ<sub>j</sub> e<sup>z<sub>j</sub>−max z</sup> for numerical stability — same p.</p>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <table class="data">
+        <tr><th>k</th><th>z<sub>k</sub></th><th>e<sup>z<sub>k</sub></sup></th><th>e<sup>z<sub>k</sub></sup>/S</th><th>p<sub>k</sub></th></tr>
+        <tr><td>1</td><td>1</td><td>2.7183</td><td>2.7183 / 11.1074</td><td><b>0.2447</b></td></tr>
+        <tr><td>2</td><td>2</td><td>7.3891</td><td>7.3891 / 11.1074</td><td><b>0.6652</b></td></tr>
+        <tr><td>3</td><td>0</td><td>1.0000</td><td>1.0000 / 11.1074</td><td><b>0.0900</b></td></tr>
+      </table>
+      <div class="gl">S = 2.7183 + 7.3891 + 1.0000 = 11.1074; &nbsp; Σ<sub>k</sub> p<sub>k</sub> = 0.9999 ≈ 1 (rounding)</div>
+      <span class="res">p = [0.2447, 0.6652, 0.0900]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout"><b>Reading p.</b> 66.5% to class 2, 24.5% to the true class 1, 9% to class 3.</div>
+</div>
+
+<!-- ==================== STEP 5 ==================== -->
+<div class="step" id="step5">
+  <div class="step-head"><span class="circ c6">5</span><h2>Categorical Cross-Entropy Loss</h2></div>
+  <div class="brief"><b>Brief:</b> the loss is the negative log-probability the model gave to the correct class (implements F6).</div>
+  <div class="io">
+    <div class="in"><b>Input:</b> p = [0.2447, 0.6652, 0.0900]; y = [1, 0, 0].</div>
+    <div class="out"><b>Output:</b> L = 1.4077.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">L = −Σ<sub>k=1..3</sub> y<sub>k</sub> ln p<sub>k</sub> = −ln p<sub>true</sub></div>
+      <table class="sym">
+        <tr><td>y<sub>k</sub></td><td>one-hot label — kills every term but the true class</td></tr>
+        <tr><td>−ln p<sub>true</sub></td><td>large when the model doubts the truth, → 0 as p<sub>true</sub> → 1</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <div class="calc">
+        <div>L = −( 1·ln 0.2447 + 0·ln 0.6652 + 0·ln 0.0900 )</div>
+        <div>&nbsp;&nbsp; = −ln 0.2447</div>
+      </div>
+      <span class="res">L = 1.4077</span>
+    </div>
+  </div>
+  <div class="callout"><b>How wrong is “wrong”?</b> Had the true class been 2 (the model’s guess), the loss
+  would be −ln 0.6652 = 0.4077. The difference, 1.4077 − 0.4077 = 1.0000, is exactly the logit gap
+  z<sub>2</sub> − z<sub>1</sub>: cross-entropy differences between candidate labels are <em>log-odds</em>.</div>
+</div>
+
+<!-- ==================== BACKWARD MAP ==================== -->
+<div class="step" id="map">
+  <div class="step-head"><span class="circ c6">⇆</span><h2>The Backward Map — Computation Graph</h2></div>
+  <div class="brief"><b>How to read it:</b> solid grey arrows are the forward pass you just computed (Steps 1–5).
+  Every <span style="color:var(--red);"><b>red dashed arrow</b></span> is one gradient, and its numbered badge is the
+  step that computes it. Each backward step from here on carries a red pill linking to its edge on this map.</div>
+  <div class="svgbox" style="overflow-x:auto;">
+  <svg id="mapsvg" viewBox="0 0 960 358" width="100%" style="min-width:860px; max-width:940px" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Helvetica,sans-serif">
+    <defs>
+      <marker id="mg" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#555"/></marker>
+      <marker id="mr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#be202d"/></marker>
+    </defs>
+    <text x="480" y="18" text-anchor="middle" font-size="11" fill="#555">solid grey = forward pass (Steps 1–5) · dashed red = backward pass · numbered badge = the step that computes that gradient</text>
+
+    <!-- forward nodes -->
+    <g font-size="14" text-anchor="middle" font-weight="bold">
+      <rect x="10"  y="170" width="84" height="44" rx="6" fill="#e7eaf7" stroke="#3a3aa0" stroke-width="2"/><text x="52"  y="190">X</text>
+      <rect x="150" y="170" width="84" height="44" rx="6" fill="#fdeede" stroke="#d97a12" stroke-width="2"/><text x="192" y="190">Z</text>
+      <rect x="290" y="170" width="84" height="44" rx="6" fill="#e7f4ea" stroke="#2c7a3e" stroke-width="2"/><text x="332" y="190">A</text>
+      <rect x="430" y="170" width="84" height="44" rx="6" fill="#e4eef4" stroke="#1c4e76" stroke-width="2"/><text x="472" y="190">a</text>
+      <rect x="570" y="170" width="84" height="44" rx="6" fill="#f2e7f7" stroke="#6e208c" stroke-width="2"/><text x="612" y="190">z</text>
+      <rect x="710" y="170" width="84" height="44" rx="6" fill="#fbe9f2" stroke="#b0287a" stroke-width="2"/><text x="752" y="190">p</text>
+      <rect x="850" y="170" width="84" height="44" rx="6" fill="#fbe9e9" stroke="#be202d" stroke-width="2"/><text x="892" y="190">L</text>
+    </g>
+    <g font-size="10" text-anchor="middle" fill="#333">
+      <text x="52" y="205">input 3×3×2</text><text x="192" y="205">pre-act 2×2</text><text x="332" y="205">ReLU out</text>
+      <text x="472" y="205">features ℝ⁴</text><text x="612" y="205">logits ℝ³</text><text x="752" y="205">probs ℝ³</text><text x="892" y="205">loss</text>
+    </g>
+    <!-- forward arrows + op labels -->
+    <g stroke="#777" stroke-width="1.6" marker-end="url(#mg)" fill="none">
+      <line x1="94" y1="192" x2="148" y2="192"/><line x1="234" y1="192" x2="288" y2="192"/>
+      <line x1="374" y1="192" x2="428" y2="192"/><line x1="514" y1="192" x2="568" y2="192"/>
+      <line x1="654" y1="192" x2="708" y2="192"/><line x1="794" y1="192" x2="848" y2="192"/>
+    </g>
+    <g font-size="9.5" text-anchor="middle" fill="#666">
+      <text x="121" y="225">conv + b</text><text x="261" y="225">ReLU</text><text x="401" y="225">flatten</text>
+      <text x="541" y="225">W<tspan font-size="7" dy="2">fc</tspan><tspan dy="-2">·a + b</tspan><tspan font-size="7" dy="2">fc</tspan></text>
+      <text x="681" y="225">softmax</text><text x="821" y="225">CCE (y)</text>
+    </g>
+
+    <!-- backward arcs over the top -->
+    <g stroke="#be202d" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#mr)">
+      <path d="M 880 168 C 830 70, 670 70, 622 166"/>
+      <path d="M 598 168 C 566 112, 518 112, 488 166"/>
+      <path d="M 458 168 C 434 124, 368 124, 344 166"/>
+      <path d="M 318 168 C 294 124, 228 124, 204 166"/>
+    </g>
+    <g font-size="11.5" fill="#7a1420">
+      <circle cx="694" cy="62" r="9" fill="#be202d"/><text x="694" y="66" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">6</text>
+      <text x="708" y="66">δ<tspan font-size="8" dy="2">z</tspan><tspan dy="-2"> = p − y</tspan></text>
+      <text x="752" y="82" text-anchor="middle" font-size="9.5" fill="#a3505c">(softmax + CCE fused — skips p)</text>
+      <circle cx="506" cy="102" r="9" fill="#be202d"/><text x="506" y="106" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">8</text>
+      <text x="520" y="106">∂L/∂a = W<tspan font-size="8" dy="2">fc</tspan><tspan dy="-2">⊤δ</tspan><tspan font-size="8" dy="2">z</tspan></text>
+      <circle cx="372" cy="114" r="9" fill="#be202d"/><text x="372" y="118" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">9</text>
+      <text x="386" y="118">unflatten</text>
+      <circle cx="214" cy="114" r="9" fill="#be202d"/><text x="214" y="118" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">9</text>
+      <text x="228" y="118">⊙ 1[Z&gt;0] ⇒ δ</text>
+    </g>
+
+    <!-- parameter boxes, stems, gradient arrows -->
+    <g font-size="12.5" text-anchor="middle" font-weight="bold">
+      <rect x="140" y="296" width="50" height="34" rx="5" fill="#fff" stroke="#d97a12" stroke-width="1.8"/><text x="165" y="317">W</text>
+      <rect x="202" y="296" width="38" height="34" rx="5" fill="#fff" stroke="#2c7a3e" stroke-width="1.8"/><text x="221" y="317">b</text>
+      <rect x="548" y="296" width="58" height="34" rx="5" fill="#fff" stroke="#6e208c" stroke-width="1.8"/><text x="577" y="317">W<tspan font-size="9" dy="3">fc</tspan></text>
+      <rect x="616" y="296" width="50" height="34" rx="5" fill="#fff" stroke="#6e208c" stroke-width="1.8"/><text x="641" y="317">b<tspan font-size="9" dy="3">fc</tspan></text>
+      <rect x="776" y="296" width="40" height="34" rx="5" fill="#f4f4f6" stroke="#888" stroke-width="1.6"/><text x="796" y="317">y</text>
+    </g>
+    <g stroke="#aaa" stroke-width="1.2" fill="none">
+      <line x1="165" y1="296" x2="180" y2="216"/><line x1="221" y1="296" x2="206" y2="216"/>
+      <line x1="577" y1="296" x2="596" y2="216"/><line x1="641" y1="296" x2="624" y2="216"/>
+      <line x1="796" y1="296" x2="850" y2="216"/>
+    </g>
+    <g stroke="#be202d" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#mr)">
+      <path d="M 160 214 C 140 244, 138 268, 150 294"/>
+      <path d="M 226 214 C 246 244, 248 268, 236 294"/>
+      <path d="M 586 214 C 566 244, 562 268, 572 294"/>
+      <path d="M 648 214 C 668 244, 672 268, 660 294"/>
+    </g>
+    <g font-size="11" fill="#7a1420">
+      <circle cx="70" cy="252" r="9" fill="#be202d"/><text x="70" y="256" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">10</text>
+      <text x="84" y="256">X<tspan font-size="8" dy="2">c</tspan><tspan dy="-2"> ⊛ δ</tspan></text>
+      <circle cx="262" cy="252" r="9" fill="#be202d"/><text x="262" y="256" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">11</text>
+      <text x="276" y="256">Σδ</text>
+      <circle cx="488" cy="252" r="9" fill="#be202d"/><text x="488" y="256" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">7</text>
+      <text x="502" y="256">δ<tspan font-size="8" dy="2">z</tspan><tspan dy="-2">a⊤</tspan></text>
+      <circle cx="684" cy="252" r="9" fill="#be202d"/><text x="684" y="256" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">7</text>
+      <text x="698" y="256">δ<tspan font-size="8" dy="2">z</tspan></text>
+    </g>
+    <text x="400" y="348" text-anchor="middle" font-size="10.5" fill="#6e208c">all 24 parameters updated in Step 12: &#8202;θ ← θ − η·∂L/∂θ</text>
+    <text x="796" y="348" text-anchor="middle" font-size="9.5" fill="#666">true label</text>
+  </svg>
+  </div>
+  <div class="callout"><b>Two reading notes.</b> The Step-6 arc jumps straight from L to z because softmax and
+  cross-entropy are differentiated together — that fused edge is exactly the δ<sub>z</sub> = p − y shortcut.
+  And no red arrow enters X: this network has no earlier layer, so ∂L/∂X is never needed. Step 13 simply reruns
+  the solid grey edges with the updated parameters.</div>
+</div>
+
+<!-- ==================== STEP 6 ==================== -->
+<div class="step" id="step6">
+  <div class="step-head"><span class="circ c1">6</span><h2>Upstream Gradient at the Logits: δ<sub>z</sub> = p − y</h2></div>
+  <div class="brief"><b>Brief:</b> the whole softmax–cross-entropy block has a one-line gradient, δ<sub>z</sub> = p − y — derived below, then verified through the full Jacobian (implements B1). δ is the Greek letter <i>delta</i> — the traditional symbol for an error signal. <a class="maptag" href="#map">map: L ⇒ z</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> p = [0.2447, 0.6652, 0.0900]; y = [1, 0, 0].</div>
+    <div class="out"><b>Output:</b> δ<sub>z</sub> = [−0.7553, +0.6652, +0.0900]<sup>⊤</sup>.</div>
+  </div>
+  <div class="detail">
+    <p><b>Why p − y.</b> The two chain-rule factors are ∂L/∂p<sub>k</sub> = −y<sub>k</sub>/p<sub>k</sub>
+    and the softmax Jacobian ∂p<sub>k</sub>/∂z<sub>j</sub> = p<sub>k</sub>(1[k=j] − p<sub>j</sub>). Multiply and sum:</p>
+    <p style="text-align:center;">
+      ∂L/∂z<sub>j</sub> = Σ<sub>k</sub> (−y<sub>k</sub>/p<sub>k</sub>) · p<sub>k</sub>(1[k=j] − p<sub>j</sub>)
+      = −Σ<sub>k</sub> y<sub>k</sub>·1[k=j] + p<sub>j</sub> Σ<sub>k</sub> y<sub>k</sub>
+      = −y<sub>j</sub> + p<sub>j</sub> = <span class="hl"><b>p<sub>j</sub> − y<sub>j</sub></b></span></p>
+    <p>The p<sub>k</sub> factors cancel — the softmax analogue of the sigmoid–BCE cancellation, in K
+    dimensions. This is why frameworks fuse softmax with cross-entropy into a single op.</p>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>SHORTCUT, WITH OUR NUMBERS</h4>
+      <table class="data">
+        <tr><th>k</th><th>p<sub>k</sub></th><th>y<sub>k</sub></th><th>δ<sub>z,k</sub></th><th>meaning</th></tr>
+        <tr><td>1</td><td>0.2447</td><td>1</td><td class="neg"><b>−0.7553</b></td><td>push z<sub>1</sub> up</td></tr>
+        <tr><td>2</td><td>0.6652</td><td>0</td><td class="pos"><b>+0.6652</b></td><td>push z<sub>2</sub> down</td></tr>
+        <tr><td>3</td><td>0.0900</td><td>0</td><td class="pos"><b>+0.0900</b></td><td>push z<sub>3</sub> down</td></tr>
+      </table>
+      <div class="gl">components sum to ≈ 0 (exactly 0 in full precision), because Σp = Σy = 1</div>
+    </div>
+    <div class="pr">
+      <h4>VERIFY THE SHORTCUT — full Jacobian at 6 decimals</h4>
+      <p style="font-size:.9em; margin:2px 0 6px;">p = [0.244728, 0.665241, 0.090031]; only ∂L/∂p<sub>1</sub>
+      is nonzero: ∂L/∂p<sub>1</sub> = −1/0.244728 = −4.086161.</p>
+      <table class="data">
+        <tr><th>j</th><th>∂p<sub>1</sub>/∂z<sub>j</sub></th><th>(−4.086161)×(·)</th><th>p<sub>j</sub> − y<sub>j</sub></th></tr>
+        <tr><td>1</td><td>p<sub>1</sub>(1−p<sub>1</sub>) = 0.184836</td><td><b>−0.7553</b></td><td>−0.7553 ✓</td></tr>
+        <tr><td>2</td><td>−p<sub>1</sub>p<sub>2</sub> = −0.162803</td><td><b>+0.6652</b></td><td>+0.6652 ✓</td></tr>
+        <tr><td>3</td><td>−p<sub>1</sub>p<sub>3</sub> = −0.022033</td><td><b>+0.0900</b></td><td>+0.0900 ✓</td></tr>
+      </table>
+      <span class="res">δ<sub>z</sub> = [−0.7553, +0.6652, +0.0900]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout"><b>Softmax–CCE gradients only redistribute probability mass.</b> Negative on the true
+  class, positive on the rest, summing to zero: gradient descent will raise the true class’s logit and lower
+  the competitors’.</div>
+</div>
+
+<!-- ==================== STEP 7 ==================== -->
+<div class="step" id="step7">
+  <div class="step-head"><span class="circ c2">7</span><h2>FC Gradients: an Outer Product</h2></div>
+  <div class="brief"><b>Brief:</b> every FC weight’s gradient is (its class’s error) × (its feature’s value); the biases just take the error directly (implements B2). <a class="maptag" href="#map">map: z ⇒ W<sub>fc</sub>, b<sub>fc</sub></a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> δ<sub>z</sub> = [−0.7553, +0.6652, +0.0900]; a = [1, 0, 2, 1].</div>
+    <div class="out"><b>Output:</b> ∂L/∂W<sub>fc</sub> (3×4 below); ∂L/∂b<sub>fc</sub> = δ<sub>z</sub>.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">∂L/∂W<sub>fc</sub>[k, j] = δ<sub>z,k</sub> · a<sub>j</sub> &nbsp;⇔&nbsp; ∂L/∂W<sub>fc</sub> = δ<sub>z</sub> a<sup>⊤</sup></div>
+      <div class="eq" style="border-color:var(--green);">∂L/∂b<sub>fc</sub> = δ<sub>z</sub></div>
+      <table class="sym">
+        <tr><td>δ<sub>z</sub> a<sup>⊤</sup></td><td>rank-1 outer product — each row is δ<sub>z,k</sub> times the <em>same</em> vector a</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS — the full 3×4 gradient</h4>
+      <table class="data">
+        <tr><th></th><th>a₁ = 1</th><th>a₂ = 0</th><th>a₃ = 2</th><th>a₄ = 1</th></tr>
+        <tr><td>δ<sub>z,1</sub> = −0.7553</td><td>−0.7553</td><td class="zero">0</td><td>−1.5106</td><td>−0.7553</td></tr>
+        <tr><td>δ<sub>z,2</sub> = +0.6652</td><td>+0.6652</td><td class="zero">0</td><td>+1.3304</td><td>+0.6652</td></tr>
+        <tr><td>δ<sub>z,3</sub> = +0.0900</td><td>+0.0900</td><td class="zero">0</td><td>+0.1800</td><td>+0.0900</td></tr>
+      </table>
+      <span class="res">∂L/∂b<sub>fc</sub> = [−0.7553, +0.6652, +0.0900]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout red"><b>Column 2 is identically zero.</b> Feature a₂ is the dead ReLU unit, so
+  <em>every</em> FC weight reading it gets zero gradient: those three weights exist but do not learn this
+  step. <b>Death propagates forward.</b></div>
+  <div class="callout"><b>Structure.</b> The FC gradient is rank-1 (outer product). Keep this in mind for the
+  contrast with the conv gradient in Step 10.</div>
+</div>
+
+<!-- ==================== STEP 8 ==================== -->
+<div class="step" id="step8">
+  <div class="step-head"><span class="circ c3">8</span><h2>Backprop into the Features: ∂L/∂a = W<sub>fc</sub><sup>⊤</sup>δ<sub>z</sub></h2></div>
+  <div class="brief"><b>Brief:</b> each feature collects error from all three classes, weighted by how strongly it fed each one (implements B3). <a class="maptag" href="#map">map: z ⇒ a</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> δ<sub>z</sub>; W<sub>fc</sub>.</div>
+    <div class="out"><b>Output:</b> ∂L/∂a = [+1.5105, +0.6652, −0.1801, −0.5752]<sup>⊤</sup>.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">∂L/∂a<sub>j</sub> = Σ<sub>k=1..3</sub> δ<sub>z,k</sub> · W<sub>fc</sub>[k, j]</div>
+      <table class="sym">
+        <tr><td>W<sub>fc</sub>[k, j]</td><td>the same weight that carried a<sub>j</sub> forward now carries the error back</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <div class="calc">
+        <div>∂L/∂a₁ = (−0.7553)(−1) + (0.6652)(1) + (0.0900)(1) = 0.7553 + 0.6652 + 0.0900 = <b>+1.5105</b></div>
+        <div>∂L/∂a₂ = (−0.7553)(0) + (0.6652)(1) + (0.0900)(0) = <b>+0.6652</b></div>
+        <div>∂L/∂a₃ = (−0.7553)(1) + (0.6652)(1) + (0.0900)(−1) = −0.7553 + 0.6652 − 0.0900 = <b>−0.1801</b></div>
+        <div>∂L/∂a₄ = (−0.7553)(0) + (0.6652)(−1) + (0.0900)(1) = −0.6652 + 0.0900 = <b>−0.5752</b></div>
+      </div>
+      <span class="res">∂L/∂a = [+1.5105, +0.6652, −0.1801, −0.5752]<sup>⊤</sup></span>
+    </div>
+  </div>
+  <div class="callout"><b>This is the promised “upstream gradient.”</b> The theory part of the lecture says
+  <em>“∂L/∂Z arrives from the next layer.”</em> Here it genuinely does: these four numbers were produced by
+  a real next layer, not directly by the loss.</div>
+</div>
+
+<!-- ==================== STEP 9 ==================== -->
+<div class="step" id="step9">
+  <div class="step-head"><span class="circ c4">9</span><h2>Unflatten and the ReLU Gate</h2></div>
+  <div class="brief"><b>Brief:</b> reshape the feature gradient back to 2×2, then let it through only where the forward ReLU was active (implements B4). <a class="maptag" href="#map">map: a ⇒ A ⇒ Z</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> ∂L/∂a = [+1.5105, +0.6652, −0.1801, −0.5752]; Z (for the gate).</div>
+    <div class="out"><b>Output:</b> δ = ∂L/∂Z = [[1.5105, 0], [−0.1801, −0.5752]].</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">∂L/∂Z<sub>ij</sub> = ∂L/∂A<sub>ij</sub> · 1[Z<sub>ij</sub> &gt; 0]</div>
+      <table class="sym">
+        <tr><td>∂L/∂A</td><td>∂L/∂a unflattened in the same row-major order as Step 2</td></tr>
+        <tr><td>1[Z &gt; 0]</td><td>the ReLU derivative — an all-or-nothing gate</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <table class="data">
+        <tr><th>position</th><th>Z</th><th>gate</th><th>arrives</th><th>passes</th></tr>
+        <tr><td>(0,0)</td><td>1</td><td>OPEN</td><td>+1.5105</td><td>+1.5105</td></tr>
+        <tr><td>(0,1)</td><td>−1</td><td class="zero">SHUT</td><td>+0.6652</td><td class="zero">0.0000</td></tr>
+        <tr><td>(1,0)</td><td>2</td><td>OPEN</td><td>−0.1801</td><td>−0.1801</td></tr>
+        <tr><td>(1,1)</td><td>1</td><td>OPEN</td><td>−0.5752</td><td>−0.5752</td></tr>
+      </table>
+      <span class="res">δ = [[1.5105, 0], [−0.1801, −0.5752]]</span>
+    </div>
+  </div>
+  <div class="callout red"><b>The dead unit, second appearance.</b> 0.6652 of gradient arrived at (0,1) from
+  the classifier and was destroyed by the gate. Dead units neither learn (Step 7) nor transmit (here).
+  <b>Death propagates backward too.</b></div>
+</div>
+
+<!-- ==================== STEP 10 ==================== -->
+<div class="step" id="step10">
+  <div class="step-head"><span class="circ c5">10</span><h2>Conv Kernel Gradients, Both Slices</h2></div>
+  <div class="brief"><b>Brief:</b> each kernel slice’s gradient is a cross-correlation of <em>its own</em> input channel with the <em>same</em> error map δ (delta) (implements B5). <a class="maptag" href="#map">map: Z ⇒ W</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> δ = [[1.5105, 0], [−0.1801, −0.5752]]; X (both channels).</div>
+    <div class="out"><b>Output:</b> ∂L/∂W ch.1 = [[0.9353, 1.6905], [−0.1801, 0.9353]]; ch.2 = [[1.3304, 1.8706], [0.3950, −1.9057]].</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">∂L/∂W[m, n, c] = Σ<sub>i</sub> Σ<sub>j</sub> δ[i, j] · X[i+m, j+n, c] &nbsp;⇔&nbsp; ∂L/∂W[:, :, c] = X<sub>c</sub> ⊛ δ</div>
+      <table class="sym">
+        <tr><td>δ[i, j]</td><td>error at output position (i, j) — shared by both slices</td></tr>
+        <tr><td>X[i+m, j+n, c]</td><td>the input cell that weight W[m, n, c] multiplied in the forward pass</td></tr>
+        <tr><td>⊛</td><td>cross-correlation — the same operation as the forward pass</td></tr>
+      </table>
+      <p style="font-size:.9em;">Unlike the rank-1 FC gradient, weight sharing makes each conv weight’s
+      gradient a <em>sum over positions</em> — same chain rule, different structure.</p>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <div class="calc" style="margin-bottom:6px;"><b>Channel-1 slice</b> (X₁):
+        <div>∂L/∂W[0,0,1] = 1.5105·1 + 0·2 + (−0.1801)·0 + (−0.5752)·1 = <b>0.9353</b></div>
+        <div>∂L/∂W[0,1,1] = 1.5105·2 + 0·3 + (−0.1801)·1 + (−0.5752)·2</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 3.0210 − 0.1801 − 1.1504 = <b>1.6905</b></div>
+        <div>∂L/∂W[1,0,1] = 1.5105·0 + 0·1 + (−0.1801)·1 + (−0.5752)·0 = <b>−0.1801</b></div>
+        <div>∂L/∂W[1,1,1] = 1.5105·1 + 0·2 + (−0.1801)·0 + (−0.5752)·1 = <b>0.9353</b></div>
+      </div>
+      <div class="calc"><b>Channel-2 slice</b> (X₂), same δ:
+        <div>∂L/∂W[0,0,2] = 1.5105·1 + 0·2 + (−0.1801)·1 + (−0.5752)·0 = 1.5105 − 0.1801 = <b>1.3304</b></div>
+        <div>∂L/∂W[0,1,2] = 1.5105·2 + 0·4 + (−0.1801)·0 + (−0.5752)·2 = 3.0210 − 1.1504 = <b>1.8706</b></div>
+        <div>∂L/∂W[1,0,2] = 1.5105·1 + 0·0 + (−0.1801)·3 + (−0.5752)·1</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = 1.5105 − 0.5403 − 0.5752 = <b>0.3950</b></div>
+        <div>∂L/∂W[1,1,2] = 1.5105·0 + 0·2 + (−0.1801)·1 + (−0.5752)·3 = −0.1801 − 1.7256 = <b>−1.9057</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="callout"><b>Gradient routing.</b> One error map, two slices: each slice cross-correlates the
+  same δ against its own input channel only — the backward mirror of Step 1’s “depth just adds.”</div>
+  <div class="callout"><b>A tie, and where it comes from.</b> ∂L/∂W[0,0,1] = ∂L/∂W[1,1,1] because the (0,0)
+  and (1,1) patches of X₁ are identical — an <em>input</em> property, not a backprop one. Channel 2 has no
+  such symmetry and no tie.</div>
+</div>
+
+<!-- ==================== STEP 11 ==================== -->
+<div class="step" id="step11">
+  <div class="step-head"><span class="circ c6">11</span><h2>Conv Bias Gradient</h2></div>
+  <div class="brief"><b>Brief:</b> the bias touched every output cell in the forward pass, so its gradient collects from all of them — a plain sum of δ (implements B6). <a class="maptag" href="#map">map: Z ⇒ b</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> δ = [[1.5105, 0], [−0.1801, −0.5752]].</div>
+    <div class="out"><b>Output:</b> ∂L/∂b = 0.7552.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>EQUATION</h4>
+      <div class="eq">∂L/∂b = Σ<sub>i</sub> Σ<sub>j</sub> δ[i, j]</div>
+      <table class="sym">
+        <tr><td>∂Z[i,j]/∂b = 1</td><td>for every (i, j) — hence no weighting, just a sum</td></tr>
+      </table>
+    </div>
+    <div class="pr">
+      <h4>WITH OUR NUMBERS</h4>
+      <div class="calc"><div>∂L/∂b = 1.5105 + 0 − 0.1801 − 0.5752</div></div>
+      <span class="res">∂L/∂b = 0.7552</span>
+    </div>
+  </div>
+  <div class="callout"><b>Same pattern everywhere.</b> Bias-like parameters (b, b<sub>fc</sub>) always have
+  simpler gradients than weight-like ones: sums of the error, with no multiplication by inputs.</div>
+</div>
+
+<!-- ==================== STEP 12 ==================== -->
+<div class="step" id="step12">
+  <div class="step-head"><span class="circ c1">12</span><h2>SGD Updates, All 24 Parameters</h2></div>
+  <div class="brief"><b>Brief:</b> one rule for everything: θ ← θ − η·∂L/∂θ — θ is <i>theta</i>, η is <i>eta</i> — with η = 0.1 (implements B7). <a class="maptag" href="#map">map: the parameter boxes</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> all old parameters; all gradients from Steps 7, 10, 11.</div>
+    <div class="out"><b>Output:</b> the updated network (tables below).</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>CONV LAYER — 9 parameters</h4>
+      <table class="data">
+        <tr><th>param</th><th>old</th><th>grad</th><th>new</th></tr>
+        <tr><td>W[0,0,1]</td><td>1.0000</td><td>0.9353</td><td>0.9065</td></tr>
+        <tr><td>W[0,1,1]</td><td>0.0000</td><td>1.6905</td><td>−0.1691</td></tr>
+        <tr><td>W[1,0,1]</td><td>−1.0000</td><td>−0.1801</td><td>−0.9820</td></tr>
+        <tr><td>W[1,1,1]</td><td>1.0000</td><td>0.9353</td><td>0.9065</td></tr>
+        <tr><td>W[0,0,2]</td><td>0.0000</td><td>1.3304</td><td>−0.1330</td></tr>
+        <tr><td>W[0,1,2]</td><td>−1.0000</td><td>1.8706</td><td>−1.1871</td></tr>
+        <tr><td>W[1,0,2]</td><td>1.0000</td><td>0.3950</td><td>0.9605</td></tr>
+        <tr><td>W[1,1,2]</td><td>0.0000</td><td>−1.9057</td><td>0.1906</td></tr>
+        <tr><td>b</td><td>0.0000</td><td>0.7552</td><td>−0.0755</td></tr>
+      </table>
+      <div class="gl">new = old − 0.1 × grad, rounded to 4 d.p. Note b leaving its zero initialisation.</div>
+    </div>
+    <div class="pr">
+      <h4>FC LAYER — 15 parameters</h4>
+      <div style="text-align:center;">
+        W<sub>fc</sub> ←
+        <table class="mat" style="display:inline-table; vertical-align:middle;">
+          <tr><td>−0.9245</td><td class="zero">0.0000</td><td>1.1511</td><td>0.0755</td></tr>
+          <tr><td>0.9335</td><td class="zero">1.0000</td><td>0.8670</td><td>−1.0665</td></tr>
+          <tr><td>0.9910</td><td class="zero">0.0000</td><td>−1.0180</td><td>0.9910</td></tr></table>
+      </div>
+      <div style="text-align:center; margin-top:8px;">
+        b<sub>fc</sub> ← [0.0755, −0.0665, −0.0090]<sup>⊤</sup>
+      </div>
+      <div class="gl" style="margin-top:8px;">e.g. W<sub>fc</sub>[1,3]: 1 − 0.1×(−1.5106) = 1.1511</div>
+    </div>
+  </div>
+  <div class="callout red"><b>Column 2 did not move.</b> The three FC weights reading the dead feature are
+  unchanged — no gradient ever reached them.</div>
+</div>
+
+<!-- ==================== STEP 13 ==================== -->
+<div class="step" id="step13">
+  <div class="step-head"><span class="circ c3">13</span><h2>One Step Later — Did It Work?</h2></div>
+  <div class="brief"><b>Brief:</b> close the loop: rerun the forward pass with the updated parameters and check that the loss actually fell. <a class="maptag" href="#map">map: rerun the solid edges</a></div>
+  <div class="io">
+    <div class="in"><b>Input:</b> the updated parameters exactly as printed in Step 12, same X and y.</div>
+    <div class="out"><b>Output:</b> p′ = [0.7579, 0.2139, 0.0283]; L′ = 0.2773.</div>
+  </div>
+  <div class="panel">
+    <div class="pl">
+      <h4>SECOND FORWARD PASS (from the printed 4-d.p. parameters)</h4>
+      <div class="calc">
+        <div>Z′ = [[−0.1474, −2.5720], [1.7125, 0.5574]]</div>
+        <div>a′ = [0, 0, 1.7125, 0.5574]<sup>⊤</sup></div>
+        <div>z′ = [2.0888, 0.8238, −1.1999]<sup>⊤</sup></div>
+        <div>p′ = [<b>0.7579</b>, 0.2139, 0.0283]<sup>⊤</sup></div>
+      </div>
+      <span class="res">L: 1.4077 → 0.2773 &nbsp;·&nbsp; p<sub>true</sub>: 0.2447 → 0.7579</span>
+    </div>
+    <div class="pr">
+      <h4>SANITY CHECK — AND AN HONEST WRINKLE</h4>
+      <p style="margin:2px 0 6px;">The prediction flipped: the largest logit now belongs to
+      <b>class 1, the true class</b>. One SGD step fixed the misclassification — the gradients did exactly
+      what Step 6 said they would.</p>
+      <p style="margin:0;">But look at Z′: unit (0,0), alive before, is now dead (−0.1474), and (0,1) is
+      deader (−2.5720). An aggressive step on a <em>single</em> example can kill units even while it fixes
+      the prediction — one reason real training averages gradients over mini-batches and uses smaller
+      learning rates.</p>
+    </div>
+  </div>
+  <div class="detail">
+    <p><b>The full loop, tallied.</b> One example, one label, 24 parameters: 6 forward equations, 7 backward
+    ones, every gradient expanded term by term, and a measurable improvement at the end. Four things worth
+    remembering:</p>
+    <p>1. δ<sub>z</sub> = p − y sums to zero — softmax–CCE only redistributes probability mass among classes.<br>
+    2. The dead unit at (0,1) blocked learning both ways: a zero column in ∂L/∂W<sub>fc</sub>, and zero transmitted δ.<br>
+    3. FC gradient = outer product; conv gradient = cross-correlation. Same chain rule, different structure.<br>
+    4. The tie ∂L/∂W[0,0,1] = ∂L/∂W[1,1,1] is the input’s own symmetry, not backprop’s.</p>
+  </div>
+  <div class="callout"><b>What this toy simplifies.</b> One training example (no mini-batch averaging), integer
+  initial weights rather than random ones, η = 0.1 chosen so updates are visible (hence the dramatic swing and
+  the newly dead unit), no stride/padding/pooling, and the chain stops at this conv layer — a deeper network
+  would also need ∂L/∂X to keep propagating. The mechanics, however, are exactly what full-size CNNs run.</div>
+</div>
+
+<div class="footer">Companion to <i>“CNN Backward Propagation — Updating Kernel Weights, Kernel Biases &amp;
+Batch Normalization Parameters”</i>, CSE475 Machine Learning, Dr.&nbsp;Raihan&nbsp;Ul&nbsp;Islam, Department of
+CSE, East West University. All values machine-verified; slide arithmetic is display-consistent at 4 decimal
+places (Step 6’s Jacobian check uses 6). The BatchNorm numerical example (Part 3 of the lecture) is a separate
+trace and is unchanged by this one.</div>
+
+</div></body></html>
