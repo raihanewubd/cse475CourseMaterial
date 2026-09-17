@@ -191,6 +191,15 @@
   /* --- wide blocks break out of the text column --- */
   .page .anim,.page .explorer{--w:min(1560px,calc(100vw - 36px));width:var(--w);margin-left:calc(50% - var(--w)/2);margin-right:0}
   html.embedded .page .anim,html.embedded .page .explorer{--w:calc(100vw - 20px)}
+  /* --- phone tweaks --- */
+  @media(max-width:680px){
+    .tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}
+    .tab-btn{white-space:nowrap;flex:0 0 auto}
+    .expl-tbl,.anim-tbl{overflow-x:auto;max-width:100%}
+    .explorer table,.anim-tbl table{font-size:.78rem}
+    .explorer th,.explorer td,.anim-tbl th,.anim-tbl td{padding:3px 5px}
+    .expl-plot svg,.anim-body svg{max-width:100%}
+  }
   .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
   .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
   figure{margin:10px 0;text-align:center}
@@ -369,7 +378,7 @@ Circles are data points, numbered 1–7. Stars are centroids: <span class="sw" s
 <h3>Step 2 · Distance of every point to both centroids</h3>
 <p>Each distance below is the Euclidean formula expanded in full. Compare the two numbers on each row: the smaller one decides the cluster.</p>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
-<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover any number to light up its cell.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover or tap any number to light up its cell.</p>
 <div class="explorer" data-iter="0">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
@@ -568,7 +577,7 @@ d(3, m<sub>1</sub>) = √[(<span class="vx">3−1</span>)² + (<span class="vy">
 
 <h3>Step 4 · Re-compute all distances with the new centroids</h3>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
-<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover any number to light up its cell.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover or tap any number to light up its cell.</p>
 <div class="explorer" data-iter="1">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
@@ -766,7 +775,7 @@ Point 3 is now 2.03 from m<sub>1</sub> but only 1.78 from m<sub>2</sub>, so it <
 
 <h3>Step 6 · Re-compute all distances with the new centroids</h3>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
-<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover any number to light up its cell.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span> &nbsp;·&nbsp; Where a number comes from:<span class="src p">solid</span> = the point’s own row, <span class="src m">dashed</span> = the centroid in the column header, <span class="src d">orange</span> = the result written into the table. Hover or tap any number to light up its cell.</p>
 <div class="explorer" data-iter="2">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
@@ -1168,6 +1177,7 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
   function show(id){
     panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
     btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
     var i = panels.findIndex(function(p){return p.id===id;});
     document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
     document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });

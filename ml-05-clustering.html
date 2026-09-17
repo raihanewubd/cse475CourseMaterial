@@ -56,6 +56,7 @@
   .tabbed .tab-panel.active{display:block}
   @media(max-width:680px){.page{padding:18px}}
   @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+  @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
 </style>
 </head>
 <body>
@@ -827,6 +828,7 @@
   function show(id){
     panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
     btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
     var i = panels.findIndex(function(p){return p.id===id;});
     document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
     document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
