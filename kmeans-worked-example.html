@@ -81,7 +81,7 @@
   .calc .lab{font-weight:bold;white-space:nowrap;font-family:"Cambria Math","Cambria","Georgia",serif}
   .calc .lab.m1{color:var(--rust)} .calc .lab.m2{color:var(--blue)}
   .calc .steps{font-family:"Cambria Math","Cambria","Georgia",serif;line-height:1.55}
-  .calc .steps span{display:block}
+  .calc .steps>span{display:block}
   .calc .steps .fin{font-weight:bold}
   .calc .verdict{margin-top:8px;font-size:.9rem}
   .calc .verdict .chip{margin-left:4px}
@@ -154,6 +154,11 @@
   @keyframes animfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   @media(max-width:820px){.anim-body{grid-template-columns:1fr}.anim-txt{border-left:none;border-top:1px solid var(--line)}}
   @media print{.anim{display:none}}
+  /* --- variable colours: x = green, y = purple --- */
+  .vx{color:#2E7D4F;font-weight:600} .vy{color:#6A3FA0;font-weight:600}
+  .explorer th .vx,th .vx{color:#bfe6cf} .explorer th .vy,th .vy{color:#d9c8f2}
+  .vkey{font-size:.8rem;color:var(--gray);margin:2px 0 6px}
+  .vkey .sw{display:inline-block;width:.8em;height:.8em;border-radius:2px;vertical-align:-1px;margin:0 3px 0 8px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
   .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
   figure{margin:10px 0;text-align:center}
@@ -217,7 +222,7 @@
 <div class="two">
 <div>
 <table class="grid">
-<thead><tr><th>Individual</th><th>Variable 1 (x)</th><th>Variable 2 (y)</th></tr></thead>
+<thead><tr><th>Individual</th><th style="background:#2E7D4F">Variable 1 (x)</th><th style="background:#6A3FA0">Variable 2 (y)</th></tr></thead>
 <tbody>
 <tr><td class="rh">1</td><td>1.00</td><td>1.00</td></tr><tr><td class="rh">2</td><td>1.50</td><td>2.00</td></tr><tr><td class="rh">3</td><td>3.00</td><td>4.00</td></tr><tr><td class="rh">4</td><td>5.00</td><td>7.00</td></tr><tr><td class="rh">5</td><td>3.50</td><td>5.00</td></tr><tr><td class="rh">6</td><td>4.50</td><td>5.00</td></tr><tr><td class="rh">7</td><td>3.50</td><td>4.50</td></tr>
 </tbody></table>
@@ -258,8 +263,8 @@
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <circle cx="96.66666666666666" cy="337.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
 <text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
 <circle cx="125.0" cy="295.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
@@ -331,37 +336,38 @@ Circles are data points, numbered 1–7. Stars are centroids: <span class="sw" s
 <h3>Step 2 · Distance of every point to both centroids</h3>
 <p>Each distance below is the Euclidean formula expanded in full. Compare the two numbers on each row: the smaller one decides the cluster.</p>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span></p>
 <div class="explorer" data-iter="0">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
-<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
-<th>d to m<sub>1</sub><br><span style="font-weight:normal">(1.00, 1.00)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(5.00, 7.00)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
-<tr data-p="1"><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">0.00</td><td class="">7.21</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="2"><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">1.12</td><td class="">6.10</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="3"><td class="rh">3</td><td>(3.00, 4.00)</td><td class="best">3.61</td><td class="">3.61</td><td>tie → m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="4"><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">7.21</td><td class="best">0.00</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="5"><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">4.72</td><td class="best">2.50</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="6"><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">5.32</td><td class="best">2.06</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="7"><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">4.30</td><td class="best">2.92</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (<span class="vx" style="color:#bfe6cf">x</span>, <span class="vy" style="color:#d9c8f2">y</span>)</th>
+<th>d to m<sub>1</sub><br><span style="font-weight:normal">(<span class="vx">1.00</span>, <span class="vy">1.00</span>)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(<span class="vx">5.00</span>, <span class="vy">7.00</span>)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr data-p="1"><td class="rh">1</td><td>(<span class="vx">1.00</span>, <span class="vy">1.00</span>)</td><td class="best">0.00</td><td class="">7.21</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="2"><td class="rh">2</td><td>(<span class="vx">1.50</span>, <span class="vy">2.00</span>)</td><td class="best">1.12</td><td class="">6.10</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="3"><td class="rh">3</td><td>(<span class="vx">3.00</span>, <span class="vy">4.00</span>)</td><td class="best">3.61</td><td class="">3.61</td><td>tie → m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="4"><td class="rh">4</td><td>(<span class="vx">5.00</span>, <span class="vy">7.00</span>)</td><td class="">7.21</td><td class="best">0.00</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="5"><td class="rh">5</td><td>(<span class="vx">3.50</span>, <span class="vy">5.00</span>)</td><td class="">4.72</td><td class="best">2.50</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="6"><td class="rh">6</td><td>(<span class="vx">4.50</span>, <span class="vy">5.00</span>)</td><td class="">5.32</td><td class="best">2.06</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="7"><td class="rh">7</td><td>(<span class="vx">3.50</span>, <span class="vy">4.50</span>)</td><td class="">4.30</td><td class="best">2.92</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
 </tbody></table></div>
 <div class="calc"></div>
-<div class="expl-plot"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
+<div class="expl-plot"><svg viewBox="0 0 400 416" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
 </div>
 </div>
-<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.00)² + (1.00 − 1.00)²] = √[(0.00)² + (0.00)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div>
-<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 5.00)² + (1.00 − 7.00)²] = √[(-4.00)² + (-6.00)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div></div>
-<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.00)² + (2.00 − 1.00)²] = √[(0.50)² + (1.00)²] = √[0.25 + 1.00] = √1.25 = <b>1.12</b></div>
-<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 5.00)² + (2.00 − 7.00)²] = √[(-3.50)² + (-5.00)²] = √[12.25 + 25.00] = √37.25 = <b>6.10</b></div></div>
-<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.00)² + (4.00 − 1.00)²] = √[(2.00)² + (3.00)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div>
-<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 5.00)² + (4.00 − 7.00)²] = √[(-2.00)² + (-3.00)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div></div>
-<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.00)² + (7.00 − 1.00)²] = √[(4.00)² + (6.00)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div>
-<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 5.00)² + (7.00 − 7.00)²] = √[(0.00)² + (0.00)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div></div>
-<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.00)² + (5.00 − 1.00)²] = √[(2.50)² + (4.00)²] = √[6.25 + 16.00] = √22.25 = <b>4.72</b></div>
-<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 5.00)² + (5.00 − 7.00)²] = √[(-1.50)² + (-2.00)²] = √[2.25 + 4.00] = √6.25 = <b>2.50</b></div></div>
-<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.00)² + (5.00 − 1.00)²] = √[(3.50)² + (4.00)²] = √[12.25 + 16.00] = √28.25 = <b>5.32</b></div>
-<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 5.00)² + (5.00 − 7.00)²] = √[(-0.50)² + (-2.00)²] = √[0.25 + 4.00] = √4.25 = <b>2.06</b></div></div>
-<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.00)² + (4.50 − 1.00)²] = √[(2.50)² + (3.50)²] = √[6.25 + 12.25] = √18.50 = <b>4.30</b></div>
-<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 5.00)² + (4.50 − 7.00)²] = √[(-1.50)² + (-2.50)²] = √[2.25 + 6.25] = √8.50 = <b>2.92</b></div></div>
+<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(<span class="vx">1.00 − 1.00</span>)² + (<span class="vy">1.00 − 1.00</span>)²] = √[(<span class="vx">0.00</span>)² + (<span class="vy">0.00</span>)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(<span class="vx">1.00 − 5.00</span>)² + (<span class="vy">1.00 − 7.00</span>)²] = √[(<span class="vx">-4.00</span>)² + (<span class="vy">-6.00</span>)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(<span class="vx">1.50 − 1.00</span>)² + (<span class="vy">2.00 − 1.00</span>)²] = √[(<span class="vx">0.50</span>)² + (<span class="vy">1.00</span>)²] = √[0.25 + 1.00] = √1.25 = <b>1.12</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(<span class="vx">1.50 − 5.00</span>)² + (<span class="vy">2.00 − 7.00</span>)²] = √[(<span class="vx">-3.50</span>)² + (<span class="vy">-5.00</span>)²] = √[12.25 + 25.00] = √37.25 = <b>6.10</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(<span class="vx">3.00 − 1.00</span>)² + (<span class="vy">4.00 − 1.00</span>)²] = √[(<span class="vx">2.00</span>)² + (<span class="vy">3.00</span>)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(<span class="vx">3.00 − 5.00</span>)² + (<span class="vy">4.00 − 7.00</span>)²] = √[(<span class="vx">-2.00</span>)² + (<span class="vy">-3.00</span>)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(<span class="vx">5.00 − 1.00</span>)² + (<span class="vy">7.00 − 1.00</span>)²] = √[(<span class="vx">4.00</span>)² + (<span class="vy">6.00</span>)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(<span class="vx">5.00 − 5.00</span>)² + (<span class="vy">7.00 − 7.00</span>)²] = √[(<span class="vx">0.00</span>)² + (<span class="vy">0.00</span>)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.00</span>)² + (<span class="vy">5.00 − 1.00</span>)²] = √[(<span class="vx">2.50</span>)² + (<span class="vy">4.00</span>)²] = √[6.25 + 16.00] = √22.25 = <b>4.72</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 5.00</span>)² + (<span class="vy">5.00 − 7.00</span>)²] = √[(<span class="vx">-1.50</span>)² + (<span class="vy">-2.00</span>)²] = √[2.25 + 4.00] = √6.25 = <b>2.50</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(<span class="vx">4.50 − 1.00</span>)² + (<span class="vy">5.00 − 1.00</span>)²] = √[(<span class="vx">3.50</span>)² + (<span class="vy">4.00</span>)²] = √[12.25 + 16.00] = √28.25 = <b>5.32</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(<span class="vx">4.50 − 5.00</span>)² + (<span class="vy">5.00 − 7.00</span>)²] = √[(<span class="vx">-0.50</span>)² + (<span class="vy">-2.00</span>)²] = √[0.25 + 4.00] = √4.25 = <b>2.06</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.00</span>)² + (<span class="vy">4.50 − 1.00</span>)²] = √[(<span class="vx">2.50</span>)² + (<span class="vy">3.50</span>)²] = √[6.25 + 12.25] = √18.50 = <b>4.30</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 5.00</span>)² + (<span class="vy">4.50 − 7.00</span>)²] = √[(<span class="vx">-1.50</span>)² + (<span class="vy">-2.50</span>)²] = √[2.25 + 6.25] = √8.50 = <b>2.92</b></div></div>
 
 <h3>Distance table and assignment</h3>
 <table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
@@ -376,7 +382,7 @@ Circles are data points, numbered 1–7. Stars are centroids: <span class="sw" s
 </tbody></table></div></details>
 
 <div class="box guard"><span class="bt">Point 3 is an exact tie</span>
-d(3, m<sub>1</sub>) = √[(3−1)² + (4−1)²] = √13 and d(3, m<sub>2</sub>) = √[(3−5)² + (4−7)²] = √13. Both are 3.61. K-means needs a tie-break rule; the slides (and most implementations, e.g. <code>argmin</code>) take the <b>first</b> centroid, so point 3 goes to cluster 1. Nothing is wrong with this, but note it: the tie is why point 3 changes cluster in the next pass.</div>
+d(3, m<sub>1</sub>) = √[(<span class="vx">3−1</span>)² + (<span class="vy">4−1</span>)²] = √13 and d(3, m<sub>2</sub>) = √[(<span class="vx">3−5</span>)² + (<span class="vy">4−7</span>)²] = √13. Both are 3.61. K-means needs a tie-break rule; the slides (and most implementations, e.g. <code>argmin</code>) take the <b>first</b> centroid, so point 3 goes to cluster 1. Nothing is wrong with this, but note it: the tie is why point 3 changes cluster in the next pass.</div>
 
 <div class="two">
 <figure><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Iteration 0 assignment">
@@ -414,8 +420,8 @@ d(3, m<sub>1</sub>) = √[(3−1)² + (4−1)²] = √13 and d(3, m<sub>2</sub>)
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <line x1="96.66666666666666" y1="337.5" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="125.0" y1="295.0" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="210.0" y1="210.0" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
@@ -501,8 +507,8 @@ d(3, m<sub>1</sub>) = √[(3−1)² + (4−1)²] = √13 and d(3, m<sub>2</sub>)
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <line x1="96.66666666666666" y1="337.5" x2="143.88888888888886" y2="280.8333333333333" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
 <g opacity=".45"><polygon points="96.7,326.5 99.6,333.5 107.1,334.1 101.4,339.0 103.1,346.4 96.7,342.4 90.2,346.4 92.0,339.0 86.2,334.1 93.8,333.5" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
 <line x1="323.33333333333337" y1="82.5" x2="273.75" y2="151.5625" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
@@ -529,37 +535,38 @@ d(3, m<sub>1</sub>) = √[(3−1)² + (4−1)²] = √13 and d(3, m<sub>2</sub>)
 
 <h3>Step 4 · Re-compute all distances with the new centroids</h3>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span></p>
 <div class="explorer" data-iter="1">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
-<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
-<th>d to m<sub>1</sub><br><span style="font-weight:normal">(1.8333, 2.3333)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(4.125, 5.375)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
-<tr data-p="1"><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">1.57</td><td class="">5.38</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="2"><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">0.47</td><td class="">4.28</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="3"><td class="rh">3</td><td>(3.00, 4.00)</td><td class="">2.03</td><td class="best">1.78</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="4"><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">5.64</td><td class="best">1.85</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="5"><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">3.14</td><td class="best">0.73</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="6"><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">3.77</td><td class="best">0.53</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="7"><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">2.73</td><td class="best">1.08</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (<span class="vx" style="color:#bfe6cf">x</span>, <span class="vy" style="color:#d9c8f2">y</span>)</th>
+<th>d to m<sub>1</sub><br><span style="font-weight:normal">(<span class="vx">1.8333</span>, <span class="vy">2.3333</span>)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(<span class="vx">4.125</span>, <span class="vy">5.375</span>)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr data-p="1"><td class="rh">1</td><td>(<span class="vx">1.00</span>, <span class="vy">1.00</span>)</td><td class="best">1.57</td><td class="">5.38</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="2"><td class="rh">2</td><td>(<span class="vx">1.50</span>, <span class="vy">2.00</span>)</td><td class="best">0.47</td><td class="">4.28</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="3"><td class="rh">3</td><td>(<span class="vx">3.00</span>, <span class="vy">4.00</span>)</td><td class="">2.03</td><td class="best">1.78</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="4"><td class="rh">4</td><td>(<span class="vx">5.00</span>, <span class="vy">7.00</span>)</td><td class="">5.64</td><td class="best">1.85</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="5"><td class="rh">5</td><td>(<span class="vx">3.50</span>, <span class="vy">5.00</span>)</td><td class="">3.14</td><td class="best">0.73</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="6"><td class="rh">6</td><td>(<span class="vx">4.50</span>, <span class="vy">5.00</span>)</td><td class="">3.77</td><td class="best">0.53</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="7"><td class="rh">7</td><td>(<span class="vx">3.50</span>, <span class="vy">4.50</span>)</td><td class="">2.73</td><td class="best">1.08</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
 </tbody></table></div>
 <div class="calc"></div>
-<div class="expl-plot"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
+<div class="expl-plot"><svg viewBox="0 0 400 416" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
 </div>
 </div>
-<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.8333)² + (1.00 − 2.3333)²] = √[(-0.8333)² + (-1.3333)²] = √[0.6944 + 1.7778] = √2.4722 = <b>1.57</b></div>
-<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 4.125)² + (1.00 − 5.375)²] = √[(-3.125)² + (-4.375)²] = √[9.7656 + 19.1406] = √28.9062 = <b>5.38</b></div></div>
-<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.8333)² + (2.00 − 2.3333)²] = √[(-0.3333)² + (-0.3333)²] = √[0.1111 + 0.1111] = √0.2222 = <b>0.47</b></div>
-<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 4.125)² + (2.00 − 5.375)²] = √[(-2.625)² + (-3.375)²] = √[6.8906 + 11.3906] = √18.2812 = <b>4.28</b></div></div>
-<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.8333)² + (4.00 − 2.3333)²] = √[(1.1667)² + (1.6667)²] = √[1.3611 + 2.7778] = √4.1389 = <b>2.03</b></div>
-<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 4.125)² + (4.00 − 5.375)²] = √[(-1.125)² + (-1.375)²] = √[1.2656 + 1.8906] = √3.1562 = <b>1.78</b></div></div>
-<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.8333)² + (7.00 − 2.3333)²] = √[(3.1667)² + (4.6667)²] = √[10.0278 + 21.7778] = √31.8056 = <b>5.64</b></div>
-<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 4.125)² + (7.00 − 5.375)²] = √[(0.875)² + (1.625)²] = √[0.7656 + 2.6406] = √3.4062 = <b>1.85</b></div></div>
-<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.8333)² + (5.00 − 2.3333)²] = √[(1.6667)² + (2.6667)²] = √[2.7778 + 7.1111] = √9.8889 = <b>3.14</b></div>
-<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 4.125)² + (5.00 − 5.375)²] = √[(-0.625)² + (-0.375)²] = √[0.3906 + 0.1406] = √0.5312 = <b>0.73</b></div></div>
-<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.8333)² + (5.00 − 2.3333)²] = √[(2.6667)² + (2.6667)²] = √[7.1111 + 7.1111] = √14.2222 = <b>3.77</b></div>
-<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 4.125)² + (5.00 − 5.375)²] = √[(0.375)² + (-0.375)²] = √[0.1406 + 0.1406] = √0.2812 = <b>0.53</b></div></div>
-<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.8333)² + (4.50 − 2.3333)²] = √[(1.6667)² + (2.1667)²] = √[2.7778 + 4.6944] = √7.4722 = <b>2.73</b></div>
-<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 4.125)² + (4.50 − 5.375)²] = √[(-0.625)² + (-0.875)²] = √[0.3906 + 0.7656] = √1.1562 = <b>1.08</b></div></div>
+<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(<span class="vx">1.00 − 1.8333</span>)² + (<span class="vy">1.00 − 2.3333</span>)²] = √[(<span class="vx">-0.8333</span>)² + (<span class="vy">-1.3333</span>)²] = √[0.6944 + 1.7778] = √2.4722 = <b>1.57</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(<span class="vx">1.00 − 4.125</span>)² + (<span class="vy">1.00 − 5.375</span>)²] = √[(<span class="vx">-3.125</span>)² + (<span class="vy">-4.375</span>)²] = √[9.7656 + 19.1406] = √28.9062 = <b>5.38</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(<span class="vx">1.50 − 1.8333</span>)² + (<span class="vy">2.00 − 2.3333</span>)²] = √[(<span class="vx">-0.3333</span>)² + (<span class="vy">-0.3333</span>)²] = √[0.1111 + 0.1111] = √0.2222 = <b>0.47</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(<span class="vx">1.50 − 4.125</span>)² + (<span class="vy">2.00 − 5.375</span>)²] = √[(<span class="vx">-2.625</span>)² + (<span class="vy">-3.375</span>)²] = √[6.8906 + 11.3906] = √18.2812 = <b>4.28</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(<span class="vx">3.00 − 1.8333</span>)² + (<span class="vy">4.00 − 2.3333</span>)²] = √[(<span class="vx">1.1667</span>)² + (<span class="vy">1.6667</span>)²] = √[1.3611 + 2.7778] = √4.1389 = <b>2.03</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(<span class="vx">3.00 − 4.125</span>)² + (<span class="vy">4.00 − 5.375</span>)²] = √[(<span class="vx">-1.125</span>)² + (<span class="vy">-1.375</span>)²] = √[1.2656 + 1.8906] = √3.1562 = <b>1.78</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(<span class="vx">5.00 − 1.8333</span>)² + (<span class="vy">7.00 − 2.3333</span>)²] = √[(<span class="vx">3.1667</span>)² + (<span class="vy">4.6667</span>)²] = √[10.0278 + 21.7778] = √31.8056 = <b>5.64</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(<span class="vx">5.00 − 4.125</span>)² + (<span class="vy">7.00 − 5.375</span>)²] = √[(<span class="vx">0.875</span>)² + (<span class="vy">1.625</span>)²] = √[0.7656 + 2.6406] = √3.4062 = <b>1.85</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.8333</span>)² + (<span class="vy">5.00 − 2.3333</span>)²] = √[(<span class="vx">1.6667</span>)² + (<span class="vy">2.6667</span>)²] = √[2.7778 + 7.1111] = √9.8889 = <b>3.14</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 4.125</span>)² + (<span class="vy">5.00 − 5.375</span>)²] = √[(<span class="vx">-0.625</span>)² + (<span class="vy">-0.375</span>)²] = √[0.3906 + 0.1406] = √0.5312 = <b>0.73</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(<span class="vx">4.50 − 1.8333</span>)² + (<span class="vy">5.00 − 2.3333</span>)²] = √[(<span class="vx">2.6667</span>)² + (<span class="vy">2.6667</span>)²] = √[7.1111 + 7.1111] = √14.2222 = <b>3.77</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(<span class="vx">4.50 − 4.125</span>)² + (<span class="vy">5.00 − 5.375</span>)²] = √[(<span class="vx">0.375</span>)² + (<span class="vy">-0.375</span>)²] = √[0.1406 + 0.1406] = √0.2812 = <b>0.53</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.8333</span>)² + (<span class="vy">4.50 − 2.3333</span>)²] = √[(<span class="vx">1.6667</span>)² + (<span class="vy">2.1667</span>)²] = √[2.7778 + 4.6944] = √7.4722 = <b>2.73</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 4.125</span>)² + (<span class="vy">4.50 − 5.375</span>)²] = √[(<span class="vx">-0.625</span>)² + (<span class="vy">-0.875</span>)²] = √[0.3906 + 0.7656] = √1.1562 = <b>1.08</b></div></div>
 
 <h3>Distance table and assignment</h3>
 <table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
@@ -612,8 +619,8 @@ Point 3 is now 2.03 from m<sub>1</sub> but only 1.78 from m<sub>2</sub>, so it <
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <line x1="96.66666666666666" y1="337.5" x2="143.88888888888886" y2="280.8333333333333" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="125.0" y1="295.0" x2="143.88888888888886" y2="280.8333333333333" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="210.0" y1="210.0" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
@@ -698,8 +705,8 @@ Point 3 is now 2.03 from m<sub>1</sub> but only 1.78 from m<sub>2</sub>, so it <
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <line x1="143.88888888888886" y1="280.8333333333333" x2="110.83333333333334" y2="316.25" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
 <g opacity=".45"><polygon points="143.9,269.8 146.8,276.8 154.4,277.4 148.6,282.4 150.4,289.7 143.9,285.8 137.4,289.7 139.2,282.4 133.4,277.4 141.0,276.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
 <line x1="273.75" y1="151.5625" x2="261.0" y2="163.25000000000003" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
@@ -726,37 +733,38 @@ Point 3 is now 2.03 from m<sub>1</sub> but only 1.78 from m<sub>2</sub>, so it <
 
 <h3>Step 6 · Re-compute all distances with the new centroids</h3>
 <p class="expl-hint">Click a row (or a point in the plot) to see that point’s two distances worked out, drawn as right-angled triangles: the legs are |Δx| and |Δy|, the hypotenuse is the distance. Use ▶ to walk through all seven.</p>
+<p class="vkey">Colour key:<span class="sw" style="background:#2E7D4F"></span><span class="vx">x-values (Variable 1)</span><span class="sw" style="background:#6A3FA0"></span><span class="vy">y-values (Variable 2)</span></p>
 <div class="explorer" data-iter="2">
 <div class="expl-ctl"><button class="ex-prev" title="Previous point">◀</button><button class="ex-play" title="Step through all points">▶ Play</button><button class="ex-next" title="Next point">▶</button><span class="who"></span></div>
 <div class="expl-row">
-<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
-<th>d to m<sub>1</sub><br><span style="font-weight:normal">(1.25, 1.50)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(3.90, 5.10)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
-<tr data-p="1"><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">0.56</td><td class="">5.02</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="2"><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">0.56</td><td class="">3.92</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
-<tr data-p="3"><td class="rh">3</td><td>(3.00, 4.00)</td><td class="">3.05</td><td class="best">1.42</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="4"><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">6.66</td><td class="best">2.20</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="5"><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">4.16</td><td class="best">0.41</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="6"><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">4.78</td><td class="best">0.61</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
-<tr data-p="7"><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">3.75</td><td class="best">0.72</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<div class="expl-tbl"><table class="grid"><thead><tr><th>Individual</th><th>Point (<span class="vx" style="color:#bfe6cf">x</span>, <span class="vy" style="color:#d9c8f2">y</span>)</th>
+<th>d to m<sub>1</sub><br><span style="font-weight:normal">(<span class="vx">1.25</span>, <span class="vy">1.50</span>)</span></th><th>d to m<sub>2</sub><br><span style="font-weight:normal">(<span class="vx">3.90</span>, <span class="vy">5.10</span>)</span></th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr data-p="1"><td class="rh">1</td><td>(<span class="vx">1.00</span>, <span class="vy">1.00</span>)</td><td class="best">0.56</td><td class="">5.02</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="2"><td class="rh">2</td><td>(<span class="vx">1.50</span>, <span class="vy">2.00</span>)</td><td class="best">0.56</td><td class="">3.92</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr data-p="3"><td class="rh">3</td><td>(<span class="vx">3.00</span>, <span class="vy">4.00</span>)</td><td class="">3.05</td><td class="best">1.42</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="4"><td class="rh">4</td><td>(<span class="vx">5.00</span>, <span class="vy">7.00</span>)</td><td class="">6.66</td><td class="best">2.20</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="5"><td class="rh">5</td><td>(<span class="vx">3.50</span>, <span class="vy">5.00</span>)</td><td class="">4.16</td><td class="best">0.41</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="6"><td class="rh">6</td><td>(<span class="vx">4.50</span>, <span class="vy">5.00</span>)</td><td class="">4.78</td><td class="best">0.61</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr data-p="7"><td class="rh">7</td><td>(<span class="vx">3.50</span>, <span class="vy">4.50</span>)</td><td class="">3.75</td><td class="best">0.72</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
 </tbody></table></div>
 <div class="calc"></div>
-<div class="expl-plot"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
+<div class="expl-plot"><svg viewBox="0 0 400 416" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Distances of the selected point to both centroids"></svg></div>
 </div>
 </div>
-<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.25)² + (1.00 − 1.50)²] = √[(-0.25)² + (-0.50)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
-<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 3.90)² + (1.00 − 5.10)²] = √[(-2.90)² + (-4.10)²] = √[8.41 + 16.81] = √25.22 = <b>5.02</b></div></div>
-<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.25)² + (2.00 − 1.50)²] = √[(0.25)² + (0.50)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
-<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 3.90)² + (2.00 − 5.10)²] = √[(-2.40)² + (-3.10)²] = √[5.76 + 9.61] = √15.37 = <b>3.92</b></div></div>
-<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.25)² + (4.00 − 1.50)²] = √[(1.75)² + (2.50)²] = √[3.0625 + 6.25] = √9.3125 = <b>3.05</b></div>
-<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 3.90)² + (4.00 − 5.10)²] = √[(-0.90)² + (-1.10)²] = √[0.81 + 1.21] = √2.02 = <b>1.42</b></div></div>
-<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.25)² + (7.00 − 1.50)²] = √[(3.75)² + (5.50)²] = √[14.0625 + 30.25] = √44.3125 = <b>6.66</b></div>
-<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 3.90)² + (7.00 − 5.10)²] = √[(1.10)² + (1.90)²] = √[1.21 + 3.61] = √4.82 = <b>2.20</b></div></div>
-<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.25)² + (5.00 − 1.50)²] = √[(2.25)² + (3.50)²] = √[5.0625 + 12.25] = √17.3125 = <b>4.16</b></div>
-<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 3.90)² + (5.00 − 5.10)²] = √[(-0.40)² + (-0.10)²] = √[0.16 + 0.01] = √0.17 = <b>0.41</b></div></div>
-<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.25)² + (5.00 − 1.50)²] = √[(3.25)² + (3.50)²] = √[10.5625 + 12.25] = √22.8125 = <b>4.78</b></div>
-<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 3.90)² + (5.00 − 5.10)²] = √[(0.60)² + (-0.10)²] = √[0.36 + 0.01] = √0.37 = <b>0.61</b></div></div>
-<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.25)² + (4.50 − 1.50)²] = √[(2.25)² + (3.00)²] = √[5.0625 + 9.00] = √14.0625 = <b>3.75</b></div>
-<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 3.90)² + (4.50 − 5.10)²] = √[(-0.40)² + (-0.60)²] = √[0.16 + 0.36] = √0.52 = <b>0.72</b></div></div>
+<details class="alllist"><summary>Show all fourteen distance calculations as a list (printable)</summary><div><div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(<span class="vx">1.00 − 1.25</span>)² + (<span class="vy">1.00 − 1.50</span>)²] = √[(<span class="vx">-0.25</span>)² + (<span class="vy">-0.50</span>)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(<span class="vx">1.00 − 3.90</span>)² + (<span class="vy">1.00 − 5.10</span>)²] = √[(<span class="vx">-2.90</span>)² + (<span class="vy">-4.10</span>)²] = √[8.41 + 16.81] = √25.22 = <b>5.02</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(<span class="vx">1.50 − 1.25</span>)² + (<span class="vy">2.00 − 1.50</span>)²] = √[(<span class="vx">0.25</span>)² + (<span class="vy">0.50</span>)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(<span class="vx">1.50 − 3.90</span>)² + (<span class="vy">2.00 − 5.10</span>)²] = √[(<span class="vx">-2.40</span>)² + (<span class="vy">-3.10</span>)²] = √[5.76 + 9.61] = √15.37 = <b>3.92</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(<span class="vx">3.00 − 1.25</span>)² + (<span class="vy">4.00 − 1.50</span>)²] = √[(<span class="vx">1.75</span>)² + (<span class="vy">2.50</span>)²] = √[3.0625 + 6.25] = √9.3125 = <b>3.05</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(<span class="vx">3.00 − 3.90</span>)² + (<span class="vy">4.00 − 5.10</span>)²] = √[(<span class="vx">-0.90</span>)² + (<span class="vy">-1.10</span>)²] = √[0.81 + 1.21] = √2.02 = <b>1.42</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(<span class="vx">5.00 − 1.25</span>)² + (<span class="vy">7.00 − 1.50</span>)²] = √[(<span class="vx">3.75</span>)² + (<span class="vy">5.50</span>)²] = √[14.0625 + 30.25] = √44.3125 = <b>6.66</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(<span class="vx">5.00 − 3.90</span>)² + (<span class="vy">7.00 − 5.10</span>)²] = √[(<span class="vx">1.10</span>)² + (<span class="vy">1.90</span>)²] = √[1.21 + 3.61] = √4.82 = <b>2.20</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.25</span>)² + (<span class="vy">5.00 − 1.50</span>)²] = √[(<span class="vx">2.25</span>)² + (<span class="vy">3.50</span>)²] = √[5.0625 + 12.25] = √17.3125 = <b>4.16</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 3.90</span>)² + (<span class="vy">5.00 − 5.10</span>)²] = √[(<span class="vx">-0.40</span>)² + (<span class="vy">-0.10</span>)²] = √[0.16 + 0.01] = √0.17 = <b>0.41</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(<span class="vx">4.50 − 1.25</span>)² + (<span class="vy">5.00 − 1.50</span>)²] = √[(<span class="vx">3.25</span>)² + (<span class="vy">3.50</span>)²] = √[10.5625 + 12.25] = √22.8125 = <b>4.78</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(<span class="vx">4.50 − 3.90</span>)² + (<span class="vy">5.00 − 5.10</span>)²] = √[(<span class="vx">0.60</span>)² + (<span class="vy">-0.10</span>)²] = √[0.36 + 0.01] = √0.37 = <b>0.61</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(<span class="vx">3.50 − 1.25</span>)² + (<span class="vy">4.50 − 1.50</span>)²] = √[(<span class="vx">2.25</span>)² + (<span class="vy">3.00</span>)²] = √[5.0625 + 9.00] = √14.0625 = <b>3.75</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(<span class="vx">3.50 − 3.90</span>)² + (<span class="vy">4.50 − 5.10</span>)²] = √[(<span class="vx">-0.40</span>)² + (<span class="vy">-0.60</span>)²] = √[0.16 + 0.36] = √0.52 = <b>0.72</b></div></div>
 
 <h3>Distance table and assignment</h3>
 <table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
@@ -809,8 +817,8 @@ Every point is assigned to the same cluster as in iteration 1: {1, 2} and {3, 4,
 <line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<text x="210.0" y="414" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="210.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 210.0)">y (Variable 2)</text>
 <line x1="96.66666666666666" y1="337.5" x2="110.83333333333334" y2="316.25" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="125.0" y1="295.0" x2="110.83333333333334" y2="316.25" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="210.0" y1="210.0" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
@@ -902,8 +910,8 @@ Every point is assigned to the same cluster as in iteration 1: {1, 2} and {3, 4,
 <line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<text x="150.0" y="294" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="150.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 150.0)">y (Variable 2)</text>
 <line x1="76.66666666666666" y1="232.5" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="95.0" y1="205.0" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="150.0" y1="150.0" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
@@ -965,8 +973,8 @@ Every point is assigned to the same cluster as in iteration 1: {1, 2} and {3, 4,
 <line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<text x="150.0" y="294" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="150.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 150.0)">y (Variable 2)</text>
 <line x1="76.66666666666666" y1="232.5" x2="107.22222222222221" y2="195.83333333333331" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="95.0" y1="205.0" x2="107.22222222222221" y2="195.83333333333331" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="150.0" y1="150.0" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
@@ -1032,8 +1040,8 @@ Every point is assigned to the same cluster as in iteration 1: {1, 2} and {3, 4,
 <line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
 <text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
 <line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
-<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
-<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<text x="150.0" y="294" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D4F">x (Variable 1)</text>
+<text x="12" y="150.0" font-size="12" font-weight="bold" text-anchor="middle" fill="#6A3FA0" transform="rotate(-90 12 150.0)">y (Variable 2)</text>
 <line x1="76.66666666666666" y1="232.5" x2="85.83333333333334" y2="218.75" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="95.0" y1="205.0" x2="85.83333333333334" y2="218.75" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
 <line x1="150.0" y1="150.0" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
@@ -1178,6 +1186,8 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
       for(var y=0;y<=8;y++){ svg.appendChild(el('line',{x1:sx(0),y1:sy(y),x2:sx(6),y2:sy(y),stroke:'#eee'})); svg.appendChild(el('text',{x:32,y:sy(y)+4,'font-size':11,'text-anchor':'end',fill:'#666'},y)); }
       svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(6),y2:sy(0),stroke:'#999'}));
       svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(0),y2:sy(8),stroke:'#999'}));
+      svg.appendChild(el('text',{x:210,y:412,'font-size':11,'text-anchor':'middle',fill:'#2E7D4F','font-weight':'bold'},'x (Variable 1)'));
+      svg.appendChild(el('text',{x:12,y:210,'font-size':11,'text-anchor':'middle',fill:'#6A3FA0','font-weight':'bold',transform:'rotate(-90 12 210)'},'y (Variable 2)'));
     }
     function draw(i){
       drawBase();
@@ -1198,8 +1208,8 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
         // hypotenuse
         g.appendChild(el('line',{x1:px,y1:py,x2:mx,y2:my,stroke:c,'stroke-width':w?3:1.8}));
         // leg labels
-        if(Math.abs(mx-px)>34) g.appendChild(el('text',{x:(px+mx)/2,y:py+(my>py?-5:14),'font-size':11,'text-anchor':'middle',fill:c},'|Δx| = '+f2(Math.abs(d[j].dx))));
-        if(Math.abs(my-py)>34) g.appendChild(el('text',{x:mx+(mx>px?6:-6),y:(py+my)/2+4,'font-size':11,'text-anchor':(mx>px?'start':'end'),fill:c},'|Δy| = '+f2(Math.abs(d[j].dy))));
+        if(Math.abs(mx-px)>34) g.appendChild(el('text',{x:(px+mx)/2,y:py+(my>py?-5:14),'font-size':11,'text-anchor':'middle',fill:'#2E7D4F','font-weight':'bold'},'|Δx| = '+f2(Math.abs(d[j].dx))));
+        if(Math.abs(my-py)>34) g.appendChild(el('text',{x:mx+(mx>px?6:-6),y:(py+my)/2+4,'font-size':11,'text-anchor':(mx>px?'start':'end'),fill:'#6A3FA0','font-weight':'bold'},'|Δy| = '+f2(Math.abs(d[j].dy))));
         // distance label on hypotenuse
         var lx=(px+mx)/2, ly=(py+my)/2, nx=-(my-py), ny=(mx-px), nl=Math.sqrt(nx*nx+ny*ny)||1;
         if(Math.hypot(mx-px,my-py)>48){ var t=el('text',{x:lx+13*nx/nl,y:ly+13*ny/nl+4,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:c},'d = '+f2(d[j].d)); g.appendChild(t); }
@@ -1208,20 +1218,20 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
       // all points, faint
       P.forEach(function(q,idx){ if(idx===i) return; svg.appendChild(el('circle',{cx:sx(q[0]),cy:sy(q[1]),r:5,fill:'#c9c9c9',stroke:'#fff','stroke-width':1.5})); svg.appendChild(el('text',{x:sx(q[0])+8,y:sy(q[1])-7,'font-size':11,fill:'#888'},idx+1)); });
       // centroids
-      [0,1].forEach(function(j){ var mx=sx(m[j][0]), my=sy(m[j][1]); svg.appendChild(el('polygon',{points:star(mx,my),fill:COL[j],stroke:'#fff','stroke-width':1.5})); svg.appendChild(el('text',{x:mx+(j?-14:14),y:my+(j?-12:22),'font-size':12,'font-weight':'bold','text-anchor':(j?'end':'start'),fill:COL[j]},'m'+(j+1)+' ('+f2(m[j][0])+', '+f2(m[j][1])+')')); });
+      [0,1].forEach(function(j){ var mx=sx(m[j][0]), my=sy(m[j][1]); svg.appendChild(el('polygon',{points:star(mx,my),fill:COL[j],stroke:'#fff','stroke-width':1.5})); var lt=el('text',{x:mx+(j?-14:14),y:my+(j?-12:22),'font-size':12,'font-weight':'bold','text-anchor':(j?'end':'start'),fill:COL[j]}); lt.appendChild(el('tspan',{},'m'+(j+1)+' (')); lt.appendChild(el('tspan',{fill:'#2E7D4F'},f2(m[j][0]))); lt.appendChild(el('tspan',{},', ')); lt.appendChild(el('tspan',{fill:'#6A3FA0'},f2(m[j][1]))); lt.appendChild(el('tspan',{},')')); svg.appendChild(lt); });
       // selected point
       svg.appendChild(el('circle',{cx:px,cy:py,r:8,fill:COL[win],stroke:'#E78439','stroke-width':3}));
       svg.appendChild(el('text',{x:px+11,y:py-9,'font-size':13,'font-weight':'bold',fill:'#1c2530'},i+1));
 
-      who.innerHTML = 'Point '+(i+1)+' = ('+f2(p[0])+', '+f2(p[1])+')';
+      who.innerHTML = 'Point '+(i+1)+' = (<span class="vx">'+f2(p[0])+'</span>, <span class="vy">'+f2(p[1])+'</span>)';
       var h = '';
       [0,1].forEach(function(j){
         var q=d[j], w=(j===win);
         var sgn = function(v){ return (v<0?'−':'')+f4(Math.abs(v)); };
         h += '<div class="row '+(w?'win':'lose')+'"><span class="lab m'+(j+1)+'">d('+(i+1)+', m<sub>'+(j+1)+'</sub>)</span><div class="steps">'
-          +'<span>= √[('+f2(p[0])+' − '+f4(m[j][0])+')² + ('+f2(p[1])+' − '+f4(m[j][1])+')²]</span>'
-          +'<span>= √[('+sgn(q.dx)+')² + ('+sgn(q.dy)+')²]</span>'
-          +'<span>= √['+f4(q.dx*q.dx)+' + '+f4(q.dy*q.dy)+'] = √'+f4(q.sq)+'</span>'
+          +'<span>= √[(<span class="vx">'+f2(p[0])+' − '+f4(m[j][0])+'</span>)² + (<span class="vy">'+f2(p[1])+' − '+f4(m[j][1])+'</span>)²]</span>'
+          +'<span>= √[(<span class="vx">'+sgn(q.dx)+'</span>)² + (<span class="vy">'+sgn(q.dy)+'</span>)²]</span>'
+          +'<span>= √[<span class="vx">'+f4(q.dx*q.dx)+'</span> + <span class="vy">'+f4(q.dy*q.dy)+'</span>] = √'+f4(q.sq)+'</span>'
           +'<span class="fin">= '+f2(q.d)+(w?' ← nearer':'')+'</span></div></div>';
       });
       h += '<div class="verdict">'+(tie?'Exact tie ('+f2(d[0].d)+' = '+f2(d[1].d)+'): the first centroid wins by the argmin rule, so':'Since '+f2(d[win].d)+' &lt; '+f2(d[1-win].d)+',')+' point '+(i+1)+' goes to <span class="chip c'+(win+1)+'">C'+(win+1)+'</span></div>';
@@ -1299,8 +1309,8 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
     for(var x=0;x<=XMAX;x++){svg.appendChild(el('line',{x1:sx(x),y1:sy(0),x2:sx(x),y2:sy(YMAX),stroke:'#eee'}));svg.appendChild(el('text',{x:sx(x),y:Y0+16,'font-size':11,'text-anchor':'middle',fill:'#666'},x));}
     for(var y=0;y<=YMAX;y++){svg.appendChild(el('line',{x1:sx(0),y1:sy(y),x2:sx(XMAX),y2:sy(y),stroke:'#eee'}));svg.appendChild(el('text',{x:X0-8,y:sy(y)+4,'font-size':11,'text-anchor':'end',fill:'#666'},y));}
     svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(XMAX),y2:sy(0),stroke:'#999'})); svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(0),y2:sy(YMAX),stroke:'#999'}));
-    svg.appendChild(el('text',{x:(X0+X1)/2,y:H-4,'font-size':12,'text-anchor':'middle',fill:'#444'},'Variable 1'));
-    svg.appendChild(el('text',{x:12,y:(Y0+Y1)/2,'font-size':12,'text-anchor':'middle',fill:'#444',transform:'rotate(-90 12 '+((Y0+Y1)/2)+')'},'Variable 2'));
+    svg.appendChild(el('text',{x:(X0+X1)/2,y:H-4,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:'#2E7D4F'},'x (Variable 1)'));
+    svg.appendChild(el('text',{x:12,y:(Y0+Y1)/2,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:'#6A3FA0',transform:'rotate(-90 12 '+((Y0+Y1)/2)+')'},'y (Variable 2)'));
     // assignment spokes
     pts.forEach(function(p,i){ if(assign[i]==null) return; var m=M[assign[i]]; svg.appendChild(el('line',{x1:sx(p[0]),y1:sy(p[1]),x2:sx(m[0]),y2:sy(m[1]),stroke:COL[assign[i]],'stroke-width':1.2,'stroke-dasharray':'3,3',opacity:.7})); });
     // trails
@@ -1407,12 +1417,12 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
     for(var i=0;i<7;i++){
       var p=P[i], d=[0,1].map(function(j){var dx=p[0]-M[j][0],dy=p[1]-M[j][1];return {dx:dx,dy:dy,a:dx*dx,b:dy*dy,sq:dx*dx+dy*dy,d:Math.sqrt(dx*dx+dy*dy)};});
       var win=d[0].d<=d[1].d?0:1, tie=Math.abs(d[0].d-d[1].d)<1e-9;
-      function card(j,mode){ var q=d[j]; var cls='card'+(mode==='win'?' win':mode==='dim'?' dim':''); return '<div class="'+cls+'"><div class="m"><span class="c'+(j+1)+'"><b>d('+(i+1)+', '+msub(j)+')</b> = √[('+f2(p[0])+' − '+f4(M[j][0])+')² + ('+f2(p[1])+' − '+f4(M[j][1])+')²]</span><span>= √[('+sg(q.dx)+')² + ('+sg(q.dy)+')²] = √['+f4(q.a)+' + '+f4(q.b)+']</span><span class="win">= √'+f4(q.sq)+' = '+f2(q.d)+'</span></div></div>'; }
-      var head='<p class="ph"><span class="pass">Pass '+pass+'</span>Assignment step · point '+(i+1)+' of 7</p><p class="sub">Point '+(i+1)+' = ('+f2(p[0])+', '+f2(p[1])+')</p>';
+      function card(j,mode){ var q=d[j]; var cls='card'+(mode==='win'?' win':mode==='dim'?' dim':''); return '<div class="'+cls+'"><div class="m"><span class="c'+(j+1)+'"><b>d('+(i+1)+', '+msub(j)+')</b> = √[(<span class="vx">'+f2(p[0])+' − '+f4(M[j][0])+'</span>)² + (<span class="vy">'+f2(p[1])+' − '+f4(M[j][1])+'</span>)²]</span><span>= √[(<span class="vx">'+sg(q.dx)+'</span>)² + (<span class="vy">'+sg(q.dy)+'</span>)²] = √[<span class="vx">'+f4(q.a)+'</span> + <span class="vy">'+f4(q.b)+'</span>]</span><span class="win">= √'+f4(q.sq)+' = '+f2(q.d)+'</span></div></div>'; }
+      var head='<p class="ph"><span class="pass">Pass '+pass+'</span>Assignment step · point '+(i+1)+' of 7</p><p class="sub">Point '+(i+1)+' = (<span class="vx">'+f2(p[0])+'</span>, <span class="vy">'+f2(p[1])+'</span>)</p>';
       // d to m1
       newAssign[i]=null;
-      steps.push(snap({type:'dist',pt:i,j:0,d:d,html:head+'<p class="fade">Distance to <b class="c1">m<sub>1</sub> = ('+f2(M[0][0])+', '+f2(M[0][1])+')</b>: legs |\u0394x| = '+f2(Math.abs(d[0].dx))+' and |\u0394y| = '+f2(Math.abs(d[0].dy))+', so</p>'+card(0,'')}));
-      steps.push(snap({type:'dist',pt:i,j:1,d:d,html:head+card(0,'dim')+'<p class="fade">Distance to <b class="c2">m<sub>2</sub> = ('+f2(M[1][0])+', '+f2(M[1][1])+')</b>: legs |\u0394x| = '+f2(Math.abs(d[1].dx))+' and |\u0394y| = '+f2(Math.abs(d[1].dy))+', so</p>'+card(1,'')}));
+      steps.push(snap({type:'dist',pt:i,j:0,d:d,html:head+'<p class="fade">Distance to <b class="c1">m<sub>1</sub> = ('+f2(M[0][0])+', '+f2(M[0][1])+')</b>: legs <span class="vx">|\u0394x| = '+f2(Math.abs(d[0].dx))+'</span> and <span class="vy">|\u0394y| = '+f2(Math.abs(d[0].dy))+'</span>, so</p>'+card(0,'')}));
+      steps.push(snap({type:'dist',pt:i,j:1,d:d,html:head+card(0,'dim')+'<p class="fade">Distance to <b class="c2">m<sub>2</sub> = ('+f2(M[1][0])+', '+f2(M[1][1])+')</b>: legs <span class="vx">|\u0394x| = '+f2(Math.abs(d[1].dx))+'</span> and <span class="vy">|\u0394y| = '+f2(Math.abs(d[1].dy))+'</span>, so</p>'+card(1,'')}));
       // verdict
       var v = tie ? '<div class="box guard fade"><span class="bt">Exact tie: '+f2(d[0].d)+' = '+f2(d[1].d)+'</span>A tie needs a rule. Like <code>argmin</code>, take the first centroid: point '+(i+1)+' goes to '+chip(0)+'.</div>'
                   : '<div class="m fade"><span>'+f2(d[win].d)+' &lt; '+f2(d[1-win].d)+', so '+msub(win)+' is nearer: point '+(i+1)+' goes to '+chip(win)+'</span></div>';
@@ -1439,7 +1449,7 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
       var mx=g.reduce(function(a,i){return a+P[i-1][0];},0)/g.length, my=g.reduce(function(a,i){return a+P[i-1][1];},0)/g.length;
       newM[j]=[mx,my];
       var sxs=g.reduce(function(a,i){return a+P[i-1][0];},0), sys=g.reduce(function(a,i){return a+P[i-1][1];},0);
-      var h='<p class="ph"><span class="pass">Pass '+pass+'</span>Update step · centroid '+(j+1)+'</p><p class="sub"><span class="c'+(j+1)+'">Cluster '+(j+1)+' = {'+g.join(', ')+'}</span> — '+g.length+' point'+(g.length===1?'':'s')+'</p><div class="m"><span>New '+msub(j)+' = mean of its points:</span><span>x̄ = ('+xs.join(' + ')+') / '+g.length+' = '+f4(sxs)+' / '+g.length+' = <b>'+f4(mx)+'</b></span><span>ȳ = ('+ys.join(' + ')+') / '+g.length+' = '+f4(sys)+' / '+g.length+' = <b>'+f4(my)+'</b></span><span class="win c'+(j+1)+'">'+msub(j)+': ('+f2(M[j][0])+', '+f2(M[j][1])+') → ('+f2(mx)+', '+f2(my)+')</span></div>';
+      var h='<p class="ph"><span class="pass">Pass '+pass+'</span>Update step · centroid '+(j+1)+'</p><p class="sub"><span class="c'+(j+1)+'">Cluster '+(j+1)+' = {'+g.join(', ')+'}</span> — '+g.length+' point'+(g.length===1?'':'s')+'</p><div class="m"><span>New '+msub(j)+' = mean of its points:</span><span class="vx">x̄ = ('+xs.join(' + ')+') / '+g.length+' = '+f4(sxs)+' / '+g.length+' = <b>'+f4(mx)+'</b></span><span class="vy">ȳ = ('+ys.join(' + ')+') / '+g.length+' = '+f4(sys)+' / '+g.length+' = <b>'+f4(my)+'</b></span><span class="win c'+(j+1)+'">'+msub(j)+': ('+f2(M[j][0])+', '+f2(M[j][1])+') → ('+f2(mx)+', '+f2(my)+')</span></div>';
       steps.push(snap({type:'mean',j:j,newM:newM[j].slice(),html:h}));
       var moved=Math.sqrt(d2(M[j],newM[j]));
       steps.push(snap({type:'move',j:j,from:M[j].slice(),to:newM[j].slice(),html:h+'<div class="m fade"><span>The centroid slides '+f2(moved)+' units to the mean of its cluster'+(moved<1e-9?' — it does not move at all':'')+'.</span></div>'}));
@@ -1457,8 +1467,8 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
     for(var x=0;x<=XMAX;x++){svg.appendChild(el('line',{x1:sx(x),y1:sy(0),x2:sx(x),y2:sy(YMAX),stroke:'#eee'}));svg.appendChild(el('text',{x:sx(x),y:Y0+16,'font-size':11,'text-anchor':'middle',fill:'#666'},x));}
     for(var y=0;y<=YMAX;y++){svg.appendChild(el('line',{x1:sx(0),y1:sy(y),x2:sx(XMAX),y2:sy(y),stroke:'#eee'}));svg.appendChild(el('text',{x:X0-8,y:sy(y)+4,'font-size':11,'text-anchor':'end',fill:'#666'},y));}
     svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(XMAX),y2:sy(0),stroke:'#999'}));svg.appendChild(el('line',{x1:sx(0),y1:sy(0),x2:sx(0),y2:sy(YMAX),stroke:'#999'}));
-    svg.appendChild(el('text',{x:(X0+X1)/2,y:436,'font-size':12,'text-anchor':'middle',fill:'#444'},'Variable 1'));
-    svg.appendChild(el('text',{x:12,y:(Y0+Y1)/2,'font-size':12,'text-anchor':'middle',fill:'#444',transform:'rotate(-90 12 '+((Y0+Y1)/2)+')'},'Variable 2'));
+    svg.appendChild(el('text',{x:(X0+X1)/2,y:436,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:'#2E7D4F'},'x (Variable 1)'));
+    svg.appendChild(el('text',{x:12,y:(Y0+Y1)/2,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:'#6A3FA0',transform:'rotate(-90 12 '+((Y0+Y1)/2)+')'},'y (Variable 2)'));
   }
   function triangle(p,m,c,strong){
     var px=sx(p[0]),py=sy(p[1]),mx=sx(m[0]),my=sy(m[1]);
@@ -1469,8 +1479,8 @@ Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) a
     if(Math.abs(mx-px)>8&&Math.abs(my-py)>8) g.appendChild(el('path',{d:'M'+(mx+ax)+','+py+' L'+(mx+ax)+','+(py+ay)+' L'+mx+','+(py+ay),fill:'none',stroke:c,'stroke-width':1}));
     g.appendChild(el('line',{x1:px,y1:py,x2:mx,y2:my,stroke:c,'stroke-width':strong?3:1.6}));
     var dx=Math.abs(p[0]-m[0]),dy=Math.abs(p[1]-m[1]),d=Math.sqrt(dx*dx+dy*dy);
-    if(Math.abs(mx-px)>34) g.appendChild(el('text',{x:(px+mx)/2,y:py+(my>py?-5:14),'font-size':11,'text-anchor':'middle',fill:c},'|Δx| = '+f2(dx)));
-    if(Math.abs(my-py)>34) g.appendChild(el('text',{x:mx+(mx>px?6:-6),y:(py+my)/2+4,'font-size':11,'text-anchor':(mx>px?'start':'end'),fill:c},'|Δy| = '+f2(dy)));
+    if(Math.abs(mx-px)>34) g.appendChild(el('text',{x:(px+mx)/2,y:py+(my>py?-5:14),'font-size':11,'text-anchor':'middle',fill:'#2E7D4F','font-weight':'bold'},'|Δx| = '+f2(dx)));
+    if(Math.abs(my-py)>34) g.appendChild(el('text',{x:mx+(mx>px?6:-6),y:(py+my)/2+4,'font-size':11,'text-anchor':(mx>px?'start':'end'),fill:'#6A3FA0','font-weight':'bold'},'|Δy| = '+f2(dy)));
     var lx=(px+mx)/2,ly=(py+my)/2,nx=-(my-py),ny=(mx-px),nl=Math.sqrt(nx*nx+ny*ny)||1;
     if(Math.hypot(mx-px,my-py)>48) g.appendChild(el('text',{x:lx+13*nx/nl,y:ly+13*ny/nl+4,'font-size':12,'font-weight':'bold','text-anchor':'middle',fill:c},'d = '+f2(d)));
     svg.appendChild(g);
