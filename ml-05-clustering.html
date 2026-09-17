@@ -73,7 +73,7 @@
 <div class="tabbar" role="tablist" id="tabbar">
   <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What is Clustering?</button>
   <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Distance &amp; K-means</button>
-  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>K-means Worked Example</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>K-means Worked Example (K = 2)</button>
   <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>K-medoids (PAM)</button>
   <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>DBSCAN</button>
   <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Choosing MinPts &amp; ε</button>
@@ -309,99 +309,22 @@
   <div class="sh"><h3>PLOT</h3><span class="num">Slide 26</span></div>
   <div class="imgwrap"><img src="assets/ml05/slide-26.jpg" alt="PLOT" loading="lazy" width="1100" height="825"></div>
 </div>
-<div class="xlink" style="border:1px solid #BD582C;background:#FDF4EF;border-radius:6px;padding:12px 16px;margin:6px 0 18px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
-  <div style="flex:1 1 320px">
-    <div style="font-family:'Caladea','Cambria','Georgia',serif;color:#BD582C;font-weight:bold;font-size:1.05rem;margin-bottom:4px">Worked by hand: the seven-point example above, K = 2</div>
-    <div style="font-size:.93rem">Slides 18–26 give the answer; this page shows the arithmetic. Every distance is expanded step by step, each centroid update is written out as a mean, and an interactive plot draws the two distances of any point as right-angled triangles so you can see why it lands in the cluster it does. Three passes, J = 33.25 → 11.23 → 8.53, with the tie at point 3 explained.</div>
-  </div>
-  <a href="kmeans-worked-example.html" style="align-self:center;white-space:nowrap;background:#BD582C;color:#fff;text-decoration:none;font-weight:bold;padding:8px 16px;border-radius:5px">Open the worked example →</a>
-</div>
 <div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
 </section>
 <section class="tab-panel" id="t3">
-<h2>3. K-means Worked Example</h2>
-<div class="slide" id="s27">
-  <div class="sh"><h3>Real-Life Numerical Example of K-Means Clustering</h3><span class="num">Slide 27</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-27.jpg" alt="Real-Life Numerical Example of K-Means Clustering" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>We have 4 medicines as our training data points object and each medicine has 2 attributes. Each attribute represents coordinate of the object. We have to determine which medicines belong to cluster 1 and which medicines belong to the other cluster.</li>
-</ul>
-<table><thead><tr><th>Object</th><th>Attribute1 (X): weight index</th><th>Attribute 2 (Y): pH</th></tr></thead><tbody>
-<tr><td>Medicine A</td><td>1</td><td>1</td></tr>
-<tr><td>Medicine B</td><td>2</td><td>1</td></tr>
-<tr><td>Medicine C</td><td>4</td><td>3</td></tr>
-<tr><td>Medicine D</td><td>5</td><td>4</td></tr>
-</tbody></table></div>
-</div>
-<div class="slide" id="s28">
-  <div class="sh"><h3>Step 1:</h3><span class="num">Slide 28</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-28.jpg" alt="Step 1:" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>Initial value of centroids : Suppose we use medicine A and medicine B as the first centroids.</li>
-<li>Let and c1 and c2 denote the coordinate of the centroids, then c1=(1,1) and c2=(2,1)</li>
-</ul></div>
-</div>
-<div class="slide" id="s29">
-  <div class="sh"><h3>Objects-Centroids distance : we calculate the distance between cluster centroid to each object. Let us use Euclidean distance, then we have distance matrix at iteration 0 is</h3><span class="num">Slide 29</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-29.jpg" alt="Objects-Centroids distance : we calculate the distance between cluster centroid to each object. Let us use Euclidean distance, then we have distance matrix at iteration 0 is" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>Each column in the distance matrix symbolizes the object.</li>
-<li>The first row of the distance matrix corresponds to the distance of each object to the first centroid and the second row is the distance of each object to the second centroid.</li>
-<li>For example, distance from medicine C = (4, 3) to the first centroid is , and its distance to the second centroid is , is etc.</li>
-</ul></div>
-</div>
-<div class="slide" id="s30">
-  <div class="sh"><h3>Step 2:</h3><span class="num">Slide 30</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-30.jpg" alt="Step 2:" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>Objects clustering : We assign each object based on the minimum distance.</li>
-<li>Medicine A is assigned to group 1, medicine B to group 2, medicine C to group 2 and medicine D to group 2.</li>
-<li>The elements of Group matrix below is 1 if and only if the object is assigned to that group.</li>
-</ul></div>
-</div>
-<div class="slide" id="s31">
-  <div class="sh"><h3>Iteration-1, Objects-Centroids distances : The next step is to compute the distance of all objects to the new centroids.</h3><span class="num">Slide 31</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-31.jpg" alt="Iteration-1, Objects-Centroids distances : The next step is to compute the distance of all objects to the new centroids." loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>Similar to step 2, we have distance matrix at iteration 1 is</li>
-</ul></div>
-</div>
-<div class="slide" id="s32">
-  <div class="sh"><h3>Iteration-1, Objects clustering:Based on the new distance matrix, we move the medicine B to Group 1 while all the other objects remain. The Group matrix is shown below</h3><span class="num">Slide 32</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-32.jpg" alt="Iteration-1, Objects clustering:Based on the new distance matrix, we move the medicine B to Group 1 while all the other objects remain. The Group matrix is shown below" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>Iteration 2, determine centroids: Now we repeat step 4 to calculate the new centroids coordinate based on the clustering of previous iteration. Group1 and group 2 both has two members, thus the new centroids are</li>
-<li>and</li>
-</ul></div>
-</div>
-<div class="slide" id="s33">
-  <div class="sh"><h3>Iteration-2, Objects-Centroids distances : Repeat step 2 again, we have new distance matrix at iteration 2 as</h3><span class="num">Slide 33</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-33.jpg" alt="Iteration-2, Objects-Centroids distances : Repeat step 2 again, we have new distance matrix at iteration 2 as" loading="lazy" width="1100" height="825"></div>
-</div>
-<div class="slide" id="s34">
-  <div class="sh"><h3>Iteration-2, Objects clustering: Again, we assign each object based on the minimum distance.</h3><span class="num">Slide 34</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-34.jpg" alt="Iteration-2, Objects clustering: Again, we assign each object based on the minimum distance." loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><ul>
-<li>We obtain result that . Comparing the grouping of last iteration and this iteration reveals that the objects does not move group anymore.</li>
-<li>Thus, the computation of the k-mean clustering has reached its stability and no more iteration is needed..</li>
-</ul></div>
-</div>
-<div class="slide" id="s35">
-  <div class="sh"><h3>Slide 35</h3><span class="num">Slide 35</span></div>
-  <div class="imgwrap"><img src="assets/ml05/slide-35.jpg" alt="Slide 35" loading="lazy" width="1100" height="825"></div>
-  <div class="txt"><table><thead><tr><th>Object</th><th>Feature1(X):
-weight index</th><th>Feature2
-(Y): pH</th><th>Group
-(result)</th></tr></thead><tbody>
-<tr><td>Medicine A</td><td>1</td><td>1</td><td>1</td></tr>
-<tr><td>Medicine B</td><td>2</td><td>1</td><td>1</td></tr>
-<tr><td>Medicine C</td><td>4</td><td>3</td><td>2</td></tr>
-<tr><td>Medicine D</td><td>5</td><td>4</td><td>2</td></tr>
-</tbody></table>
-<ul>
-<li>We get the final grouping as the results as:</li>
-</ul></div>
-</div>
+<h2>3. K-means Worked Example (K = 2)</h2>
+<p>The seven-point example from slides 18–26, worked by hand: every distance expanded, every centroid written out as a mean, an interactive plot for each pass, and a playground at the end where you can change K. It is embedded below; <a href="kmeans-worked-example.html" target="_blank" rel="noopener">open it in its own page</a> if you want it full width.</p>
+<iframe id="kmeans-embed" src="kmeans-worked-example.html" title="K-means worked example (K = 2)" style="width:100%;border:1px solid #e3d8cf;border-radius:6px;min-height:80vh;display:block" loading="lazy"></iframe>
+<script>
+(function(){
+  var f=document.getElementById('kmeans-embed');
+  window.addEventListener('message', function(e){
+    if(!e.data) return;
+    if(e.data.kmeansHeight){ f.style.height=(e.data.kmeansHeight+24)+'px'; }
+    if(e.data.kmeansTop){ var top=f.getBoundingClientRect().top+window.pageYOffset-70; window.scrollTo({top:top,behavior:'smooth'}); }
+  });
+})();
+</script>
 <div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
 </section>
 <section class="tab-panel" id="t4">
