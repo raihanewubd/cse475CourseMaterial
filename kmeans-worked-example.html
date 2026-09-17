@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-means Worked Example (K = 2) — CSE475 Machine Learning</title>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .dept{margin-top:6px}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  li.sub{margin-left:1.2em;list-style:circle}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide img{display:block;width:100%;max-width:860px;margin:0 auto;height:auto;background:#fff}
+  .slide .imgwrap{border-bottom:1px solid var(--line);background:#fafafa}
+  .slide .txt{padding:8px 14px 4px;background:var(--card);font-size:.93rem}
+  .slide .txt ul{margin:.3em 0}
+  .slide .txt:empty{display:none}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  @media(max-width:680px){.page{padding:18px}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  figure{margin:10px 0;text-align:center}
+  figure.center{max-width:460px;margin:10px auto}
+  figure svg{display:block;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:5px}
+  figcaption{font-size:.84rem;color:var(--gray);margin-top:5px;text-align:left}
+  .eq{font-family:"Cambria Math","Cambria","Georgia",serif;background:var(--card);border-left:3px solid var(--rust);padding:6px 10px;margin:5px 0;border-radius:3px;font-size:.95rem;overflow-x:auto}
+  .eq.big{font-size:1.15rem;text-align:center;border-left:0;border:1px solid var(--rust)}
+  .pt{margin:8px 0 12px}
+  .ptl{display:block;font-weight:bold;color:var(--navy);margin-bottom:2px}
+  .grid td,.grid th{text-align:center}
+  .grid td.rh{background:var(--navy);color:#fff;font-weight:bold}
+  .grid td.best{background:var(--peach);font-weight:bold}
+  .grid tr.hl td{outline:2px solid var(--orange);outline-offset:-2px}
+  .chip{display:inline-block;color:#fff;font-weight:bold;padding:1px 8px;border-radius:10px;font-size:.8rem}
+  .chip.c1{background:#BD582C} .chip.c2{background:#2D5B8A}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle}
+  .small{font-size:.85rem;color:var(--gray)}
+  .box{border-radius:5px;padding:10px 14px;margin:14px 0;border:1px solid}
+  .box .bt{font-family:"Caladea",serif;font-weight:bold;display:block;margin-bottom:5px}
+  .box.guard{background:var(--peach);border-color:var(--rust)} .box.guard .bt{color:var(--rust)}
+  .box.plain{background:#fff;border-color:var(--green)} .box.plain .bt{color:var(--green)}
+  .box.tip{background:var(--card);border-color:var(--navy)} .box.tip .bt{color:var(--navy)}
+  .flow{margin:14px 0}
+  .flow .step{border:1px solid var(--rust);background:var(--card);border-radius:5px;padding:10px 14px;margin:0 0 6px}
+  .flow .start,.flow .end{background:var(--navy);color:#fff;text-align:center;font-weight:bold;border-color:var(--navy)}
+  .flow .end{background:#fff;color:var(--navy);border:1px solid var(--green)}
+  .flow .step .t{color:var(--rust);font-weight:bold}
+  .flow .push{font-family:"Cambria Math","Cambria",serif;font-size:.9rem;color:var(--navy);display:block;margin-top:4px}
+  .flow .arrow{text-align:center;color:var(--navy);font-size:1.1rem;margin:-2px 0 4px}
+  @media(max-width:720px){.two,.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>K-means Worked Example (K = 2)</h1>
+  <div class="sub">Seven points, two clusters, every distance and every centroid computed by hand</div>
+  <div class="dept">Department of Computer Science and Engineering<br>East West University, Dhaka, Bangladesh</div>
+  <div class="attr">Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> This page takes the seven-point example from Lecture 2 (<a href="ml-05-clustering.html#t2">slides 18–23</a>) and runs K-means on it with nothing hidden: every Euclidean distance is expanded, every centroid is a written-out average, and each pass has a diagram showing which centroid each point is pulled to and how the centroids move. The algorithm converges after two centroid updates. <em>Use the tabs to follow the iterations.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Data &amp; Algorithm</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Iteration 0 · Initialise &amp; Assign</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>Iteration 1 · Update &amp; Re-assign</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>Iteration 2 · Convergence</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>Summary &amp; Lessons</button>
+</div>
+
+<!-- ================= TAB 1 ================= -->
+<section class="tab-panel" id="t1">
+<h2>1. Data &amp; Algorithm</h2>
+
+<h3>The dataset</h3>
+<div class="two">
+<div>
+<table class="grid">
+<thead><tr><th>Individual</th><th>Variable 1 (x)</th><th>Variable 2 (y)</th></tr></thead>
+<tbody>
+<tr><td class="rh">1</td><td>1.00</td><td>1.00</td></tr><tr><td class="rh">2</td><td>1.50</td><td>2.00</td></tr><tr><td class="rh">3</td><td>3.00</td><td>4.00</td></tr><tr><td class="rh">4</td><td>5.00</td><td>7.00</td></tr><tr><td class="rh">5</td><td>3.50</td><td>5.00</td></tr><tr><td class="rh">6</td><td>4.50</td><td>5.00</td></tr><tr><td class="rh">7</td><td>3.50</td><td>4.50</td></tr>
+</tbody></table>
+<p>Seven individuals, each described by two variables. There are no labels: the task is to split them into <b>K = 2</b> groups so that points in a group are close to each other.</p>
+</div>
+<figure><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The seven unlabelled points">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+</svg><figcaption>Figure 1. The raw data. Nothing is known yet about which point belongs with which.</figcaption></figure>
+</div>
+
+<h3>What K-means is trying to minimise</h3>
+<p>K-means looks for centroids <i>m</i><sub>1</sub>, <i>m</i><sub>2</sub> and an assignment of every point to one of them that makes the <b>sum of squared distances</b> as small as possible:</p>
+<div class="eq big">J = Σ<sub>j=1..K</sub> Σ<sub>x ∈ S<sub>j</sub></sub> ‖x − m<sub>j</sub>‖²</div>
+<p>It does not solve this exactly. It alternates two easy steps, each of which can only lower J (or leave it unchanged):</p>
+
+<div class="flow">
+  <div class="step start">Choose K = 2 and pick two initial centroids</div>
+  <div class="arrow">↓</div>
+  <div class="step"><span class="t">Assignment step.</span> For every point compute its Euclidean distance to each centroid and put it in the cluster of the nearest centroid.<span class="push">d(p, m) = √[(p<sub>x</sub> − m<sub>x</sub>)² + (p<sub>y</sub> − m<sub>y</sub>)²]</span></div>
+  <div class="arrow">↓</div>
+  <div class="step"><span class="t">Update step.</span> Move each centroid to the mean of the points now assigned to it.<span class="push">m<sub>j</sub> = ( mean of x-values , mean of y-values ) over the points in cluster j</span></div>
+  <div class="arrow">↓</div>
+  <div class="step"><span class="t">Stop test.</span> If no point changed cluster (equivalently, the centroids did not move), stop. Otherwise go back to the assignment step.</div>
+  <div class="arrow">↓</div>
+  <div class="step end">Output the final clusters and centroids</div>
+</div>
+
+<div class="box tip"><span class="bt">Reading the diagrams</span>
+Circles are data points, numbered 1–7. Stars are centroids: <span class="sw" style="background:#BD582C"></span> m<sub>1</sub> and <span class="sw" style="background:#2D5B8A"></span> m<sub>2</sub>. A dashed line joins each point to the centroid it is assigned to. A green arrow shows a centroid moving from its old position (faded star) to its new one. A point with an orange ring is one whose cluster changed in that pass.</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ================= TAB 2 ================= -->
+<section class="tab-panel" id="t2">
+<h2>2. Iteration 0 — Initialise and Assign</h2>
+
+<h3>Step 1 · Initial centroids</h3>
+<p>The slides pick individuals 1 and 4 as the starting centroids (any choice would do; this one is far apart, which is a sensible heuristic):</p>
+<div class="eq"><b>m<sub>1</sub></b> = point 1 = <b>(1.00, 1.00)</b> &nbsp;&nbsp;&nbsp; <b>m<sub>2</sub></b> = point 4 = <b>(5.00, 7.00)</b></div>
+
+<h3>Step 2 · Distance of every point to both centroids</h3>
+<p>Each distance below is the Euclidean formula expanded in full. Compare the two numbers on each row: the smaller one decides the cluster.</p>
+<div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.00)² + (1.00 − 1.00)²] = √[(0.00)² + (0.00)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 5.00)² + (1.00 − 7.00)²] = √[(-4.00)² + (-6.00)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.00)² + (2.00 − 1.00)²] = √[(0.50)² + (1.00)²] = √[0.25 + 1.00] = √1.25 = <b>1.12</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 5.00)² + (2.00 − 7.00)²] = √[(-3.50)² + (-5.00)²] = √[12.25 + 25.00] = √37.25 = <b>6.10</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.00)² + (4.00 − 1.00)²] = √[(2.00)² + (3.00)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 5.00)² + (4.00 − 7.00)²] = √[(-2.00)² + (-3.00)²] = √[4.00 + 9.00] = √13.00 = <b>3.61</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.00)² + (7.00 − 1.00)²] = √[(4.00)² + (6.00)²] = √[16.00 + 36.00] = √52.00 = <b>7.21</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 5.00)² + (7.00 − 7.00)²] = √[(0.00)² + (0.00)²] = √[0.00 + 0.00] = √0.00 = <b>0.00</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.00)² + (5.00 − 1.00)²] = √[(2.50)² + (4.00)²] = √[6.25 + 16.00] = √22.25 = <b>4.72</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 5.00)² + (5.00 − 7.00)²] = √[(-1.50)² + (-2.00)²] = √[2.25 + 4.00] = √6.25 = <b>2.50</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.00)² + (5.00 − 1.00)²] = √[(3.50)² + (4.00)²] = √[12.25 + 16.00] = √28.25 = <b>5.32</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 5.00)² + (5.00 − 7.00)²] = √[(-0.50)² + (-2.00)²] = √[0.25 + 4.00] = √4.25 = <b>2.06</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.00)² + (4.50 − 1.00)²] = √[(2.50)² + (3.50)²] = √[6.25 + 12.25] = √18.50 = <b>4.30</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 5.00)² + (4.50 − 7.00)²] = √[(-1.50)² + (-2.50)²] = √[2.25 + 6.25] = √8.50 = <b>2.92</b></div></div>
+
+<h3>Distance table and assignment</h3>
+<table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
+<th>d to m<sub>1</sub> = (1.00, 1.00)</th><th>d to m<sub>2</sub> = (5.00, 7.00)</th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">0.00</td><td class="">7.21</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">1.12</td><td class="">6.10</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr class="hl"><td class="rh">3</td><td>(3.00, 4.00)</td><td class="best">3.61</td><td class="">3.61</td><td>tie → m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">7.21</td><td class="best">0.00</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">4.72</td><td class="best">2.50</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">5.32</td><td class="best">2.06</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">4.30</td><td class="best">2.92</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+</tbody></table>
+
+<div class="box guard"><span class="bt">Point 3 is an exact tie</span>
+d(3, m<sub>1</sub>) = √[(3−1)² + (4−1)²] = √13 and d(3, m<sub>2</sub>) = √[(3−5)² + (4−7)²] = √13. Both are 3.61. K-means needs a tie-break rule; the slides (and most implementations, e.g. <code>argmin</code>) take the <b>first</b> centroid, so point 3 goes to cluster 1. Nothing is wrong with this, but note it: the tie is why point 3 changes cluster in the next pass.</div>
+
+<div class="two">
+<figure><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Iteration 0 assignment">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<line x1="96.66666666666666" y1="337.5" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="125.0" y1="295.0" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="210.0" y1="210.0" x2="96.66666666666666" y2="337.5" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
+<line x1="323.33333333333337" y1="82.5" x2="323.33333333333337" y2="82.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="167.5" x2="323.33333333333337" y2="82.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="295.0" y1="167.5" x2="323.33333333333337" y2="82.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="188.75" x2="323.33333333333337" y2="82.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#BD582C" stroke="#E78439" stroke-width="3"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="96.7,326.5 99.6,333.5 107.1,334.1 101.4,339.0 103.1,346.4 96.7,342.4 90.2,346.4 92.0,339.0 86.2,334.1 93.8,333.5" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="109.66666666666666" y="357.5" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.00, 1.00)</text>
+<polygon points="323.3,71.5 326.2,78.5 333.8,79.1 328.0,84.0 329.8,91.4 323.3,87.5 316.9,91.4 318.6,84.0 312.9,79.1 320.4,78.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="310.33333333333337" y="70.5" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (5.00, 7.00)</text>
+</svg><figcaption>Figure 2. Assignment with the initial centroids. Point 3 (ringed) sits exactly as far from m<sub>1</sub> as from m<sub>2</sub>.</figcaption></figure>
+<div>
+<p><b>Clusters after iteration 0</b></p>
+<ul>
+  <li>Cluster 1 = {1, 2, 3}</li>
+  <li>Cluster 2 = {4, 5, 6, 7}</li>
+</ul>
+<p><b>Objective J with these centroids and this assignment</b></p>
+<div class="eq">J = 0.00 + 1.25 + 13.00 + 0.00 + 6.25 + 4.25 + 8.50 = <b>33.25</b></div>
+<p class="small">(each term is the squared distance of a point to its own centroid, i.e. the square of the highlighted number in its row)</p>
+</div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ================= TAB 3 ================= -->
+<section class="tab-panel" id="t3">
+<h2>3. Iteration 1 — Update centroids, then re-assign</h2>
+
+<h3>Step 3 · Move each centroid to the mean of its cluster</h3>
+<div class="eq"><b>m<sub>1</sub></b> = mean of {1, 2, 3} = ( (1.00 + 1.50 + 3.00) / 3 , (1.00 + 2.00 + 4.00) / 3 ) = ( 5.50 / 3 , 7.00 / 3 ) = <b>(1.8333, 2.3333)</b></div>
+<div class="eq"><b>m<sub>2</sub></b> = mean of {4, 5, 6, 7} = ( (5.00 + 3.50 + 4.50 + 3.50) / 4 , (7.00 + 5.00 + 5.00 + 4.50) / 4 ) = ( 16.50 / 4 , 21.50 / 4 ) = <b>(4.125, 5.375)</b></div>
+<p class="small">The slides round these to (1.83, 2.33) and (4.12, 5.38). The exact values 11/6, 7/3, 33/8 and 43/8 are used below, so a few distances differ from the slides in the second decimal (e.g. 3.77 vs 3.78 for point 6).</p>
+
+<figure class="center"><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Centroids move">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<line x1="96.66666666666666" y1="337.5" x2="143.88888888888886" y2="280.8333333333333" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="96.7,326.5 99.6,333.5 107.1,334.1 101.4,339.0 103.1,346.4 96.7,342.4 90.2,346.4 92.0,339.0 86.2,334.1 93.8,333.5" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
+<line x1="323.33333333333337" y1="82.5" x2="273.75" y2="151.5625" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="323.3,71.5 326.2,78.5 333.8,79.1 328.0,84.0 329.8,91.4 323.3,87.5 316.9,91.4 318.6,84.0 312.9,79.1 320.4,78.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/></g>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="143.9,269.8 146.8,276.8 154.4,277.4 148.6,282.4 150.4,289.7 143.9,285.8 137.4,289.7 139.2,282.4 133.4,277.4 141.0,276.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="156.88888888888886" y="300.8333333333333" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.8333, 2.3333)</text>
+<polygon points="273.8,140.6 276.7,147.6 284.2,148.2 278.5,153.1 280.2,160.5 273.8,156.5 267.3,160.5 269.0,153.1 263.3,148.2 270.8,147.6" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="260.75" y="139.5625" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (4.125, 5.375)</text>
+</svg><figcaption>Figure 3. Both centroids move towards the middle of their clusters. m<sub>1</sub> is dragged up by point 3; m<sub>2</sub> is pulled down-left by points 5, 6 and 7.</figcaption></figure>
+
+<h3>Step 4 · Re-compute all distances with the new centroids</h3>
+<div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.8333)² + (1.00 − 2.3333)²] = √[(-0.8333)² + (-1.3333)²] = √[0.6944 + 1.7778] = √2.4722 = <b>1.57</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 4.125)² + (1.00 − 5.375)²] = √[(-3.125)² + (-4.375)²] = √[9.7656 + 19.1406] = √28.9062 = <b>5.38</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.8333)² + (2.00 − 2.3333)²] = √[(-0.3333)² + (-0.3333)²] = √[0.1111 + 0.1111] = √0.2222 = <b>0.47</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 4.125)² + (2.00 − 5.375)²] = √[(-2.625)² + (-3.375)²] = √[6.8906 + 11.3906] = √18.2812 = <b>4.28</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.8333)² + (4.00 − 2.3333)²] = √[(1.1667)² + (1.6667)²] = √[1.3611 + 2.7778] = √4.1389 = <b>2.03</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 4.125)² + (4.00 − 5.375)²] = √[(-1.125)² + (-1.375)²] = √[1.2656 + 1.8906] = √3.1562 = <b>1.78</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.8333)² + (7.00 − 2.3333)²] = √[(3.1667)² + (4.6667)²] = √[10.0278 + 21.7778] = √31.8056 = <b>5.64</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 4.125)² + (7.00 − 5.375)²] = √[(0.875)² + (1.625)²] = √[0.7656 + 2.6406] = √3.4062 = <b>1.85</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.8333)² + (5.00 − 2.3333)²] = √[(1.6667)² + (2.6667)²] = √[2.7778 + 7.1111] = √9.8889 = <b>3.14</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 4.125)² + (5.00 − 5.375)²] = √[(-0.625)² + (-0.375)²] = √[0.3906 + 0.1406] = √0.5312 = <b>0.73</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.8333)² + (5.00 − 2.3333)²] = √[(2.6667)² + (2.6667)²] = √[7.1111 + 7.1111] = √14.2222 = <b>3.77</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 4.125)² + (5.00 − 5.375)²] = √[(0.375)² + (-0.375)²] = √[0.1406 + 0.1406] = √0.2812 = <b>0.53</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.8333)² + (4.50 − 2.3333)²] = √[(1.6667)² + (2.1667)²] = √[2.7778 + 4.6944] = √7.4722 = <b>2.73</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 4.125)² + (4.50 − 5.375)²] = √[(-0.625)² + (-0.875)²] = √[0.3906 + 0.7656] = √1.1562 = <b>1.08</b></div></div>
+
+<h3>Distance table and assignment</h3>
+<table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
+<th>d to m<sub>1</sub> = (1.8333, 2.3333)</th><th>d to m<sub>2</sub> = (4.125, 5.375)</th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">1.57</td><td class="">5.38</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">0.47</td><td class="">4.28</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr class="hl"><td class="rh">3</td><td>(3.00, 4.00)</td><td class="">2.03</td><td class="best">1.78</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">5.64</td><td class="best">1.85</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">3.14</td><td class="best">0.73</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">3.77</td><td class="best">0.53</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">2.73</td><td class="best">1.08</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+</tbody></table>
+
+<div class="box plain"><span class="bt">What changed</span>
+Point 3 is now 2.03 from m<sub>1</sub> but only 1.78 from m<sub>2</sub>, so it <b>switches to cluster 2</b>. Every other point stays. Because at least one point moved, the algorithm is not finished.</div>
+
+<div class="two">
+<figure><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Iteration 1 assignment">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<line x1="96.66666666666666" y1="337.5" x2="143.88888888888886" y2="280.8333333333333" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="125.0" y1="295.0" x2="143.88888888888886" y2="280.8333333333333" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="210.0" y1="210.0" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
+<line x1="323.33333333333337" y1="82.5" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="167.5" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="295.0" y1="167.5" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="188.75" x2="273.75" y2="151.5625" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#2D5B8A" stroke="#E78439" stroke-width="3"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="143.9,269.8 146.8,276.8 154.4,277.4 148.6,282.4 150.4,289.7 143.9,285.8 137.4,289.7 139.2,282.4 133.4,277.4 141.0,276.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="156.88888888888886" y="300.8333333333333" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.8333, 2.3333)</text>
+<polygon points="273.8,140.6 276.7,147.6 284.2,148.2 278.5,153.1 280.2,160.5 273.8,156.5 267.3,160.5 269.0,153.1 263.3,148.2 270.8,147.6" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="260.75" y="139.5625" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (4.125, 5.375)</text>
+</svg><figcaption>Figure 4. Assignment with the updated centroids. Point 3 (ringed) is now closer to m<sub>2</sub>.</figcaption></figure>
+<div>
+<p><b>Clusters after iteration 1</b></p>
+<ul>
+  <li>Cluster 1 = {1, 2}</li>
+  <li>Cluster 2 = {3, 4, 5, 6, 7}</li>
+</ul>
+<p><b>Objective J</b></p>
+<div class="eq">J = 2.47 + 0.22 + 3.16 + 3.41 + 0.53 + 0.28 + 1.16 = <b>11.23</b></div>
+<p class="small">Down from 33.25. Moving the centroids and re-assigning point 3 both lowered it.</p>
+</div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ================= TAB 4 ================= -->
+<section class="tab-panel" id="t4">
+<h2>4. Iteration 2 — Update again and check for convergence</h2>
+
+<h3>Step 5 · Move each centroid to the mean of its (new) cluster</h3>
+<div class="eq"><b>m<sub>1</sub></b> = mean of {1, 2} = ( (1.00 + 1.50) / 2 , (1.00 + 2.00) / 2 ) = ( 2.50 / 2 , 3.00 / 2 ) = <b>(1.25, 1.50)</b></div>
+<div class="eq"><b>m<sub>2</sub></b> = mean of {3, 4, 5, 6, 7} = ( (3.00 + 5.00 + 3.50 + 4.50 + 3.50) / 5 , (4.00 + 7.00 + 5.00 + 5.00 + 4.50) / 5 ) = ( 19.50 / 5 , 25.50 / 5 ) = <b>(3.90, 5.10)</b></div>
+
+<figure class="center"><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Centroids move again">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<line x1="143.88888888888886" y1="280.8333333333333" x2="110.83333333333334" y2="316.25" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="143.9,269.8 146.8,276.8 154.4,277.4 148.6,282.4 150.4,289.7 143.9,285.8 137.4,289.7 139.2,282.4 133.4,277.4 141.0,276.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
+<line x1="273.75" y1="151.5625" x2="261.0" y2="163.25000000000003" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="273.8,140.6 276.7,147.6 284.2,148.2 278.5,153.1 280.2,160.5 273.8,156.5 267.3,160.5 269.0,153.1 263.3,148.2 270.8,147.6" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/></g>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#888" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="110.8,305.2 113.7,312.2 121.3,312.9 115.5,317.8 117.3,325.1 110.8,321.2 104.4,325.1 106.1,317.8 100.4,312.9 107.9,312.2" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="123.83333333333334" y="336.25" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.25, 1.50)</text>
+<polygon points="261.0,152.3 263.9,159.2 271.5,159.9 265.7,164.8 267.5,172.1 261.0,168.2 254.5,172.1 256.3,164.8 250.5,159.9 258.1,159.2" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="248.0" y="151.25000000000003" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (3.90, 5.10)</text>
+</svg><figcaption>Figure 5. m<sub>1</sub> drops back down now that point 3 has left it; m<sub>2</sub> moves slightly down-left to absorb point 3.</figcaption></figure>
+
+<h3>Step 6 · Re-compute all distances with the new centroids</h3>
+<div class="pt"><span class="ptl">Point 1 = (1.00, 1.00)</span><div class="eq"><b>d(1, m<sub>1</sub>)</b> = √[(1.00 − 1.25)² + (1.00 − 1.50)²] = √[(-0.25)² + (-0.50)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
+<div class="eq"><b>d(1, m<sub>2</sub>)</b> = √[(1.00 − 3.90)² + (1.00 − 5.10)²] = √[(-2.90)² + (-4.10)²] = √[8.41 + 16.81] = √25.22 = <b>5.02</b></div></div>
+<div class="pt"><span class="ptl">Point 2 = (1.50, 2.00)</span><div class="eq"><b>d(2, m<sub>1</sub>)</b> = √[(1.50 − 1.25)² + (2.00 − 1.50)²] = √[(0.25)² + (0.50)²] = √[0.0625 + 0.25] = √0.3125 = <b>0.56</b></div>
+<div class="eq"><b>d(2, m<sub>2</sub>)</b> = √[(1.50 − 3.90)² + (2.00 − 5.10)²] = √[(-2.40)² + (-3.10)²] = √[5.76 + 9.61] = √15.37 = <b>3.92</b></div></div>
+<div class="pt"><span class="ptl">Point 3 = (3.00, 4.00)</span><div class="eq"><b>d(3, m<sub>1</sub>)</b> = √[(3.00 − 1.25)² + (4.00 − 1.50)²] = √[(1.75)² + (2.50)²] = √[3.0625 + 6.25] = √9.3125 = <b>3.05</b></div>
+<div class="eq"><b>d(3, m<sub>2</sub>)</b> = √[(3.00 − 3.90)² + (4.00 − 5.10)²] = √[(-0.90)² + (-1.10)²] = √[0.81 + 1.21] = √2.02 = <b>1.42</b></div></div>
+<div class="pt"><span class="ptl">Point 4 = (5.00, 7.00)</span><div class="eq"><b>d(4, m<sub>1</sub>)</b> = √[(5.00 − 1.25)² + (7.00 − 1.50)²] = √[(3.75)² + (5.50)²] = √[14.0625 + 30.25] = √44.3125 = <b>6.66</b></div>
+<div class="eq"><b>d(4, m<sub>2</sub>)</b> = √[(5.00 − 3.90)² + (7.00 − 5.10)²] = √[(1.10)² + (1.90)²] = √[1.21 + 3.61] = √4.82 = <b>2.20</b></div></div>
+<div class="pt"><span class="ptl">Point 5 = (3.50, 5.00)</span><div class="eq"><b>d(5, m<sub>1</sub>)</b> = √[(3.50 − 1.25)² + (5.00 − 1.50)²] = √[(2.25)² + (3.50)²] = √[5.0625 + 12.25] = √17.3125 = <b>4.16</b></div>
+<div class="eq"><b>d(5, m<sub>2</sub>)</b> = √[(3.50 − 3.90)² + (5.00 − 5.10)²] = √[(-0.40)² + (-0.10)²] = √[0.16 + 0.01] = √0.17 = <b>0.41</b></div></div>
+<div class="pt"><span class="ptl">Point 6 = (4.50, 5.00)</span><div class="eq"><b>d(6, m<sub>1</sub>)</b> = √[(4.50 − 1.25)² + (5.00 − 1.50)²] = √[(3.25)² + (3.50)²] = √[10.5625 + 12.25] = √22.8125 = <b>4.78</b></div>
+<div class="eq"><b>d(6, m<sub>2</sub>)</b> = √[(4.50 − 3.90)² + (5.00 − 5.10)²] = √[(0.60)² + (-0.10)²] = √[0.36 + 0.01] = √0.37 = <b>0.61</b></div></div>
+<div class="pt"><span class="ptl">Point 7 = (3.50, 4.50)</span><div class="eq"><b>d(7, m<sub>1</sub>)</b> = √[(3.50 − 1.25)² + (4.50 − 1.50)²] = √[(2.25)² + (3.00)²] = √[5.0625 + 9.00] = √14.0625 = <b>3.75</b></div>
+<div class="eq"><b>d(7, m<sub>2</sub>)</b> = √[(3.50 − 3.90)² + (4.50 − 5.10)²] = √[(-0.40)² + (-0.60)²] = √[0.16 + 0.36] = √0.52 = <b>0.72</b></div></div>
+
+<h3>Distance table and assignment</h3>
+<table class="grid"><thead><tr><th>Individual</th><th>Point (x, y)</th>
+<th>d to m<sub>1</sub> = (1.25, 1.50)</th><th>d to m<sub>2</sub> = (3.90, 5.10)</th><th>Nearer</th><th>Cluster</th></tr></thead><tbody>
+<tr><td class="rh">1</td><td>(1.00, 1.00)</td><td class="best">0.56</td><td class="">5.02</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr><td class="rh">2</td><td>(1.50, 2.00)</td><td class="best">0.56</td><td class="">3.92</td><td>m<sub>1</sub></td><td><span class="chip c1">C1</span></td></tr>
+<tr><td class="rh">3</td><td>(3.00, 4.00)</td><td class="">3.05</td><td class="best">1.42</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">4</td><td>(5.00, 7.00)</td><td class="">6.66</td><td class="best">2.20</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">5</td><td>(3.50, 5.00)</td><td class="">4.16</td><td class="best">0.41</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">6</td><td>(4.50, 5.00)</td><td class="">4.78</td><td class="best">0.61</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+<tr><td class="rh">7</td><td>(3.50, 4.50)</td><td class="">3.75</td><td class="best">0.72</td><td>m<sub>2</sub></td><td><span class="chip c2">C2</span></td></tr>
+</tbody></table>
+
+<div class="box plain"><span class="bt">Stop test</span>
+Every point is assigned to the same cluster as in iteration 1: {1, 2} and {3, 4, 5, 6, 7}. No membership changed, so the next centroid update would give exactly the same centroids again. <b>The algorithm halts.</b></div>
+
+<div class="two">
+<figure><svg viewBox="0 0 420 420" width="100%" style="max-width:420px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Final clustering">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="96.66666666666666" y1="380.0" x2="96.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="96.66666666666666" y="396.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="153.33333333333331" y1="380.0" x2="153.33333333333331" y2="40.0" stroke="#eee"/>
+<text x="153.33333333333331" y="396.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.0" y1="380.0" x2="210.0" y2="40.0" stroke="#eee"/>
+<text x="210.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="266.66666666666663" y1="380.0" x2="266.66666666666663" y2="40.0" stroke="#eee"/>
+<text x="266.66666666666663" y="396.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="323.33333333333337" y1="380.0" x2="323.33333333333337" y2="40.0" stroke="#eee"/>
+<text x="323.33333333333337" y="396.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="380.0" y1="380.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="380.0" y="396.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#eee"/>
+<text x="32.0" y="384.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="337.5" x2="380.0" y2="337.5" stroke="#eee"/>
+<text x="32.0" y="341.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="295.0" x2="380.0" y2="295.0" stroke="#eee"/>
+<text x="32.0" y="299.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="252.5" x2="380.0" y2="252.5" stroke="#eee"/>
+<text x="32.0" y="256.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="210.0" x2="380.0" y2="210.0" stroke="#eee"/>
+<text x="32.0" y="214.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="167.5" x2="380.0" y2="167.5" stroke="#eee"/>
+<text x="32.0" y="171.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="125.0" x2="380.0" y2="125.0" stroke="#eee"/>
+<text x="32.0" y="129.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="82.5" x2="380.0" y2="82.5" stroke="#eee"/>
+<text x="32.0" y="86.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="380.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="380.0" x2="380.0" y2="380.0" stroke="#999"/><line x1="40.0" y1="380.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="210.0" y="414" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="210.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 210.0)">Variable 2</text>
+<line x1="96.66666666666666" y1="337.5" x2="110.83333333333334" y2="316.25" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="125.0" y1="295.0" x2="110.83333333333334" y2="316.25" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="210.0" y1="210.0" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="323.33333333333337" y1="82.5" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="167.5" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="295.0" y1="167.5" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="238.33333333333334" y1="188.75" x2="261.0" y2="163.25000000000003" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<circle cx="96.66666666666666" cy="337.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="105.66666666666666" y="329.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="125.0" cy="295.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="134.0" y="287.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="210.0" cy="210.0" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="219.0" y="202.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="323.33333333333337" cy="82.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="332.33333333333337" y="74.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="238.33333333333334" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="295.0" cy="167.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="304.0" y="159.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="238.33333333333334" cy="188.75" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="247.33333333333334" y="180.75" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="110.8,305.2 113.7,312.2 121.3,312.9 115.5,317.8 117.3,325.1 110.8,321.2 104.4,325.1 106.1,317.8 100.4,312.9 107.9,312.2" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="123.83333333333334" y="336.25" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.25, 1.50)</text>
+<polygon points="261.0,152.3 263.9,159.2 271.5,159.9 265.7,164.8 267.5,172.1 261.0,168.2 254.5,172.1 256.3,164.8 250.5,159.9 258.1,159.2" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="248.0" y="151.25000000000003" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (3.90, 5.10)</text>
+</svg><figcaption>Figure 6. Final clusters. Compare with the PLOT slide in the lecture: same two groups.</figcaption></figure>
+<div>
+<p><b>Final result</b></p>
+<table class="grid">
+<thead><tr><th>Cluster</th><th>Members</th><th>Centroid</th></tr></thead>
+<tbody>
+<tr><td class="rh">1</td><td>{1, 2}</td><td>(1.25, 1.50)</td></tr>
+<tr><td class="rh">2</td><td>{3, 4, 5, 6, 7}</td><td>(3.90, 5.10)</td></tr>
+</tbody></table>
+<p><b>Objective J</b></p>
+<div class="eq">J = 0.31 + 0.31 + 2.02 + 4.82 + 0.17 + 0.37 + 0.52 = <b>8.53</b></div>
+</div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ================= TAB 5 ================= -->
+<section class="tab-panel" id="t5">
+<h2>5. Summary &amp; Lessons</h2>
+
+<h3>The whole run in one table</h3>
+<table class="grid">
+<thead><tr><th>Pass</th><th>Centroids used for assignment</th><th>Cluster 1</th><th>Cluster 2</th><th>Point that moved</th><th>J</th></tr></thead>
+<tbody>
+<tr><td class="rh">0</td><td>(1.00, 1.00), (5.00, 7.00)</td><td>{1, 2, 3}</td><td>{4, 5, 6, 7}</td><td>— (initial)</td><td>33.25</td></tr>
+<tr><td class="rh">1</td><td>(1.83, 2.33), (4.13, 5.38)</td><td>{1, 2}</td><td>{3, 4, 5, 6, 7}</td><td>3: C1 → C2</td><td>11.23</td></tr>
+<tr><td class="rh">2</td><td>(1.25, 1.50), (3.90, 5.10)</td><td>{1, 2}</td><td>{3, 4, 5, 6, 7}</td><td>none → stop</td><td>8.53</td></tr>
+</tbody></table>
+
+<div class="three">
+<figure><svg viewBox="0 0 300 300" width="100%" style="max-width:300px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pass 0">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="76.66666666666666" y1="260.0" x2="76.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="76.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="113.33333333333333" y1="260.0" x2="113.33333333333333" y2="40.0" stroke="#eee"/>
+<text x="113.33333333333333" y="276.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="150.0" y1="260.0" x2="150.0" y2="40.0" stroke="#eee"/>
+<text x="150.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="186.66666666666666" y1="260.0" x2="186.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="186.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="223.33333333333334" y1="260.0" x2="223.33333333333334" y2="40.0" stroke="#eee"/>
+<text x="223.33333333333334" y="276.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="260.0" y1="260.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="260.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#eee"/>
+<text x="32.0" y="264.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="232.5" x2="260.0" y2="232.5" stroke="#eee"/>
+<text x="32.0" y="236.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="205.0" x2="260.0" y2="205.0" stroke="#eee"/>
+<text x="32.0" y="209.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="177.5" x2="260.0" y2="177.5" stroke="#eee"/>
+<text x="32.0" y="181.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="150.0" x2="260.0" y2="150.0" stroke="#eee"/>
+<text x="32.0" y="154.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="122.5" x2="260.0" y2="122.5" stroke="#eee"/>
+<text x="32.0" y="126.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="95.0" x2="260.0" y2="95.0" stroke="#eee"/>
+<text x="32.0" y="99.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="67.5" x2="260.0" y2="67.5" stroke="#eee"/>
+<text x="32.0" y="71.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<line x1="76.66666666666666" y1="232.5" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="95.0" y1="205.0" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="150.0" y1="150.0" x2="76.66666666666666" y2="232.5" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
+<line x1="223.33333333333334" y1="67.5" x2="223.33333333333334" y2="67.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="122.5" x2="223.33333333333334" y2="67.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="205.0" y1="122.5" x2="223.33333333333334" y2="67.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="136.25" x2="223.33333333333334" y2="67.5" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<circle cx="76.66666666666666" cy="232.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="85.66666666666666" y="224.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="95.0" cy="205.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="104.0" y="197.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="150.0" cy="150.0" r="7" fill="#BD582C" stroke="#E78439" stroke-width="3"/>
+<text x="159.0" y="142.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="223.33333333333334" cy="67.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="232.33333333333334" y="59.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="168.33333333333334" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="205.0" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="214.0" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="168.33333333333334" cy="136.25" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="128.25" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="76.7,221.5 79.6,228.5 87.1,229.1 81.4,234.0 83.1,241.4 76.7,237.4 70.2,241.4 72.0,234.0 66.2,229.1 73.8,228.5" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="89.66666666666666" y="252.5" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.00, 1.00)</text>
+<polygon points="223.3,56.5 226.2,63.5 233.8,64.1 228.0,69.0 229.8,76.4 223.3,72.5 216.9,76.4 218.6,69.0 212.9,64.1 220.4,63.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="210.33333333333334" y="55.5" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (5.00, 7.00)</text>
+</svg><figcaption>Pass 0</figcaption></figure>
+<figure><svg viewBox="0 0 300 300" width="100%" style="max-width:300px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pass 1">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="76.66666666666666" y1="260.0" x2="76.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="76.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="113.33333333333333" y1="260.0" x2="113.33333333333333" y2="40.0" stroke="#eee"/>
+<text x="113.33333333333333" y="276.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="150.0" y1="260.0" x2="150.0" y2="40.0" stroke="#eee"/>
+<text x="150.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="186.66666666666666" y1="260.0" x2="186.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="186.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="223.33333333333334" y1="260.0" x2="223.33333333333334" y2="40.0" stroke="#eee"/>
+<text x="223.33333333333334" y="276.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="260.0" y1="260.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="260.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#eee"/>
+<text x="32.0" y="264.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="232.5" x2="260.0" y2="232.5" stroke="#eee"/>
+<text x="32.0" y="236.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="205.0" x2="260.0" y2="205.0" stroke="#eee"/>
+<text x="32.0" y="209.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="177.5" x2="260.0" y2="177.5" stroke="#eee"/>
+<text x="32.0" y="181.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="150.0" x2="260.0" y2="150.0" stroke="#eee"/>
+<text x="32.0" y="154.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="122.5" x2="260.0" y2="122.5" stroke="#eee"/>
+<text x="32.0" y="126.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="95.0" x2="260.0" y2="95.0" stroke="#eee"/>
+<text x="32.0" y="99.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="67.5" x2="260.0" y2="67.5" stroke="#eee"/>
+<text x="32.0" y="71.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<line x1="76.66666666666666" y1="232.5" x2="107.22222222222221" y2="195.83333333333331" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="95.0" y1="205.0" x2="107.22222222222221" y2="195.83333333333331" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="150.0" y1="150.0" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="2.2" stroke-dasharray="6,4" opacity=".8"/>
+<line x1="223.33333333333334" y1="67.5" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="122.5" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="205.0" y1="122.5" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="136.25" x2="191.25" y2="112.1875" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="76.66666666666666" y1="232.5" x2="107.22222222222221" y2="195.83333333333331" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="76.7,221.5 79.6,228.5 87.1,229.1 81.4,234.0 83.1,241.4 76.7,237.4 70.2,241.4 72.0,234.0 66.2,229.1 73.8,228.5" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
+<line x1="223.33333333333334" y1="67.5" x2="191.25" y2="112.1875" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="223.3,56.5 226.2,63.5 233.8,64.1 228.0,69.0 229.8,76.4 223.3,72.5 216.9,76.4 218.6,69.0 212.9,64.1 220.4,63.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/></g>
+<circle cx="76.66666666666666" cy="232.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="85.66666666666666" y="224.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="95.0" cy="205.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="104.0" y="197.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="150.0" cy="150.0" r="7" fill="#2D5B8A" stroke="#E78439" stroke-width="3"/>
+<text x="159.0" y="142.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="223.33333333333334" cy="67.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="232.33333333333334" y="59.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="168.33333333333334" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="205.0" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="214.0" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="168.33333333333334" cy="136.25" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="128.25" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="107.2,184.8 110.1,191.8 117.7,192.4 111.9,197.4 113.7,204.7 107.2,200.8 100.8,204.7 102.5,197.4 96.8,192.4 104.3,191.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="120.22222222222221" y="215.83333333333331" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.8333, 2.3333)</text>
+<polygon points="191.2,101.2 194.2,108.2 201.7,108.8 196.0,113.7 197.7,121.1 191.2,117.1 184.8,121.1 186.5,113.7 180.8,108.8 188.3,108.2" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="178.25" y="100.1875" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (4.125, 5.375)</text>
+</svg><figcaption>Pass 1</figcaption></figure>
+<figure><svg viewBox="0 0 300 300" width="100%" style="max-width:300px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pass 2">
+<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3C7A5A"/></marker></defs>
+<line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#eee"/>
+<text x="40.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">0</text>
+<line x1="76.66666666666666" y1="260.0" x2="76.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="76.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="113.33333333333333" y1="260.0" x2="113.33333333333333" y2="40.0" stroke="#eee"/>
+<text x="113.33333333333333" y="276.0" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="150.0" y1="260.0" x2="150.0" y2="40.0" stroke="#eee"/>
+<text x="150.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="186.66666666666666" y1="260.0" x2="186.66666666666666" y2="40.0" stroke="#eee"/>
+<text x="186.66666666666666" y="276.0" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="223.33333333333334" y1="260.0" x2="223.33333333333334" y2="40.0" stroke="#eee"/>
+<text x="223.33333333333334" y="276.0" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="260.0" y1="260.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="260.0" y="276.0" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#eee"/>
+<text x="32.0" y="264.0" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="40.0" y1="232.5" x2="260.0" y2="232.5" stroke="#eee"/>
+<text x="32.0" y="236.5" font-size="11" text-anchor="end" fill="#666">1</text>
+<line x1="40.0" y1="205.0" x2="260.0" y2="205.0" stroke="#eee"/>
+<text x="32.0" y="209.0" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="40.0" y1="177.5" x2="260.0" y2="177.5" stroke="#eee"/>
+<text x="32.0" y="181.5" font-size="11" text-anchor="end" fill="#666">3</text>
+<line x1="40.0" y1="150.0" x2="260.0" y2="150.0" stroke="#eee"/>
+<text x="32.0" y="154.0" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="40.0" y1="122.5" x2="260.0" y2="122.5" stroke="#eee"/>
+<text x="32.0" y="126.5" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="40.0" y1="95.0" x2="260.0" y2="95.0" stroke="#eee"/>
+<text x="32.0" y="99.0" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="40.0" y1="67.5" x2="260.0" y2="67.5" stroke="#eee"/>
+<text x="32.0" y="71.5" font-size="11" text-anchor="end" fill="#666">7</text>
+<line x1="40.0" y1="40.0" x2="260.0" y2="40.0" stroke="#eee"/>
+<text x="32.0" y="44.0" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="40.0" y1="260.0" x2="260.0" y2="260.0" stroke="#999"/><line x1="40.0" y1="260.0" x2="40.0" y2="40.0" stroke="#999"/>
+<text x="150.0" y="294" font-size="12" text-anchor="middle" fill="#444">Variable 1</text>
+<text x="12" y="150.0" font-size="12" text-anchor="middle" fill="#444" transform="rotate(-90 12 150.0)">Variable 2</text>
+<line x1="76.66666666666666" y1="232.5" x2="85.83333333333334" y2="218.75" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="95.0" y1="205.0" x2="85.83333333333334" y2="218.75" stroke="#BD582C" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="150.0" y1="150.0" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="223.33333333333334" y1="67.5" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="122.5" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="205.0" y1="122.5" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="168.33333333333334" y1="136.25" x2="183.0" y2="119.75" stroke="#2D5B8A" stroke-width="1.2" stroke-dasharray="3,3" opacity=".8"/>
+<line x1="107.22222222222221" y1="195.83333333333331" x2="85.83333333333334" y2="218.75" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="107.2,184.8 110.1,191.8 117.7,192.4 111.9,197.4 113.7,204.7 107.2,200.8 100.8,204.7 102.5,197.4 96.8,192.4 104.3,191.8" fill="#BD582C" stroke="#fff" stroke-width="1.5"/></g>
+<line x1="191.25" y1="112.1875" x2="183.0" y2="119.75" stroke="#3C7A5A" stroke-width="2.5" marker-end="url(#ah)"/>
+<g opacity=".45"><polygon points="191.2,101.2 194.2,108.2 201.7,108.8 196.0,113.7 197.7,121.1 191.2,117.1 184.8,121.1 186.5,113.7 180.8,108.8 188.3,108.2" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/></g>
+<circle cx="76.66666666666666" cy="232.5" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="85.66666666666666" y="224.5" font-size="12" font-weight="bold" fill="#1c2530">1</text>
+<circle cx="95.0" cy="205.0" r="7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="104.0" y="197.0" font-size="12" font-weight="bold" fill="#1c2530">2</text>
+<circle cx="150.0" cy="150.0" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="159.0" y="142.0" font-size="12" font-weight="bold" fill="#1c2530">3</text>
+<circle cx="223.33333333333334" cy="67.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="232.33333333333334" y="59.5" font-size="12" font-weight="bold" fill="#1c2530">4</text>
+<circle cx="168.33333333333334" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">5</text>
+<circle cx="205.0" cy="122.5" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="214.0" y="114.5" font-size="12" font-weight="bold" fill="#1c2530">6</text>
+<circle cx="168.33333333333334" cy="136.25" r="7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="177.33333333333334" y="128.25" font-size="12" font-weight="bold" fill="#1c2530">7</text>
+<polygon points="85.8,207.8 88.7,214.7 96.3,215.4 90.5,220.3 92.3,227.6 85.8,223.7 79.4,227.6 81.1,220.3 75.4,215.4 82.9,214.7" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<text x="98.83333333333334" y="238.75" font-size="12" font-weight="bold" text-anchor="start" fill="#BD582C">m1 (1.25, 1.50)</text>
+<polygon points="183.0,108.8 185.9,115.7 193.5,116.4 187.7,121.3 189.5,128.6 183.0,124.7 176.5,128.6 178.3,121.3 172.5,116.4 180.1,115.7" fill="#2D5B8A" stroke="#fff" stroke-width="1.5"/>
+<text x="170.0" y="107.75" font-size="12" font-weight="bold" text-anchor="end" fill="#2D5B8A">m2 (3.90, 5.10)</text>
+</svg><figcaption>Pass 2 (final)</figcaption></figure>
+</div>
+
+<h3>Things to take from this example</h3>
+<ul>
+  <li><b>J never goes up.</b> 33.25 → 11.23 → 8.53. The assignment step can only pick a nearer centroid for each point, and the mean is the point that minimises the sum of squared distances to a set, so the update step can only lower J too. That is why K-means always terminates.</li>
+  <li><b>Convergence is to a local minimum, not necessarily the best one.</b> This dataset happens to be so well separated that every choice of two data points as starting centroids (all 42 ordered pairs) ends at the same partition, only the number of passes differs. That is a property of this data, not of K-means: with overlapping or elongated clusters, different starts do end in different splits with different J. Running K-means several times from different starts and keeping the lowest J is standard practice; K-means++ chooses the starts more carefully.</li>
+  <li><b>Ties must be broken by a rule.</b> Point 3 was equidistant at the start. Different tie-break rules can produce different first iterations, although here they converge to the same answer.</li>
+  <li><b>The final centroids are not data points.</b> (1.25, 1.50) and (3.90, 5.10) are averages. If you need a real object as the cluster representative, that is K-medoids (next in the lecture).</li>
+  <li><b>Scale matters.</b> Euclidean distance treats a unit of Variable 1 the same as a unit of Variable 2. If the variables had different units, they should be standardised first, or the larger-range variable would dominate every distance.</li>
+</ul>
+
+<div class="box tip"><span class="bt">Try it yourself</span>
+Re-run the example with initial centroids m<sub>1</sub> = point 2 = (1.5, 2.0) and m<sub>2</sub> = point 6 = (4.5, 5.0); it should settle in two passes. Then start from m<sub>1</sub> = point 5 and m<sub>2</sub> = point 6, which sit only one unit apart, and count how many passes it takes to reach the same answer (it is five). Finally, add an eighth point at (3.0, 2.5) and see whether the two starts still agree.</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<div class="footer">
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</span>
+  <span>CSE475 · Fall 2026</span>
+</div>
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id, push){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+</body>
+</html>
