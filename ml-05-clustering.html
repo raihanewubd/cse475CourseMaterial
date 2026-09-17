@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 2 — Clustering — CSE475 Machine Learning</title>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .dept{margin-top:6px}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  li.sub{margin-left:1.2em;list-style:circle}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide img{display:block;width:100%;max-width:860px;margin:0 auto;height:auto;background:#fff}
+  .slide .imgwrap{border-bottom:1px solid var(--line);background:#fafafa}
+  .slide .txt{padding:8px 14px 4px;background:var(--card);font-size:.93rem}
+  .slide .txt ul{margin:.3em 0}
+  .slide .txt:empty{display:none}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  @media(max-width:680px){.page{padding:18px}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 2 — Clustering</h1>
+  <div class="sub">ML-05: K-means, K-medoids, DBSCAN, hierarchical clustering and evaluation metrics</div>
+  <div class="dept">Department of Computer Science and Engineering<br>East West University, Dhaka, Bangladesh</div>
+  <div class="attr">Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> Clustering finds groups in unlabelled data. This lecture defines similarity and distance, then works through K-means twice by hand (a 7-point example and the 4-medicine example), fixes its outlier problem with K-medoids, runs DBSCAN step by step on a 7-point dataset, and shows how to pick MinPts and ε. It closes with hierarchical clustering, the internal and external metrics used to judge a clustering (silhouette, Davies–Bouldin, Calinski–Harabasz, NMI, ARI), and the overall unsupervised learning process. <em>Use the tabs to move between sections; each slide is shown as an image with its text underneath.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What is Clustering?</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Distance &amp; K-means</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>K-means Worked Example</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>K-medoids (PAM)</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>DBSCAN</button>
+  <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Choosing MinPts &amp; ε</button>
+  <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>Hierarchical Clustering</button>
+  <button class="tab-btn" role="tab" data-tab="t8"><span class="n">8</span>Evaluation Metrics</button>
+  <button class="tab-btn" role="tab" data-tab="t9"><span class="n">9</span>Process, Applications &amp; References</button>
+</div>
+
+<section class="tab-panel" id="t1">
+<h2>1. What is Clustering?</h2>
+<div class="slide" id="s1">
+  <div class="sh"><h3>Dr. Raihan Ul Islam Associate Professor Department of Computer Science &amp; Engineering Room No# 256 Email: raihan.islam@ewubd.edu Mobile: +8801992392611</h3><span class="num">Slide 1</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-01.jpg" alt="Dr. Raihan Ul Islam Associate Professor Department of Computer Science &amp; Engineering Room No# 256 Email: raihan.islam@ewubd.edu Mobile: +8801992392611" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s2">
+  <div class="sh"><h3>Organizing data into classes such that there is</h3><span class="num">Slide 2</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-02.jpg" alt="Organizing data into classes such that there is" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li class="sub">high intra-class similarity</li>
+<li class="sub">low inter-class similarity</li>
+<li>Finding the class labels and the number of classes directly from the data (in contrast to classification).</li>
+<li>More informally, finding natural groupings among objects.</li>
+<li>What is Clustering?</li>
+<li>Also called unsupervised learning, sometimes called classification by statisticians and sorting by psychologists and segmentation by people in marketing</li>
+</ul></div>
+</div>
+<div class="slide" id="s3">
+  <div class="sh"><h3>What is a natural grouping among</h3><span class="num">Slide 3</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-03.jpg" alt="What is a natural grouping among" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>these objects?</li>
+</ul></div>
+</div>
+<div class="slide" id="s4">
+  <div class="sh"><h3>School Employees</h3><span class="num">Slide 4</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-04.jpg" alt="School Employees" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Simpson's Family</li>
+<li>Males</li>
+<li>Females</li>
+<li>Clustering is subjective</li>
+<li>What is a natural grouping among these objects?</li>
+</ul></div>
+</div>
+<div class="slide" id="s5">
+  <div class="sh"><h3>What is Similarity?</h3><span class="num">Slide 5</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-05.jpg" alt="What is Similarity?" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The quality or state of being similar; likeness; resemblance; as, a similarity of features.</li>
+<li>Similarity is hard to define, but…</li>
+<li>“We know it when we see it”</li>
+<li>The real meaning of similarity is a philosophical question. We will take a more pragmatic approach.</li>
+<li>Webster's Dictionary</li>
+</ul></div>
+</div>
+<div class="slide" id="s6">
+  <div class="sh"><h3>Defining Distance Measures</h3><span class="num">Slide 6</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-06.jpg" alt="Defining Distance Measures" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Definition: Let O1 and O2 be two objects from the universe of possible objects. The distance (dissimilarity) between O1 and O2 is a real number denoted by D(O1,O2)</li>
+<li>0.23</li>
+<li>342.7</li>
+<li>Peter</li>
+<li>Piotr</li>
+</ul></div>
+</div>
+<div class="slide" id="s7">
+  <div class="sh"><h3>Major Clustering Approaches</h3><span class="num">Slide 7</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-07.jpg" alt="Major Clustering Approaches" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Partitioning approach:</li>
+<li class="sub">Construct various partitions and then evaluate them by some criterion, e.g., minimizing the sum of square errors</li>
+<li class="sub">Typical methods: k-means, k-medoids, CLARANS</li>
+<li>Hierarchical approach:</li>
+<li class="sub">Create a hierarchical decomposition of the set of data (or objects) using some criterion</li>
+<li class="sub">Typical methods: Diana, Agnes, BIRCH, CAMELEON</li>
+<li>Hierarchical</li>
+<li>Partitional</li>
+</ul></div>
+</div>
+<div class="slide" id="s8">
+  <div class="sh"><h3>Major Clustering Approaches</h3><span class="num">Slide 8</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-08.jpg" alt="Major Clustering Approaches" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Density-based approach:</li>
+<li class="sub">Based on connectivity and density functions</li>
+<li class="sub">Typical methods: DBSACN, OPTICS, DenClue</li>
+<li>Grid-based approach:</li>
+<li class="sub">based on a multiple-level granularity structure</li>
+<li class="sub">Typical methods: STING, WaveCluster, CLIQUE</li>
+</ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t2">
+<h2>2. Distance &amp; K-means</h2>
+<div class="slide" id="s9">
+  <div class="sh"><h3>K-MEANS CLUSTERING</h3><span class="num">Slide 9</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-09.jpg" alt="K-MEANS CLUSTERING" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s10">
+  <div class="sh"><h3>Common Distance measures:</h3><span class="num">Slide 10</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-10.jpg" alt="Common Distance measures:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Distance measure will determine how the similarity of two elements is calculated, and it will influence the shape of the clusters.</li>
+<li>They include:</li>
+<li>1. The Euclidean distance (also called 2-norm distance) is given by:</li>
+<li>2. The Manhattan distance (also called taxicab norm or 1-norm) is given by:</li>
+</ul></div>
+</div>
+<div class="slide" id="s11">
+  <div class="sh"><h3>3.The maximum norm is given by:</h3><span class="num">Slide 11</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-11.jpg" alt="3.The maximum norm is given by:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>4. The Mahalanobis distance corrects data for different scales and correlations in the variables.</li>
+<li>5. Inner product space: The angle between two vectors can be used as a distance measure when clustering high dimensional data</li>
+<li>6. Hamming distance (sometimes edit distance) measures the minimum number of substitutions required to change one member into another.</li>
+</ul></div>
+</div>
+<div class="slide" id="s12">
+  <div class="sh"><h3>K-MEANS CLUSTERING</h3><span class="num">Slide 12</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-12.jpg" alt="K-MEANS CLUSTERING" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The k-means algorithm is an algorithm to cluster n objects based on attributes into k partitions, where k &lt; n.</li>
+<li>It is similar to the expectation-maximization algorithm for mixtures of Gaussians in that they both attempt to find the centers of natural clusters in the data.</li>
+<li>It assumes that the object attributes form a vector space.</li>
+</ul></div>
+</div>
+<div class="slide" id="s13">
+  <div class="sh"><h3>K-Means</h3><span class="num">Slide 13</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-13.jpg" alt="K-Means" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>An algorithm for partitioning (or clustering) N data points into K disjoint subsets Sj containing data points so as to minimize the sum-of-squares criterion</li>
+<li>where xn is a vector representing the the nth data point and uj is the geometric centroid of the data points in Sj.</li>
+</ul></div>
+</div>
+<div class="slide" id="s14">
+  <div class="sh"><h3>K-Means</h3><span class="num">Slide 14</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-14.jpg" alt="K-Means" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Simply speaking k-means clustering is an algorithm to classify or to group the objects based on attributes/features into K number of group.</li>
+<li>K is positive integer number.</li>
+<li>The grouping is done by minimizing the sum of squares of distances between data and the corresponding cluster centroid.</li>
+</ul></div>
+</div>
+<div class="slide" id="s15">
+  <div class="sh"><h3>How the K-Mean Clustering algorithm works?</h3><span class="num">Slide 15</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-15.jpg" alt="How the K-Mean Clustering algorithm works?" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>1. Decide on a value for k.</li>
+<li>2. Initialize the k cluster centers (randomly, if necessary).</li>
+<li>3. Decide the class memberships of the N objects by assigning them to the nearest cluster center.</li>
+<li>4. Re-estimate the k cluster centers, by assuming the memberships found above are correct.</li>
+<li>5. If none of the N objects changed membership in the last iteration, exit. Otherwise goto 3.</li>
+</ul></div>
+</div>
+<div class="slide" id="s16">
+  <div class="sh"><h3>K-means</h3><span class="num">Slide 16</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-16.jpg" alt="K-means" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 1: Begin with a decision on the value of k = number of clusters .</li>
+<li>Step 2: Put any initial partition that classifies the data into k clusters. You may assign the training samples randomly, or systematically as the following:</li>
+<li class="sub">Take the first k training sample as single-element clusters</li>
+<li class="sub">Assign each of the remaining (N-k) training sample to the cluster with the nearest centroid. After each assignment, recompute the centroid of the gaining cluster.</li>
+</ul></div>
+</div>
+<div class="slide" id="s17">
+  <div class="sh"><h3>K-means</h3><span class="num">Slide 17</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-17.jpg" alt="K-means" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 3: Take each sample in sequence and compute its distance from the centroid of each of the clusters. If a sample is not currently in the cluster with the closest centroid, switch this sample to that cluster and update the centroid of the cluster gaining the new sample and the cluster losing the sample.</li>
+<li>Step 4 . Repeat step 3 until convergence is achieved, that is until a pass through the training sample causes no new assignments.</li>
+</ul></div>
+</div>
+<div class="slide" id="s18">
+  <div class="sh"><h3>A Simple example showing the implementation of k-means algorithm (using K=2)</h3><span class="num">Slide 18</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-18.jpg" alt="A Simple example showing the implementation of k-means algorithm (using K=2)" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s19">
+  <div class="sh"><h3>Step 1:</h3><span class="num">Slide 19</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-19.jpg" alt="Step 1:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Initialization: Randomly we choose following two centroids (k=2) for two clusters.</li>
+<li>In this case the 2 centroid are: m1=(1.0,1.0) and m2=(5.0,7.0).</li>
+</ul></div>
+</div>
+<div class="slide" id="s20">
+  <div class="sh"><h3>Step 2:</h3><span class="num">Slide 20</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-20.jpg" alt="Step 2:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Thus, we obtain two clusters containing:</li>
+<li>{1,2,3} and {4,5,6,7}.</li>
+<li>Their new centroids are:</li>
+</ul></div>
+</div>
+<div class="slide" id="s21">
+  <div class="sh"><h3>Step 3:</h3><span class="num">Slide 21</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-21.jpg" alt="Step 3:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Now using these centroids we compute the Euclidean distance of each object, as shown in table.</li>
+<li>Therefore, the new clusters are:</li>
+<li>{1,2} and {3,4,5,6,7}</li>
+<li>Next centroids are: m1=(1.25,1.5) and m2 = (3.9,5.1)</li>
+</ul></div>
+</div>
+<div class="slide" id="s22">
+  <div class="sh"><h3>Step 4 :</h3><span class="num">Slide 22</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-22.jpg" alt="Step 4 :" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The clusters obtained are:</li>
+<li>{1,2} and {3,4,5,6,7}</li>
+<li>Therefore, there is no change in the cluster.</li>
+<li>Thus, the algorithm comes to a halt here and final result consist of 2 clusters {1,2} and {3,4,5,6,7}.</li>
+</ul></div>
+</div>
+<div class="slide" id="s23">
+  <div class="sh"><h3>PLOT</h3><span class="num">Slide 23</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-23.jpg" alt="PLOT" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s24">
+  <div class="sh"><h3>Slide 24</h3><span class="num">Slide 24</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-24.jpg" alt="Slide 24" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s25">
+  <div class="sh"><h3>(with K=3)</h3><span class="num">Slide 25</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-25.jpg" alt="(with K=3)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 1</li>
+<li>Step 2</li>
+</ul></div>
+</div>
+<div class="slide" id="s26">
+  <div class="sh"><h3>PLOT</h3><span class="num">Slide 26</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-26.jpg" alt="PLOT" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t3">
+<h2>3. K-means Worked Example</h2>
+<div class="slide" id="s27">
+  <div class="sh"><h3>Real-Life Numerical Example of K-Means Clustering</h3><span class="num">Slide 27</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-27.jpg" alt="Real-Life Numerical Example of K-Means Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>We have 4 medicines as our training data points object and each medicine has 2 attributes. Each attribute represents coordinate of the object. We have to determine which medicines belong to cluster 1 and which medicines belong to the other cluster.</li>
+</ul>
+<table><thead><tr><th>Object</th><th>Attribute1 (X): weight index</th><th>Attribute 2 (Y): pH</th></tr></thead><tbody>
+<tr><td>Medicine A</td><td>1</td><td>1</td></tr>
+<tr><td>Medicine B</td><td>2</td><td>1</td></tr>
+<tr><td>Medicine C</td><td>4</td><td>3</td></tr>
+<tr><td>Medicine D</td><td>5</td><td>4</td></tr>
+</tbody></table></div>
+</div>
+<div class="slide" id="s28">
+  <div class="sh"><h3>Step 1:</h3><span class="num">Slide 28</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-28.jpg" alt="Step 1:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Initial value of centroids : Suppose we use medicine A and medicine B as the first centroids.</li>
+<li>Let and c1 and c2 denote the coordinate of the centroids, then c1=(1,1) and c2=(2,1)</li>
+</ul></div>
+</div>
+<div class="slide" id="s29">
+  <div class="sh"><h3>Objects-Centroids distance : we calculate the distance between cluster centroid to each object. Let us use Euclidean distance, then we have distance matrix at iteration 0 is</h3><span class="num">Slide 29</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-29.jpg" alt="Objects-Centroids distance : we calculate the distance between cluster centroid to each object. Let us use Euclidean distance, then we have distance matrix at iteration 0 is" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Each column in the distance matrix symbolizes the object.</li>
+<li>The first row of the distance matrix corresponds to the distance of each object to the first centroid and the second row is the distance of each object to the second centroid.</li>
+<li>For example, distance from medicine C = (4, 3) to the first centroid is , and its distance to the second centroid is , is etc.</li>
+</ul></div>
+</div>
+<div class="slide" id="s30">
+  <div class="sh"><h3>Step 2:</h3><span class="num">Slide 30</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-30.jpg" alt="Step 2:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Objects clustering : We assign each object based on the minimum distance.</li>
+<li>Medicine A is assigned to group 1, medicine B to group 2, medicine C to group 2 and medicine D to group 2.</li>
+<li>The elements of Group matrix below is 1 if and only if the object is assigned to that group.</li>
+</ul></div>
+</div>
+<div class="slide" id="s31">
+  <div class="sh"><h3>Iteration-1, Objects-Centroids distances : The next step is to compute the distance of all objects to the new centroids.</h3><span class="num">Slide 31</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-31.jpg" alt="Iteration-1, Objects-Centroids distances : The next step is to compute the distance of all objects to the new centroids." loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Similar to step 2, we have distance matrix at iteration 1 is</li>
+</ul></div>
+</div>
+<div class="slide" id="s32">
+  <div class="sh"><h3>Iteration-1, Objects clustering:Based on the new distance matrix, we move the medicine B to Group 1 while all the other objects remain. The Group matrix is shown below</h3><span class="num">Slide 32</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-32.jpg" alt="Iteration-1, Objects clustering:Based on the new distance matrix, we move the medicine B to Group 1 while all the other objects remain. The Group matrix is shown below" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Iteration 2, determine centroids: Now we repeat step 4 to calculate the new centroids coordinate based on the clustering of previous iteration. Group1 and group 2 both has two members, thus the new centroids are</li>
+<li>and</li>
+</ul></div>
+</div>
+<div class="slide" id="s33">
+  <div class="sh"><h3>Iteration-2, Objects-Centroids distances : Repeat step 2 again, we have new distance matrix at iteration 2 as</h3><span class="num">Slide 33</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-33.jpg" alt="Iteration-2, Objects-Centroids distances : Repeat step 2 again, we have new distance matrix at iteration 2 as" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s34">
+  <div class="sh"><h3>Iteration-2, Objects clustering: Again, we assign each object based on the minimum distance.</h3><span class="num">Slide 34</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-34.jpg" alt="Iteration-2, Objects clustering: Again, we assign each object based on the minimum distance." loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>We obtain result that . Comparing the grouping of last iteration and this iteration reveals that the objects does not move group anymore.</li>
+<li>Thus, the computation of the k-mean clustering has reached its stability and no more iteration is needed..</li>
+</ul></div>
+</div>
+<div class="slide" id="s35">
+  <div class="sh"><h3>Slide 35</h3><span class="num">Slide 35</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-35.jpg" alt="Slide 35" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><table><thead><tr><th>Object</th><th>Feature1(X):
+weight index</th><th>Feature2
+(Y): pH</th><th>Group
+(result)</th></tr></thead><tbody>
+<tr><td>Medicine A</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>Medicine B</td><td>2</td><td>1</td><td>1</td></tr>
+<tr><td>Medicine C</td><td>4</td><td>3</td><td>2</td></tr>
+<tr><td>Medicine D</td><td>5</td><td>4</td><td>2</td></tr>
+</tbody></table>
+<ul>
+<li>We get the final grouping as the results as:</li>
+</ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t4">
+<h2>4. K-medoids (PAM)</h2>
+<div class="slide" id="s36">
+  <div class="sh"><h3>What Is the Problem of the K-Means Method?</h3><span class="num">Slide 36</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-36.jpg" alt="What Is the Problem of the K-Means Method?" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The k-means algorithm is sensitive to outliers !</li>
+<li class="sub">Since an object with an extremely large value may substantially distort the distribution of the data</li>
+<li>K-Medoids: Instead of taking the mean value of the object in a cluster as a reference point, medoids can be used, which is the most centrally located object in a cluster</li>
+</ul></div>
+</div>
+<div class="slide" id="s37">
+  <div class="sh"><h3>PAM: A Typical K-Medoids Algorithm</h3><span class="num">Slide 37</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-37.jpg" alt="PAM: A Typical K-Medoids Algorithm" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Total Cost = 20</li>
+<li>K=2</li>
+<li>Arbitrary choose k object as initial medoids</li>
+<li>Assign each remaining object to nearest medoids</li>
+<li>Randomly select a nonmedoid object,Oramdom</li>
+<li>Compute total cost of swapping</li>
+<li>Total Cost = 26</li>
+<li>Swapping O and Oramdom</li>
+<li>If quality is improved.</li>
+<li>Do loop</li>
+<li>Until no change</li>
+</ul></div>
+</div>
+<div class="slide" id="s38">
+  <div class="sh"><h3>The K-Medoid Clustering Method</h3><span class="num">Slide 38</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-38.jpg" alt="The K-Medoid Clustering Method" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>K-Medoids Clustering: Find representative objects (medoids) in clusters</li>
+<li class="sub">PAM (Partitioning Around Medoids, Kaufmann &amp; Rousseeuw 1987)</li>
+<li class="sub">Starts from an initial set of medoids and iteratively replaces one of the medoids by one of the non-medoids if it improves the total distance of the resulting clustering</li>
+<li class="sub">PAM works effectively for small data sets, but does not scale well for large data sets (due to the computational complexity)</li>
+<li>Efficiency improvement on PAM</li>
+<li class="sub">CLARA (Kaufmann &amp; Rousseeuw, 1990): PAM on samples</li>
+<li class="sub">CLARANS (Ng &amp; Han, 1994): Randomized re-sampling</li>
+</ul></div>
+</div>
+<div class="slide" id="s39">
+  <div class="sh"><h3>Summary</h3><span class="num">Slide 39</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-39.jpg" alt="Summary" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>K-means and K-medoids algorithms are useful for undirected knowledge discovery and relatively simple.</li>
+<li>Both of the algorithms have wide spread usage in lot of fields, ranging from pattern recognitions, image processing, machine vision, and many others.</li>
+</ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t5">
+<h2>5. DBSCAN</h2>
+<div class="slide" id="s40">
+  <div class="sh"><h3>Density-Based Clustering: DBSCAN (Density-Based Spatial Clustering of Applications with Noise)</h3><span class="num">Slide 40</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-40.jpg" alt="Density-Based Clustering: DBSCAN (Density-Based Spatial Clustering of Applications with Noise)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>DBSCAN is a density-based clustering algorithm that forms clusters based on the density of points.</li>
+<li>It can identify clusters of arbitrary shapes and detect outliers (noise).</li>
+</ul></div>
+</div>
+<div class="slide" id="s41">
+  <div class="sh"><h3>DBSCAN</h3><span class="num">Slide 41</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-41.jpg" alt="DBSCAN" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Epsilon Neighborhood (ϵ): The region within a radius ϵ epsilon around a data point.</li>
+<li>Core Point: A point with at least minPts neighbors within its ϵ -neighborhood.</li>
+<li>Border Point: A point within the ϵ-neighborhood of a core point but with fewer than minPts neighbors.</li>
+<li>Noise Point: A point that is neither a core point nor a border point.</li>
+</ul></div>
+</div>
+<div class="slide" id="s42">
+  <div class="sh"><h3>DBSCAN</h3><span class="num">Slide 42</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-42.jpg" alt="DBSCAN" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Mathematical Steps:</li>
+</ul></div>
+</div>
+<div class="slide" id="s43">
+  <div class="sh"><h3>Steps of DBSCAN Algorithm:</h3><span class="num">Slide 43</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-43.jpg" alt="Steps of DBSCAN Algorithm:" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Choose a value for eps and MinPts</li>
+<li>For a particular data point (x) calculate its distance from every other datapoint.</li>
+<li>Find all the neighbourhood points of x which fall inside the circle of radius (eps) or simply whose distance from x is smaller than or equal to eps.</li>
+<li>Treat x as visited and if the number of neighbourhood points around x are greater or equal to MinPts then treat x as a core point and if it is not assigned to any cluster, create a new cluster and assign it to that.</li>
+<li>If the number of neighbourhood points around x are less than MinPts and it has a core point in its neighbourhood, treat it as a border point.</li>
+<li>Include all the density connected points as a single cluster.</li>
+<li>Repeat the above steps for every unvisited point in the data set and find out all core, border and outlier points.</li>
+</ul></div>
+</div>
+<div class="slide" id="s44">
+  <div class="sh"><h3>Direct Density Reachable vs Density Reachable</h3><span class="num">Slide 44</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-44.jpg" alt="Direct Density Reachable vs Density Reachable" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Direct density reachable: A point is called direct density reachable if it has a core point in its neighborhood.</li>
+<li>Density Connected: Two points are called density connected if there is a core point which is density reachable from both the points.</li>
+<li>Density Reachable: A point is called density reachable from another point if they are connected through a series of core points.</li>
+</ul></div>
+</div>
+<div class="slide" id="s45">
+  <div class="sh"><h3>Our dataset: seven points</h3><span class="num">Slide 45</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-45.jpg" alt="Our dataset: seven points" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><table><thead><tr><th>Point</th><th>Var 1</th><th>Var 2</th></tr></thead><tbody>
+<tr><td>P1</td><td>1</td><td>1</td></tr>
+<tr><td>P2</td><td>1.5</td><td>2</td></tr>
+<tr><td>P3</td><td>3</td><td>4</td></tr>
+<tr><td>P4</td><td>5</td><td>7</td></tr>
+<tr><td>P5</td><td>3.5</td><td>5</td></tr>
+<tr><td>P6</td><td>4.5</td><td>5</td></tr>
+<tr><td>P7</td><td>3.5</td><td>4.5</td></tr>
+</tbody></table>
+<ul>
+<li>ε = 1.5 MinPts = 2</li>
+</ul></div>
+</div>
+<div class="slide" id="s46">
+  <div class="sh"><h3>Step 1 — Measure distances</h3><span class="num">Slide 46</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-46.jpg" alt="Step 1 — Measure distances" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>d(a, b) = √[(x₁−x₂)² + (y₁−y₂)²]</li>
+<li>Euclidean distance between every pair. Blue cells mark pairs within ε = 1.5 — the neighbours.</li>
+</ul></div>
+</div>
+<div class="slide" id="s47">
+  <div class="sh"><h3>Step 2 — Count each point's neighbours</h3><span class="num">Slide 47</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-47.jpg" alt="Step 2 — Count each point's neighbours" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>List every point within ε = 1.5, then count — including the point itself. A core point needs a count of at least 2.</li>
+<li>Only P4 has count 1.</li>
+<li>Every other point clears the threshold.</li>
+</ul></div>
+</div>
+<div class="slide" id="s48">
+  <div class="sh"><h3>Step 3 — Label each point</h3><span class="num">Slide 48</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-48.jpg" alt="Step 3 — Label each point" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The rule</li>
+<li>Count ≥ 2 → core point. Count = 1 and no core nearby → noise.</li>
+<li>Every clustered point is core; only P4 is noise — at MinPts = 2 there are no border points.</li>
+</ul></div>
+</div>
+<div class="slide" id="s49">
+  <div class="sh"><h3>How Cluster 1 forms — { P1, P2 }</h3><span class="num">Slide 49</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-49.jpg" alt="How Cluster 1 forms — { P1, P2 }" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>ε = 1.5, MinPts = 2</li>
+<li>• P1–P2 = 1.12 ≤ ε, so each lies in the other's neighbourhood → both are core points (count 2).</li>
+<li>• Directly density-reachable: P2 sits within ε of the core point P1 (and vice-versa).</li>
+<li>• Density-connected: each is reachable from the other, so they bind into one cluster.</li>
+<li>• The cluster can't grow — the nearest outside point P3 is 2.5 away (&gt; ε).</li>
+<li>⇒ Cluster 1 = { P1, P2 }</li>
+</ul></div>
+</div>
+<div class="slide" id="s50">
+  <div class="sh"><h3>How Cluster 2 forms — { P3, P5, P6, P7 }</h3><span class="num">Slide 50</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-50.jpg" alt="How Cluster 2 forms — { P3, P5, P6, P7 }" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>All four are core points</li>
+<li>(counts 3, 4, 3, 4).</li>
+<li>• Directly density-reachable: neighbours within ε — e.g. P5–P7 = 0.5, P3–P7 = 0.71, P5–P6 = 1.0.</li>
+<li>• Density-reachable: P3–P6 = 1.80 (&gt; ε, not direct), but P3 reaches P6 through core P5 (or P7).</li>
+<li>• Density-connected: every pair is linked through shared cores.</li>
+<li>⇒ Cluster 2 = { P3, P5, P6, P7 }</li>
+</ul></div>
+</div>
+<div class="slide" id="s51">
+  <div class="sh"><h3>Step 3 — Label each point</h3><span class="num">Slide 51</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-51.jpg" alt="Step 3 — Label each point" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>The rule</li>
+<li>Count ≥ 2 → core point. Count = 1 and no core nearby → noise.</li>
+<li>Every clustered point is core; only P4 is noise — at MinPts = 2 there are no border points.</li>
+</ul></div>
+</div>
+<div class="slide" id="s52">
+  <div class="sh"><h3>Step 4 — Connect cores into clusters</h3><span class="num">Slide 52</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-52.jpg" alt="Step 4 — Connect cores into clusters" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>P1 and P2 sit within ε of each other and both clear the core test — together they form Cluster 1.</li>
+<li>P3, P5, P6 and P7 are all density-connected through shared cores — they form Cluster 2.</li>
+<li>P4 reaches no core, so it stays noise.</li>
+</ul></div>
+</div>
+<div class="slide" id="s53">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 53</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-53.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>https://towardsdatascience.com/dbscan-make-density-based-clusters-by-hand-2689dc335120</li>
+</ul></div>
+</div>
+<div class="slide" id="s54">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 54</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-54.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s55">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 55</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-55.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s56">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 56</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-56.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s57">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 57</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-57.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s58">
+  <div class="sh"><h3>DBSCAN Step by Step</h3><span class="num">Slide 58</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-58.jpg" alt="DBSCAN Step by Step" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s90">
+  <div class="sh"><h3>Direct Density Reachable vs Density Reachable</h3><span class="num">Slide 90</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-90.jpg" alt="Direct Density Reachable vs Density Reachable" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Direct density reachable: A point is called direct density reachable if it has a core point in its neighbourhood. Consider the point (1, 2), it has a core point (1.2, 2.5) in its neighbourhood, hence, it will be a direct density reachable point.</li>
+<li>Density Reachable: A point is called density reachable from another point if they are connected through a series of core points. For example, consider the points (1, 3) and (1.5, 2.5), since they are connected through a core point (1.2, 2.5), they are called density reachable from each other.</li>
+<li>Density Connected: Two points are called density connected if there is a core point which is density reachable from both the points.</li>
+</ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t6">
+<h2>6. Choosing MinPts &amp; ε</h2>
+<div class="slide" id="s59">
+  <div class="sh"><h3>How to choose the Min Points?</h3><span class="num">Slide 59</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-59.jpg" alt="How to choose the Min Points?" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Remove the outlier</li>
+<li>Take the min Points to be greater or equal to the dimensionality (d) of our dataset</li>
+<li>Take the min Points twice of the dimensionality of data</li>
+<li>If the dataset is noisier, choose a larger value of min Points</li>
+</ul></div>
+</div>
+<div class="slide" id="s60">
+  <div class="sh"><h3>How to determine eps?</h3><span class="num">Slide 60</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-60.jpg" alt="How to determine eps?" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>For each point of the dataset, we’ll have our d’s.</li>
+<li>Then, we’ll sort all d’s in increasing order.</li>
+<li>Now, we’ll plot the sorted point index and d’s with elbow or Knee method.</li>
+</ul></div>
+</div>
+<div class="slide" id="s61">
+  <div class="sh"><h3>Elbow Method</h3><span class="num">Slide 61</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-61.jpg" alt="Elbow Method" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s62">
+  <div class="sh"><h3>Elbow Method</h3><span class="num">Slide 62</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-62.jpg" alt="Elbow Method" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Calculation for K = 1</li>
+</ul></div>
+</div>
+<div class="slide" id="s63">
+  <div class="sh"><h3>Elbow Method</h3><span class="num">Slide 63</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-63.jpg" alt="Elbow Method" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Calculation for K = 2</li>
+</ul></div>
+</div>
+<div class="slide" id="s64">
+  <div class="sh"><h3>Elbow Method</h3><span class="num">Slide 64</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-64.jpg" alt="Elbow Method" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s65">
+  <div class="sh"><h3>DBSCAN</h3><span class="num">Slide 65</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-65.jpg" alt="DBSCAN" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t7">
+<h2>7. Hierarchical Clustering</h2>
+<div class="slide" id="s66">
+  <div class="sh"><h3>Hierarchical Clustering: Agglomerative and Divisive</h3><span class="num">Slide 66</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-66.jpg" alt="Hierarchical Clustering: Agglomerative and Divisive" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Hierarchical clustering creates a hierarchy of clusters either through a bottom-up approach (agglomerative) or a top-down approach (divisive).</li>
+</ul></div>
+</div>
+<div class="slide" id="s67">
+  <div class="sh"><h3>Agglomerative And Divisive</h3><span class="num">Slide 67</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-67.jpg" alt="Agglomerative And Divisive" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Agglomerative Clustering</li>
+<li class="sub">Start with each data point as its own cluster.</li>
+<li class="sub">Merge the two closest clusters iteratively until all points are in one cluster.</li>
+<li>Divisive Clustering:</li>
+<li class="sub">Start with all data points in a single cluster.</li>
+<li class="sub">Iteratively split clusters until each data point is in its own cluster</li>
+</ul></div>
+</div>
+<div class="slide" id="s68">
+  <div class="sh"><h3>Hierarchical Clustering</h3><span class="num">Slide 68</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-68.jpg" alt="Hierarchical Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Distance Measurement Techniques</li>
+</ul></div>
+</div>
+<div class="slide" id="s69">
+  <div class="sh"><h3>Hierarchical Clustering</h3><span class="num">Slide 69</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-69.jpg" alt="Hierarchical Clustering" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t8">
+<h2>8. Evaluation Metrics</h2>
+<div class="slide" id="s70">
+  <div class="sh"><h3>Evaluation Metrics for Clustering</h3><span class="num">Slide 70</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-70.jpg" alt="Evaluation Metrics for Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Internal Evaluation Metrics</li>
+<li>b(i): This is the average distance between data point "i" and all points in the nearest neighboring cluster. In other words, it measures the separation of the point from its closest cluster.</li>
+<li>a(i): This is the average distance between data point "i" and all other points in its own cluster. It measures the cohesion of the point within its cluster.</li>
+</ul></div>
+</div>
+<div class="slide" id="s71">
+  <div class="sh"><h3>Silhouette Score: Mathematical Example</h3><span class="num">Slide 71</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-71.jpg" alt="Silhouette Score: Mathematical Example" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s72">
+  <div class="sh"><h3>Slide 72</h3><span class="num">Slide 72</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-72.jpg" alt="Slide 72" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s73">
+  <div class="sh"><h3>Evaluation Metrics for Clustering</h3><span class="num">Slide 73</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-73.jpg" alt="Evaluation Metrics for Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Internal Evaluation Metrics</li>
+</ul></div>
+</div>
+<div class="slide" id="s74">
+  <div class="sh"><h3>Davies-Bouldin Index (DBI): Mathematical Example</h3><span class="num">Slide 74</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-74.jpg" alt="Davies-Bouldin Index (DBI): Mathematical Example" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>DBI measures the average similarity between clusters.</li>
+<li>A lower value (close to 0) means clusters are well-separated and compact.</li>
+</ul></div>
+</div>
+<div class="slide" id="s75">
+  <div class="sh"><h3>Evaluation Metrics for Clustering</h3><span class="num">Slide 75</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-75.jpg" alt="Evaluation Metrics for Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>External Evaluation Metrics</li>
+</ul></div>
+</div>
+<div class="slide" id="s76">
+  <div class="sh"><h3>Normalized Mutual Information (NMI)</h3><span class="num">Slide 76</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-76.jpg" alt="Normalized Mutual Information (NMI)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 1: Dataset Marginal Probabilities</li>
+</ul></div>
+</div>
+<div class="slide" id="s77">
+  <div class="sh"><h3>Normalized Mutual Information (NMI)</h3><span class="num">Slide 77</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-77.jpg" alt="Normalized Mutual Information (NMI)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 2: Calculating Joint Probabilities</li>
+</ul></div>
+</div>
+<div class="slide" id="s78">
+  <div class="sh"><h3>Normalized Mutual Information (NMI)</h3><span class="num">Slide 78</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-78.jpg" alt="Normalized Mutual Information (NMI)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Step 3: Mutual Information &amp; NMI</li>
+</ul></div>
+</div>
+<div class="slide" id="s79">
+  <div class="sh"><h3>Evaluation Metrics for Clustering</h3><span class="num">Slide 79</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-79.jpg" alt="Evaluation Metrics for Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>External Evaluation Metrics</li>
+<li>Where:</li>
+<li>RI: The Rand Index, which measures the number of pairs of data points that are correctly clustered together or separated by both clustering.</li>
+<li>Expected RI: The expected Rand Index under the assumption of random chance.</li>
+<li>max(RI): The maximum achievable Rand Index.</li>
+<li>Interpretation:</li>
+<li>Higher ARI values: Indicate better agreement between the predicted clusters and the ground truth labels.</li>
+<li>ARI close to 1: Suggests that the clustering algorithm has performed well in capturing the underlying structure of the data.</li>
+<li>ARI close to 0: Implies that the clustering is not significantly better than random chance.</li>
+<li>Negative ARI: Indicates that the clustering is worse than random chance.</li>
+</ul></div>
+</div>
+<div class="slide" id="s80">
+  <div class="sh"><h3>Best Practices for Optimizing Clustering</h3><span class="num">Slide 80</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-80.jpg" alt="Best Practices for Optimizing Clustering" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li class="sub">Comprehensive Hyperparameter Tuning:</li>
+<li class="sub">Use grid search or random search strategies over hyperparameters (e.g., ϵ -epsilon, linkage method) to identify optimal configurations.</li>
+<li class="sub">Cross-Validation:</li>
+<li class="sub">Apply cross-validation with different subsamples of the data to assess clustering stability and consistency across various partitions.</li>
+<li class="sub">Multi-Metric Evaluation:</li>
+<li class="sub">Combine multiple evaluation metrics (e.g., silhouette score, Davies-Bouldin Index) to get a holistic view of clustering performance, particularly when ground truth labels are unavailable.</li>
+<li class="sub">Visual Inspection:</li>
+<li class="sub">Utilize dimensionality reduction techniques (e.g., PCA, t-SNE) to visualize clusters in 2D or 3D and verify whether clusters appear well-separated and meaningful.</li>
+</ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+<section class="tab-panel" id="t9">
+<h2>9. Process, Applications &amp; References</h2>
+<div class="slide" id="s82">
+  <div class="sh"><h3>The Unsupervised Learning Process</h3><span class="num">Slide 82</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-82.jpg" alt="The Unsupervised Learning Process" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="slide" id="s83">
+  <div class="sh"><h3>The Unsupervised Learning Process</h3><span class="num">Slide 83</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-83.jpg" alt="The Unsupervised Learning Process" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>1.Data Collection:</li>
+<li>2. Data Preprocessing:</li>
+</ul></div>
+</div>
+<div class="slide" id="s84">
+  <div class="sh"><h3>The Unsupervised Learning Process</h3><span class="num">Slide 84</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-84.jpg" alt="The Unsupervised Learning Process" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Model Selection:</li>
+<li class="sub">Choose a suitable algorithm based on the type of unsupervised learning task (e.g., clustering, dimensionality reduction, or association).</li>
+<li class="sub">Consider the nature of the data and the desired output (e.g., dense vs. sparse data, numeric vs. categorical features).</li>
+<li>Model Training:</li>
+<li class="sub">The algorithm processes the dataset to find patterns or clusters without any supervision. For clustering algorithms, this involves iteratively assigning data points to clusters and optimizing the grouping.</li>
+<li>Model Evaluation and Interpretation:</li>
+<li class="sub">In unsupervised learning, evaluating the model’s performance is more subjective since there are no ground truth labels. Metrics such as silhouette score, Davies- Bouldin index, or visual inspection through scatter plots (in lower dimensions) can be used.</li>
+<li class="sub">For association rules, metrics like support, confidence, and lift are used to evaluate the significance of the rules.</li>
+<li>Result Analysis:</li>
+<li class="sub">Analyze the identified patterns or clusters to interpret their meaning and relevance to the problem domain. This often involves visualizing the results (e.g., cluster plots) or examining the rules generated.</li>
+</ul></div>
+</div>
+<div class="slide" id="s85">
+  <div class="sh"><h3>Clustering for Data Understanding and Applications</h3><span class="num">Slide 85</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-85.jpg" alt="Clustering for Data Understanding and Applications" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Biology: taxonomy of living things: kingdom, phylum, class, order, family, genus and species</li>
+<li>Information retrieval: document clustering</li>
+<li>Land use: Identification of areas of similar land use in an earth observation database</li>
+<li>Marketing: Help marketers discover distinct groups in their customer bases, and then use this knowledge to develop targeted marketing programs</li>
+<li>City-planning: Identifying groups of houses according to their house type, value, and geographical location</li>
+<li>Earth-quake studies: Observed earthquake epicenters should be clustered along continent faults</li>
+<li>Climate: understanding earth climate, find patterns of atmospheric and ocean</li>
+<li>Economic Science: market research</li>
+</ul></div>
+</div>
+<div class="slide" id="s86">
+  <div class="sh"><h3>Clustering as a Preprocessing Tool (Utility)</h3><span class="num">Slide 86</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-86.jpg" alt="Clustering as a Preprocessing Tool (Utility)" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Summarization:</li>
+<li class="sub">Preprocessing for regression, PCA, classification, and association analysis</li>
+<li>Compression:</li>
+<li class="sub">Image processing: vector quantization</li>
+<li>Finding K-nearest Neighbors</li>
+<li class="sub">Localizing search to one or a small number of clusters</li>
+<li>Outlier detection</li>
+<li class="sub">Outliers are often viewed as those “far away” from any cluster</li>
+</ul></div>
+</div>
+<div class="slide" id="s87">
+  <div class="sh"><h3>Special thanks to</h3><span class="num">Slide 87</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-87.jpg" alt="Special thanks to" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Dr. Md. Golam Rabiul Alam</li>
+</ul></div>
+</div>
+<div class="slide" id="s88">
+  <div class="sh"><h3>References</h3><span class="num">Slide 88</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-88.jpg" alt="References" loading="lazy" width="1100" height="825"></div>
+  <div class="txt"><ul>
+<li>Tutorial - Tutorial with introduction of Clustering Algorithms (k-means, fuzzy-c-means, hierarchical, mixture of gaussians) + some interactive demos (java applets).</li>
+<li>Digital Image Processing and Analysis-byB.Chanda and D.Dutta Majumdar.</li>
+<li>H. Zha, C. Ding, M. Gu, X. He and H.D. Simon. "Spectral Relaxation for K-means Clustering", Neural Information Processing Systems vol.14 (NIPS 2001). pp. 1057-1064, Vancouver, Canada. Dec. 2001.</li>
+<li>J. A. Hartigan (1975) "Clustering Algorithms". Wiley.</li>
+<li>J. A. Hartigan and M. A. Wong (1979) "A K-Means Clustering Algorithm", Applied Statistics, Vol. 28, No. 1, p100-108.</li>
+<li>D. Arthur, S. Vassilvitskii (2006): "How Slow is the k-means Method?,"</li>
+<li>D. Arthur, S. Vassilvitskii: "k-means++ The Advantages of Careful Seeding" 2007 Symposium on Discrete Algorithms (SODA).</li>
+<li>www.wikipedia.com</li>
+</ul></div>
+</div>
+<div class="slide" id="s89">
+  <div class="sh"><h3>Thank You</h3><span class="num">Slide 89</span></div>
+  <div class="imgwrap"><img src="assets/ml05/slide-89.jpg" alt="Thank You" loading="lazy" width="1100" height="825"></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<div class="footer">
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</span>
+  <span>CSE475 · Summer 2026</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id, push){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+</body>
+</html>

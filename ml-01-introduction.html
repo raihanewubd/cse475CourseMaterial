@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 1 — Introduction to Machine Learning — CSE475 Machine Learning</title>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .dept{margin-top:6px}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  li.sub{margin-left:1.2em;list-style:circle}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide img{display:block;width:100%;max-width:860px;margin:0 auto;height:auto;background:#fff}
+  .slide .imgwrap{border-bottom:1px solid var(--line);background:#fafafa}
+  .slide .txt{padding:8px 14px 4px;background:var(--card);font-size:.93rem}
+  .slide .txt ul{margin:.3em 0}
+  .slide .txt:empty{display:none}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  @media(max-width:680px){.page{padding:18px}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+
+  .slide .body{padding:10px 16px 6px}
+  .slide .body.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .slide .body.split{grid-template-columns:1fr 150px}
+  figure{margin:8px 0}
+  figure img{display:block;max-width:100%;max-height:420px;margin:0 auto;border:1px solid var(--line);border-radius:4px}
+  figcaption{font-size:.82rem;color:var(--gray);text-align:center;margin-top:4px}
+  blockquote.q{margin:8px 0;padding:8px 14px;background:var(--card);border-left:4px solid var(--rust);border-radius:4px;font-family:"Caladea","Cambria","Georgia",serif;font-size:1.05rem}
+  blockquote.q .who{display:block;font-family:"Carlito","Calibri","Segoe UI",system-ui,sans-serif;font-size:.85rem;color:var(--gray);margin-top:2px}
+  p.def{font-family:"Caladea","Cambria","Georgia",serif;font-size:1.15rem;color:var(--navy);background:var(--peach);border:1px solid var(--rust);border-radius:5px;padding:10px 14px}
+  ol.trend{columns:2;column-gap:30px;font-size:1.02rem}
+  ol.trend li{break-inside:avoid;padding:2px 0}
+  p.chain{font-size:.9rem;background:var(--card);padding:6px 10px;border-radius:4px;overflow-x:auto}
+  p.warn{background:var(--peach);border:1px solid var(--rust);border-radius:5px;padding:8px 12px;font-weight:bold;color:var(--rust)}
+  .stack{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+  .stack div{text-align:center;color:#fff;font-weight:bold;padding:10px 6px;border-radius:4px;opacity:.55;font-size:.9rem}
+  .stack .tr{background:var(--orange);flex:3;padding:34px 6px}
+  .stack .va{background:var(--green)}
+  .stack .te{background:var(--navy)}
+  .stack .on{opacity:1;box-shadow:0 0 0 3px var(--rust)}
+  @media(max-width:680px){.slide .body.two,.two,.slide .body.split{grid-template-columns:1fr}.stack{flex-direction:row}.stack .tr{padding:10px 6px}ol.trend{columns:1}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 1 — Introduction to Machine Learning</h1>
+  <div class="sub">ML-01: What machine learning is, where it is used, and the kinds of learning</div>
+  <div class="dept">Department of Computer Science and Engineering<br>East West University, Dhaka, Bangladesh</div>
+  <div class="attr">Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> This lecture asks what machine learning is and where it is already in use, then separates the four kinds of learning (supervised, unsupervised, semi-supervised, reinforcement) by what the training data contains. It ends with how a dataset is organised into examples, features and a class label, and how the training, validation and test sets are used to fit a model, choose its hyperparameters, and report an honest accuracy. <em>Use the tabs to move between sections.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What is Machine Learning?</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Types of Learning</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>Data, Training &amp; Evaluation</button>
+</div>
+
+<!-- ============ TAB 1 ============ -->
+<section class="tab-panel" id="t1">
+<h2>1. What is Machine Learning?</h2>
+
+<div class="slide" id="s6">
+  <div class="sh"><h3>A Few Quotes</h3><span class="num">Slide 6</span></div>
+  <div class="body">
+    <blockquote class="q">“A breakthrough in machine learning would be worth ten Microsofts.”<span class="who">Bill Gates, Microsoft</span></blockquote>
+    <blockquote class="q">“Machine learning is the next Internet.”<span class="who">Tony Tether, Director, DARPA</span></blockquote>
+    <blockquote class="q">“Machine learning is going to result in a real revolution.”<span class="who">Greg Papadopoulos, ex-CTO, Sun</span></blockquote>
+  </div>
+</div>
+
+<div class="slide" id="s7">
+  <div class="sh"><h3>What is Machine Learning?</h3><span class="num">Slide 7</span></div>
+  <div class="body">
+    <p>In 1959, Arthur Samuel, a pioneer in the field of machine learning (ML), defined it as the</p>
+    <p class="def">“field of study that gives computers the ability to learn without being explicitly programmed”</p>
+  </div>
+</div>
+
+<div class="slide" id="s8">
+  <div class="sh"><h3>What is Machine Learning?</h3><span class="num">Slide 8</span></div>
+  <div class="body two">
+    <div>
+      <p>Study of algorithms that</p>
+      <ul>
+        <li>improve their <b>performance</b></li>
+        <li>at some <b>task</b></li>
+        <li>with <b>experience</b></li>
+      </ul>
+    </div>
+    <figure><img src="assets/ml01/pic-08.jpg" alt="Performance, task, experience" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s9">
+  <div class="sh"><h3>Machine Learning in Action</h3><span class="num">Slide 9</span></div>
+  <div class="body">
+    <p>Decoding thoughts from brain scans</p>
+    <figure><img src="assets/ml01/pic-09.jpg" alt="Decoding thoughts from brain scans" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s10">
+  <div class="sh"><h3>Machine Learning in Action</h3><span class="num">Slide 10</span></div>
+  <div class="body">
+    <p>Stock market prediction</p>
+    <figure><img src="assets/ml01/pic-10.jpg" alt="Stock market prediction" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s11">
+  <div class="sh"><h3>Machine Learning in Action</h3><span class="num">Slide 11</span></div>
+  <div class="body">
+    <p>Cars navigating on their own</p>
+    <figure><img src="assets/ml01/pic-11.jpg" alt="Self-driving SUV" loading="lazy"><figcaption>The self-driving SUV that took 1st place in the DARPA Urban Challenge</figcaption></figure>
+  </div>
+</div>
+
+<div class="slide" id="s12">
+  <div class="sh"><h3>Machine Learning in Action</h3><span class="num">Slide 12</span></div>
+  <div class="body">
+    <p>Helicopters can learn aerial tricks by watching other helicopters perform the stunts first</p>
+    <figure><img src="assets/ml01/pic-12.jpg" alt="Self-learning helicopters" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s13">
+  <div class="sh"><h3>Machine Learning in Action</h3><span class="num">Slide 13</span></div>
+  <div class="body">
+    <p>Many, many more…</p>
+    <ul>
+      <li>Speech recognition, natural language processing</li>
+      <li>Computer vision</li>
+      <li>Medical outcomes analysis</li>
+      <li>Sensor networks</li>
+      <li>Social networks</li>
+      <li>…</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="s14">
+  <div class="sh"><h3>Machine Learning Trends in 2023</h3><span class="num">Slide 14</span></div>
+  <div class="body">
+    <ol class="trend">
+      <li>Automated ML</li>
+      <li>TinyML</li>
+      <li>MLOps</li>
+      <li>Explainable AI</li>
+      <li>Edge computing</li>
+      <li>Ethical AI</li>
+      <li>Multimodal ML</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="s15">
+  <div class="sh"><h3>ML Is Not Isolated!</h3><span class="num">Slide 15</span></div>
+  <div class="body">
+    <figure><img src="assets/ml01/pic-15.jpg" alt="Fields related to machine learning" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s16">
+  <div class="sh"><h3>AI and/or ML</h3><span class="num">Slide 16</span></div>
+  <div class="body">
+    <figure><img src="assets/ml01/pic-16.jpg" alt="Position of machine learning and deep learning within artificial intelligence" loading="lazy"><figcaption>Source: <a href="https://www.researchgate.net/figure/An-illustration-of-the-position-of-machine-learning-ML-and-deep-Learning-DL-within_fig2_358518962">researchgate.net</a></figcaption></figure>
+  </div>
+</div>
+
+<div class="slide" id="s17">
+  <div class="sh"><h3>Business Aspects of ML</h3><span class="num">Slides 17–18</span></div>
+  <div class="body two">
+    <figure><img src="assets/ml01/pic-17.jpg" alt="Machine learning market size, 2022 to 2032" loading="lazy"><figcaption>Machine learning market size, 2022–2032 (USD billion)</figcaption></figure>
+    <figure><img src="assets/ml01/pic-18.jpg" alt="Global machine learning market share by end use, 2022" loading="lazy"><figcaption>Global ML market share by end use, 2022 — $36.7B</figcaption></figure>
+  </div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ============ TAB 2 ============ -->
+<section class="tab-panel" id="t2">
+<h2>2. Types of Learning</h2>
+
+<div class="slide" id="s19">
+  <div class="sh"><h3>Types of Learning</h3><span class="num">Slide 19</span></div>
+  <div class="body">
+    <table>
+      <thead><tr><th>Type</th><th>What the training data contains</th></tr></thead>
+      <tbody>
+        <tr><td><b>Supervised (inductive) learning</b></td><td>Training data includes desired outputs</td></tr>
+        <tr><td><b>Unsupervised learning</b></td><td>Training data does not include desired outputs</td></tr>
+        <tr><td><b>Semi-supervised learning</b></td><td>Training data includes a few desired outputs</td></tr>
+        <tr><td><b>Reinforcement learning</b></td><td>Rewards from a sequence of actions</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="s20">
+  <div class="sh"><h3>Supervised Learning</h3><span class="num">Slide 20</span></div>
+  <div class="body">
+    <ul>
+      <li>Given examples of a function (<i>X</i>, <i>F</i>(<i>X</i>))</li>
+      <li>Predict the function <i>F</i>(<i>X</i>) for new examples <i>X</i>
+        <ul>
+          <li>Discrete <i>F</i>(<i>X</i>): <b>classification</b></li>
+          <li>Continuous <i>F</i>(<i>X</i>): <b>regression</b></li>
+          <li><i>F</i>(<i>X</i>) = Probability(<i>X</i>): <b>probability estimation</b></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="s21">
+  <div class="sh"><h3>Supervised Learning</h3><span class="num">Slide 21</span></div>
+  <div class="body">
+    <p><b>Data:</b> a set of data records (also called examples, instances or cases) described by</p>
+    <ul>
+      <li><i>k</i> attributes: <i>A</i><sub>1</sub>, <i>A</i><sub>2</sub>, …, <i>A</i><sub><i>k</i></sub></li>
+      <li>a class: each example is labelled with a pre-defined class</li>
+    </ul>
+    <p><b>Goal:</b> to learn a classification/regression model from the data that can be used to predict the classes/values of new (future, or test) cases/instances.</p>
+  </div>
+</div>
+
+<div class="slide" id="s22">
+  <div class="sh"><h3>Supervised Learning — Classification</h3><span class="num">Slide 22</span></div>
+  <div class="body">
+    <p>Assign an object/event to one of a given finite set of categories (discrete or categorical values).</p>
+    <div class="two">
+      <ul>
+        <li>Medical diagnosis</li>
+        <li>Credit card applications or transactions</li>
+        <li>Fraud detection in e-commerce</li>
+        <li>Worm detection in network packets</li>
+        <li>Spam filtering in email</li>
+      </ul>
+      <ul>
+        <li>Recommended articles in a newspaper</li>
+        <li>Recommended books, movies, music, or jokes</li>
+        <li>Financial investments</li>
+        <li>DNA sequences, handwritten letters</li>
+        <li>Astronomical images</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s23">
+  <div class="sh"><h3>Regression</h3><span class="num">Slide 23</span></div>
+  <div class="body">
+    <p>Predicting a numeric value (continuous value):</p>
+    <ul>
+      <li>Predicting weather</li>
+      <li>Predicting the stock market</li>
+      <li>Predicting monthly or yearly product sales</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="s24">
+  <div class="sh"><h3>Unsupervised Learning</h3><span class="num">Slide 24</span></div>
+  <div class="body">
+    <ul>
+      <li>Given <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>, …, <i>x</i><sub><i>n</i></sub> (without labels)</li>
+      <li>Output the hidden structure behind the <i>x</i>’s — e.g., clustering</li>
+    </ul>
+    <figure><img src="assets/ml01/fig-24.jpg" alt="Unlabelled points on the left; the same points grouped into three clusters on the right" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s25">
+  <div class="sh"><h3>Unsupervised Learning</h3><span class="num">Slide 25</span></div>
+  <div class="body">
+    <p>Independent component analysis (ICA) — separate a combined signal into its original sources</p>
+    <figure><img src="assets/ml01/fig-25.jpg" alt="Two speakers mixed in a crowd, separated back into two recovered signals by ICA" loading="lazy"></figure>
+  </div>
+</div>
+
+<div class="slide" id="s26">
+  <div class="sh"><h3>Reinforcement Learning</h3><span class="num">Slide 26</span></div>
+  <div class="body">
+    <ul>
+      <li>Given a sequence of states and actions with (delayed) rewards, output a <b>policy</b></li>
+      <li>A policy is a mapping from states → actions that tells you what to do in a given state</li>
+      <li>Examples:
+        <ul>
+          <li>Credit assignment problem</li>
+          <li>Game playing</li>
+          <li>Robot in a maze</li>
+          <li>Balance a pole on your hand</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="s27">
+  <div class="sh"><h3>The Agent–Environment Interface</h3><span class="num">Slide 27</span></div>
+  <div class="body">
+    <figure><img src="assets/ml01/fig-27.jpg" alt="Agent and environment loop: state and reward go to the agent, action goes to the environment" loading="lazy"></figure>
+    <p>Agent and environment interact at discrete time steps <i>t</i> = 0, 1, 2, …</p>
+    <ul>
+      <li>Agent observes state at step <i>t</i>: <i>s<sub>t</sub></i> ∈ <i>S</i></li>
+      <li>produces action at step <i>t</i>: <i>a<sub>t</sub></i> ∈ <i>A</i>(<i>s<sub>t</sub></i>)</li>
+      <li>gets resulting reward <i>r</i><sub><i>t</i>+1</sub> ∈ ℝ, and resulting next state <i>s</i><sub><i>t</i>+1</sub></li>
+    </ul>
+    <p class="mono chain">… <i>s<sub>t</sub></i> —<i>a<sub>t</sub></i>→ <i>r</i><sub><i>t</i>+1</sub>, <i>s</i><sub><i>t</i>+1</sub> —<i>a</i><sub><i>t</i>+1</sub>→ <i>r</i><sub><i>t</i>+2</sub>, <i>s</i><sub><i>t</i>+2</sub> —<i>a</i><sub><i>t</i>+2</sub>→ <i>r</i><sub><i>t</i>+3</sub>, <i>s</i><sub><i>t</i>+3</sub> —<i>a</i><sub><i>t</i>+3</sub>→ …</p>
+  </div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<!-- ============ TAB 3 ============ -->
+<section class="tab-panel" id="t3">
+<h2>3. Data, Training &amp; Evaluation</h2>
+
+<div class="slide" id="s28">
+  <div class="sh"><h3>The Dataset</h3><span class="num">Slide 28</span></div>
+  <div class="body">
+    <figure><img src="assets/ml01/fig-28.jpg" alt="Restaurant-waiting dataset: twelve examples, ten input attributes and the WillWait output" loading="lazy"></figure>
+    <table>
+      <thead><tr><th>Part of the table</th><th>Also called</th></tr></thead>
+      <tbody>
+        <tr><td>Rows (x<sub>1</sub> … x<sub>12</sub>)</td><td>Examples, instances, observations</td></tr>
+        <tr><td>Input columns (Alt, Bar, Fri, Hun, Pat, Price, Rain, Res, Type, Est)</td><td>Features, variables, attributes — e.g. Alternative, Hungry, Patrons, Reservation, Wait time</td></tr>
+        <tr><td>Output column (WillWait)</td><td>Class, label</td></tr>
+      </tbody>
+    </table>
+    <p><b>Find a hypothesis (called a “model”) to predict the class given the features.</b></p>
+  </div>
+</div>
+
+<div class="slide" id="s31">
+  <div class="sh"><h3>Training a Model</h3><span class="num">Slide 31</span></div>
+  <div class="body two split">
+    <div>
+      <p>Models are “trained” (learned) on <b>the training data</b> (a part of the available data).</p>
+      <p>Models have</p>
+      <ul>
+        <li><b>Model parameters</b> (the model): e.g., probabilities, weights, factors.</li>
+        <li><b>Hyperparameters</b>: choices for the algorithm used for learning. E.g., learning rate, regularization <i>λ</i>, maximal decision-tree depth, selected features.</li>
+      </ul>
+      <p>The “Learner” (algorithm) tries to optimize the model parameters given user-specified hyperparameters.</p>
+      <p>We can learn models with different hyperparameters, but how do we know which set of hyperparameters is best?</p>
+    </div>
+    <div class="stack"><div class="tr on">Training Data</div><div class="va">Validation Data</div><div class="te">Test Data</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s32">
+  <div class="sh"><h3>Hyperparameter Tuning / Model Selection</h3><span class="num">Slide 32</span></div>
+  <div class="body two split">
+    <div>
+      <ul>
+        <li>Learn models using the training set and different hyperparameters.</li>
+        <li>Often a grid of possible hyperparameter combinations or some greedy search is used.</li>
+        <li>Evaluate the models using <b>the validation data</b> and choose the model with the best accuracy. Selecting the right type of model, hyperparameters and features is called <b>model selection</b>.</li>
+        <li>Learn the final model using all training and validation data.</li>
+      </ul>
+      <p>Notes:</p>
+      <ul>
+        <li>The validation set was not used for training, so we get generalization accuracy.</li>
+        <li>If no model selection is necessary, then no validation set is used.</li>
+      </ul>
+    </div>
+    <div class="stack"><div class="tr">Training Data</div><div class="va on">Validation Data</div><div class="te">Test Data</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s33">
+  <div class="sh"><h3>Testing a Model</h3><span class="num">Slide 33</span></div>
+  <div class="body two split">
+    <div>
+      <p>After the model is selected, the final model is evaluated against the test set to <b>estimate the final model accuracy</b>.</p>
+      <p class="warn">Very important: never “peek” at the test set during learning!</p>
+    </div>
+    <div class="stack"><div class="tr">Training Data</div><div class="va">Validation Data</div><div class="te on">Test Data</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s34">
+  <div class="sh"><h3>How to Split the Dataset</h3><span class="num">Slide 34</span></div>
+  <div class="body two split">
+    <div>
+      <p><b>Random splits:</b> split the data randomly in, e.g., 60% training, 20% validation, and 20% testing.</p>
+      <p><b><i>k</i>-fold cross validation:</b> use training &amp; validation data better</p>
+      <ul>
+        <li>split the training &amp; validation data randomly into <i>k</i> folds.</li>
+        <li>For <i>k</i> rounds hold 1 fold back for testing and use the remaining <i>k</i> − 1 folds for training.</li>
+        <li>Use the average error/accuracy as a better estimate.</li>
+        <li>Some algorithms/tools do that internally.</li>
+      </ul>
+      <p><b>LOOCV</b> (leave-one-out cross validation): <i>k</i> = <i>n</i>, used if very little data is available.</p>
+    </div>
+    <div class="stack"><div class="tr on">Training Data</div><div class="va on">Validation Data</div><div class="te">Test Data</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s35">
+  <div class="sh"><h3>Important Concepts</h3><span class="num">Slide 35</span></div>
+  <div class="body two split">
+    <div>
+      <ul>
+        <li><b>Data:</b> labeled instances, e.g. emails marked spam/ham
+          <ul><li>Training set</li><li>Held-out set (sometimes called validation set)</li><li>Test set</li></ul>
+        </li>
+        <li><b>Features:</b> attribute–value pairs which characterize each <i>x</i></li>
+        <li><b>Experimentation cycle</b>
+          <ul>
+            <li>Select a hypothesis <i>f</i> to best match the training set</li>
+            <li>(Tune hyperparameters on the held-out set)</li>
+            <li>Compute accuracy of the test set</li>
+            <li>Very important: never “peek” at the test set!</li>
+          </ul>
+        </li>
+        <li><b>Evaluation</b>
+          <ul><li>Accuracy: fraction of instances predicted correctly</li></ul>
+        </li>
+        <li><b>Overfitting and generalization</b>
+          <ul>
+            <li>Want a classifier which does well on <i>test</i> data</li>
+            <li>Overfitting: fitting the training data very closely, but not generalizing well</li>
+            <li>We’ll investigate overfitting and generalization formally in a few lectures</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="stack"><div class="tr">Training Data</div><div class="va">Held-Out Data</div><div class="te">Test Data</div></div>
+  </div>
+</div>
+
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+
+<div class="footer">
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University</span>
+  <span>CSE475 · Summer 2026</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id, push){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+</body>
+</html>
