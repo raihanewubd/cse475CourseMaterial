@@ -57,6 +57,61 @@
   @media(max-width:680px){.page{padding:18px}}
   @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
   @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
+  /* ---- Tab 9: Metrics Playground ---- */
+  .mx-scroll{overflow-x:auto}
+  .mx-box{border:1px solid var(--line);border-radius:6px;margin:22px 0;overflow:hidden}
+  .mx-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;background:var(--navy);color:#fff;padding:7px 14px}
+  .mx-head h3{color:#fff;margin:0;font-size:1.08rem}
+  .mx-head span{color:var(--orange);font-size:.82rem}
+  .mx-body{padding:10px 16px 14px}
+  .mx-body h4{color:var(--navy);margin:16px 0 4px;font-size:1rem}
+  .mx-formula{background:var(--card);border-left:4px solid var(--rust);padding:10px 14px;margin:10px 0;overflow-x:auto;line-height:2.3}
+  .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.25;margin:0 2px}
+  .frac>span:first-child{border-bottom:1px solid currentColor;padding:0 3px 1px}
+  .frac>span:last-child{padding:1px 3px 0}
+  .mx-note{font-size:.9rem;color:#3d4955}
+  .mx-hint{font-size:.85rem;color:var(--gray);margin:4px 0}
+  .mx-warn{background:#fdecea;border-left:4px solid #b3261e;padding:6px 10px;font-size:.9rem}
+  .mx-try{border:1px dashed var(--rust);border-radius:5px;padding:8px 14px;margin-top:14px;font-size:.93rem}
+  .mx-try details{margin-top:4px}.mx-try summary{cursor:pointer;color:var(--rust);font-weight:bold}
+  .mx-widget{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:#fff}
+  .mx-controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 6px}
+  .mx-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:4px 10px;border-radius:5px}
+  .mx-btn:hover{background:var(--peach)}
+  .mx-btn.mx-small{font-size:.8rem;padding:3px 8px}
+  .mx-cbtn{color:#fff;font-weight:bold;min-width:30px}
+  .mx-cbtn:hover{opacity:.85;background:inherit}
+  .mx-assign{font-size:.86rem;color:var(--navy);display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}
+  .mx-sliders label{font-size:.86rem;color:var(--navy);display:inline-flex;align-items:center;gap:6px;margin-right:14px}
+  .mx-sliders input{accent-color:var(--rust);width:150px}
+  .mx-sliders output{min-width:3.2em;font-weight:bold;color:var(--rust)}
+  .mx-svg{display:block;width:100%;height:auto;min-width:520px;user-select:none;-webkit-user-select:none}
+  .mx-svg.mx-bars{min-width:0;max-width:380px}
+  .mx-svg.mx-sq{min-width:0;max-width:440px;margin:0 auto}
+  .mx-pt{cursor:grab;touch-action:none}
+  .mx-tick{font-size:12px;fill:#555}
+  .mx-plab{font-size:12px;font-weight:bold;fill:#233343}
+  .mx-panel{margin-top:8px;font-size:.92rem}
+  .mx-panel table{font-size:.86rem;margin:8px 0}
+  .mx-panel td,.mx-panel th{white-space:nowrap}
+  .mx-grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:760px){.mx-grid2{grid-template-columns:1fr}}
+  .mx-sw{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:middle}
+  .mx-key{border-bottom:2px solid;padding:0 2px}
+  .mx-big{font-size:1.15rem;color:var(--navy)}
+  td.mx-hi,.mx-panel td.mx-hi{background:var(--peach)!important;font-weight:bold}
+  tr.mx-bad td{color:#9a2c16}
+  .mx-tall{max-height:260px;overflow-y:auto}
+  .mx-labels{width:auto}
+  .mx-labels th,.mx-labels td{text-align:center;padding:4px 6px}
+  .mx-labels th:first-child{text-align:left;white-space:nowrap}
+  .mx-chip{width:32px;height:32px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);color:#fff;font:inherit;font-weight:bold;cursor:pointer}
+  .mx-chip.sq{border-radius:4px}.mx-chip.rd{border-radius:50%}
+  .mx-chip:hover{filter:brightness(1.12)}
+  .mx-mt{font-size:.88rem}.mx-mt td,.mx-mt th{padding:4px 8px}
+  tr.mx-sep td{border-top:2px solid var(--rust)}
+  .mx-pairs summary{cursor:pointer;color:var(--rust);font-weight:bold}
+  @media print{.mx-controls,.mx-hint,.mx-widget{display:none}.mx-box{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -67,7 +122,7 @@
   <div class="sub">ML-05: K-means, K-medoids, DBSCAN, hierarchical clustering and evaluation metrics</div>
 </header>
 
-<p class="lead"><b>In one paragraph.</b> Clustering finds groups in unlabelled data. This lecture defines similarity and distance, then works through K-means twice by hand (a 7-point example and the 4-medicine example), fixes its outlier problem with K-medoids, runs DBSCAN step by step on a 7-point dataset, and shows how to pick MinPts and ε. It closes with hierarchical clustering, the internal and external metrics used to judge a clustering (silhouette, Davies–Bouldin, Calinski–Harabasz, NMI, ARI), and the overall unsupervised learning process. <em>Use the tabs to move between sections; each slide is shown as an image with its text underneath.</em> <a href="index.html">&#8592; Back to course material</a></p>
+<p class="lead"><b>In one paragraph.</b> Clustering finds groups in unlabelled data. This lecture defines similarity and distance, then works through K-means twice by hand (a 7-point example and the 4-medicine example), fixes its outlier problem with K-medoids, runs DBSCAN step by step on a 7-point dataset, and shows how to pick MinPts and ε. It closes with hierarchical clustering, the internal and external metrics used to judge a clustering (silhouette, Davies–Bouldin, Calinski–Harabasz, NMI, ARI), and the overall unsupervised learning process. Tab 9 is a playground where you change the data and watch each metric respond. <em>Use the tabs to move between sections; each slide is shown as an image with its text underneath.</em> <a href="index.html">&#8592; Back to course material</a></p>
 
 <div class="tabbar" role="tablist" id="tabbar">
   <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What is Clustering?</button>
@@ -78,7 +133,8 @@
   <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Choosing MinPts &amp; ε</button>
   <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>Hierarchical Clustering</button>
   <button class="tab-btn" role="tab" data-tab="t8"><span class="n">8</span>Evaluation Metrics</button>
-  <button class="tab-btn" role="tab" data-tab="t9"><span class="n">9</span>Process, Applications &amp; References</button>
+  <button class="tab-btn" role="tab" data-tab="metrics-lab"><span class="n">9</span>Metrics Playground</button>
+  <button class="tab-btn" role="tab" data-tab="t9"><span class="n">10</span>Process, Applications &amp; References</button>
 </div>
 
 <section class="tab-panel" id="t1">
@@ -721,8 +777,250 @@
 </div>
 <div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
 </section>
+<section class="tab-panel" id="metrics-lab">
+<h2>9. Metrics Playground</h2>
+<p class="lead"><b>How to use this tab.</b> Tab 8 gives the slide definitions. Here each metric gets one worked example you can check by hand, then a live version of the same example. Drag points, change labels or move the sliders, and every term in the formula is recomputed in front of you. The numbers in the worked examples match scikit-learn (<code>silhouette_score</code>, <code>davies_bouldin_score</code>, <code>calinski_harabasz_score</code>, <code>rand_score</code>, <code>adjusted_rand_score</code>, <code>normalized_mutual_info_score</code>).</p>
+
+<h3>Which metric needs what</h3>
+<div class="mx-scroll"><table>
+<thead><tr><th>Metric</th><th>Type</th><th>Needs true labels?</th><th>Range</th><th>Better when</th></tr></thead>
+<tbody>
+<tr><td>Silhouette score</td><td>Internal</td><td>No</td><td>−1 to 1</td><td>Higher</td></tr>
+<tr><td>Davies–Bouldin index (DBI)</td><td>Internal</td><td>No</td><td>0 to ∞</td><td>Lower</td></tr>
+<tr><td>Calinski–Harabasz index (CH)</td><td>Internal</td><td>No</td><td>0 to ∞</td><td>Higher</td></tr>
+<tr><td>Purity</td><td>External</td><td>Yes</td><td>0 to 1</td><td>Higher</td></tr>
+<tr><td>Rand index (RI)</td><td>External</td><td>Yes</td><td>0 to 1</td><td>Higher</td></tr>
+<tr><td>Adjusted Rand index (ARI)</td><td>External</td><td>Yes</td><td>−0.5 to 1</td><td>Higher; 0 = chance</td></tr>
+<tr><td>Normalized mutual information (NMI)</td><td>External</td><td>Yes</td><td>0 to 1</td><td>Higher</td></tr>
+</tbody></table></div>
+<p>Internal metrics look only at the geometry of the points and the cluster assignment. External metrics compare the assignment with known class labels and ignore the geometry. In a real unsupervised problem you normally have no labels, so internal metrics are what you can actually compute; external metrics are for benchmarking an algorithm on data where the answer is known.</p>
+
+<!-- ===================== SILHOUETTE ===================== -->
+<div class="mx-box" id="mx-sil">
+<div class="mx-head"><h3>9.1 Silhouette score</h3><span>internal · higher is better</span></div>
+<div class="mx-body">
+<p>For each point, compare how far it is from its own cluster with how far it is from the nearest other cluster. The score for the whole clustering is the mean over all points.</p>
+<div class="mx-formula">
+a(i) = mean distance from i to the other points in its own cluster<br>
+b(i) = smallest mean distance from i to the points of any other cluster<br>
+s(i) = <span class="frac"><span>b(i) − a(i)</span><span>max(a(i), b(i))</span></span>
+&nbsp;&nbsp;&nbsp; S = <span class="frac"><span>1</span><span>N</span></span> Σ<sub>i</sub> s(i)
+</div>
+<p class="mx-note">A point that is alone in its cluster has no a(i); by convention (Rousseeuw, 1987, and scikit-learn) its s(i) is 0.</p>
+<h4>Worked example (slides 71–72, extended to every point)</h4>
+<p>Cluster A = {1, 2, 3}, cluster B = {10, 11} on a number line. Distance is |x<sub>i</sub> − x<sub>j</sub>|.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Point</th><th>a(i)</th><th>b(i)</th><th>s(i)</th></tr></thead>
+<tbody>
+<tr><td>P1 = 1 (A)</td><td>(1 + 2)/2 = 1.5</td><td>(9 + 10)/2 = 9.5</td><td>(9.5 − 1.5)/9.5 = 0.842</td></tr>
+<tr><td>P2 = 2 (A)</td><td>(1 + 1)/2 = 1</td><td>(8 + 9)/2 = 8.5</td><td>(8.5 − 1)/8.5 = 0.882</td></tr>
+<tr><td>P3 = 3 (A)</td><td>(2 + 1)/2 = 1.5</td><td>(7 + 8)/2 = 7.5</td><td>(7.5 − 1.5)/7.5 = 0.800</td></tr>
+<tr><td>P4 = 10 (B)</td><td>1/1 = 1</td><td>(9 + 8 + 7)/3 = 8</td><td>(8 − 1)/8 = 0.875</td></tr>
+<tr><td>P5 = 11 (B)</td><td>1/1 = 1</td><td>(10 + 9 + 8)/3 = 9</td><td>(9 − 1)/9 = 0.889</td></tr>
+</tbody></table></div>
+<p>S = (0.842 + 0.882 + 0.800 + 0.875 + 0.889)/5 = <b>0.858</b>. The slide stops at P1 (0.84); the clustering score needs all five.</p>
+<h4>Try it</h4>
+<div class="mx-widget" id="w-sil"></div>
+<div class="mx-try"><b>Things to try.</b>
+<ol>
+<li>Select P3 and drag it right, towards B. At which position does s(P3) reach 0, and what is special about that position?</li>
+<li>Leave P3 at 6.5, then move it to cluster B with the buttons. What happens to s(P3) and to S?</li>
+<li>Put P3 back at 3 but keep it in cluster B. Why is s(P3) now strongly negative?</li>
+</ol>
+<details><summary>Answers</summary>
+<ol>
+<li>At x = 6, s(P3) = 0. There a(P3) = (5 + 4)/2 = 4.5 and b(P3) = (4 + 5)/2 = 4.5. It is halfway between the mean of P3's cluster-mates (1.5) and the mean of cluster B (10.5). At 6.5 it is −0.2.</li>
+<li>s(P3) flips from −0.2 to +0.2 and S rises from 0.572 to 0.677. The silhouette is telling you the point is assigned to the wrong side.</li>
+<li>a(P3) = (7 + 7 + 8)/3 = 7.33 and b(P3) = (2 + 1)/2 = 1.5, so s = (1.5 − 7.33)/7.33 = −0.80. It sits among the A points but is labelled B; S falls to 0.389.</li>
+</ol></details>
+</div>
+</div></div>
+
+<!-- ===================== DBI ===================== -->
+<div class="mx-box" id="mx-dbi">
+<div class="mx-head"><h3>9.2 Davies–Bouldin index (DBI)</h3><span>internal · lower is better</span></div>
+<div class="mx-body">
+<p>Each cluster has a scatter σ (average distance of its points to its centroid). For every pair of clusters, the ratio R<sub>ij</sub> compares their combined scatter with the distance between their centroids. Each cluster keeps its worst (largest) ratio, and DBI averages those.</p>
+<div class="mx-formula">
+σ<sub>i</sub> = <span class="frac"><span>1</span><span>|C<sub>i</sub>|</span></span> Σ<sub>x ∈ C<sub>i</sub></sub> d(x, μ<sub>i</sub>)
+&nbsp;&nbsp;&nbsp; R<sub>ij</sub> = <span class="frac"><span>σ<sub>i</sub> + σ<sub>j</sub></span><span>d(μ<sub>i</sub>, μ<sub>j</sub>)</span></span>
+&nbsp;&nbsp;&nbsp; DBI = <span class="frac"><span>1</span><span>K</span></span> Σ<sub>i=1</sub><sup>K</sup> max<sub>j≠i</sub> R<sub>ij</sub>
+</div>
+<h4>Worked example (slide 74)</h4>
+<p>C<sub>1</sub> = {1, 2, 3}, μ<sub>1</sub> = 2; C<sub>2</sub> = {8, 10, 12}, μ<sub>2</sub> = 10.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Step</th><th>Calculation</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Scatter σ<sub>1</sub></td><td>(|1−2| + |2−2| + |3−2|)/3 = 2/3</td><td>0.667</td></tr>
+<tr><td>Scatter σ<sub>2</sub></td><td>(|8−10| + |10−10| + |12−10|)/3 = 4/3</td><td>1.333</td></tr>
+<tr><td>Centroid distance d<sub>12</sub></td><td>|2 − 10|</td><td>8</td></tr>
+<tr><td>R<sub>12</sub> = R<sub>21</sub></td><td>(2/3 + 4/3)/8 = 2/8</td><td>0.25</td></tr>
+<tr><td>DBI</td><td>(max R<sub>1j</sub> + max R<sub>2j</sub>)/2 = (0.25 + 0.25)/2</td><td><b>0.25</b></td></tr>
+</tbody></table></div>
+<p class="mx-note">With only two clusters, both rows share the same single ratio, so DBI = R<sub>12</sub>. The max<sub>j≠i</sub> only starts to matter from K = 3; add a third cluster in the widget to see it pick the closest neighbour.</p>
+<h4>Try it</h4>
+<div class="mx-widget" id="w-dbi"></div>
+<div class="mx-try"><b>Things to try.</b>
+<ol>
+<li>Set the spread of cluster B to ×2. Which term of R<sub>12</sub> changed, and what is the new DBI?</li>
+<li>Reset, then shift cluster B by −4. The scatter is unchanged, so what drove DBI up?</li>
+<li>Reset, then drag the A point at 3 to 11 so it sits inside B but keeps label A. Then drag it on to 20. Compare how DBI and the mean silhouette respond.</li>
+</ol>
+<details><summary>Answers</summary>
+<ol>
+<li>B becomes {6, 10, 14}, so σ<sub>2</sub> = 8/3 while μ<sub>2</sub> stays 10. R<sub>12</sub> = (2/3 + 8/3)/8 = 0.417.</li>
+<li>B becomes {4, 6, 8}, so d<sub>12</sub> = |2 − 6| = 4 and R<sub>12</sub> = 2/4 = 0.5. Only the denominator moved.</li>
+<li>At 11: DBI goes from 0.25 to 1.04 and the silhouette from 0.741 to 0.272. At 20: DBI is 4.10, the silhouette 0.232. The misplaced point drags μ<sub>A</sub> towards B and inflates σ<sub>A</sub> at the same time, so R grows from both ends and DBI has no ceiling. The silhouette is bounded at −1 and averages over points, so one bad point can only pull it so far. Centroid-based metrics inherit the outlier sensitivity of K-means.</li>
+</ol></details>
+</div>
+</div></div>
+
+<!-- ===================== CH ===================== -->
+<div class="mx-box" id="mx-ch">
+<div class="mx-head"><h3>9.3 Calinski–Harabasz index (CH)</h3><span>internal · higher is better</span></div>
+<div class="mx-body">
+<p>Also called the variance ratio criterion. It divides the spread <em>between</em> cluster centroids by the spread <em>within</em> clusters, each scaled by its degrees of freedom. It is not on the slides; it is the third internal metric you will meet in scikit-learn.</p>
+<div class="mx-formula">
+B = Σ<sub>k</sub> n<sub>k</sub> ‖μ<sub>k</sub> − x̄‖²
+&nbsp;&nbsp;&nbsp; W = Σ<sub>k</sub> Σ<sub>x ∈ C<sub>k</sub></sub> ‖x − μ<sub>k</sub>‖²
+&nbsp;&nbsp;&nbsp; CH = <span class="frac"><span>B / (K − 1)</span><span>W / (N − K)</span></span>
+</div>
+<p class="mx-note">W is exactly the K-means objective J from tab 3. x̄ is the mean of all N points.</p>
+<h4>Worked example (same data as the DBI example)</h4>
+<p>C<sub>1</sub> = {1, 2, 3}, C<sub>2</sub> = {8, 10, 12}; N = 6, K = 2.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Step</th><th>Calculation</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Overall mean x̄</td><td>(1 + 2 + 3 + 8 + 10 + 12)/6 = 36/6</td><td>6</td></tr>
+<tr><td>Between B</td><td>3(2 − 6)² + 3(10 − 6)² = 48 + 48</td><td>96</td></tr>
+<tr><td>Within W</td><td>[(1−2)² + 0 + (3−2)²] + [(8−10)² + 0 + (12−10)²] = 2 + 8</td><td>10</td></tr>
+<tr><td>CH</td><td>(96 / 1) / (10 / 4) = 96 / 2.5</td><td><b>38.4</b></td></tr>
+</tbody></table></div>
+<p class="mx-note">Unlike DBI and silhouette, CH has no upper limit and its size depends on N and on the units of the data. Compare CH values only across clusterings of the same dataset.</p>
+<h4>Try it</h4>
+<div class="mx-widget" id="w-ch"></div>
+<div class="mx-try"><b>Things to try.</b>
+<ol>
+<li>Spread cluster B by ×2. B stays at 96. What happens to W and to CH?</li>
+<li>Reset and shift B by +4. Which of B and W changes?</li>
+<li>Add a third cluster by moving one point to C. Watch the K − 1 and N − K factors change as well as B and W.</li>
+</ol>
+<details><summary>Answers</summary>
+<ol>
+<li>B becomes {6, 10, 14}: W = 2 + 32 = 34, so CH = 96 / (34/4) = 11.29. The centroid did not move, so the between-cluster term is untouched.</li>
+<li>B becomes {12, 14, 16}; x̄ moves to 8, so the between term becomes 3(2−8)² + 3(14−8)² = 216 while W stays 10. CH = 216 / 2.5 = 86.4.</li>
+<li>With K = 3 the numerator is divided by 2 instead of 1 and the denominator by N − 3. More clusters are not rewarded automatically.</li>
+</ol></details>
+</div>
+</div></div>
+
+<!-- ===================== PURITY ===================== -->
+<div class="mx-box" id="mx-pur">
+<div class="mx-head"><h3>9.4 Purity</h3><span>external · higher is better</span></div>
+<div class="mx-body">
+<p>For each cluster, count how many of its points belong to its most common true class. Add those counts and divide by N.</p>
+<div class="mx-formula">Purity = <span class="frac"><span>1</span><span>N</span></span> Σ<sub>k</sub> max<sub>c</sub> n<sub>kc</sub> &nbsp;&nbsp; where n<sub>kc</sub> = number of points in cluster k with true class c</div>
+<h4>Worked example (the NMI data from slide 76)</h4>
+<p>True classes V = {0, 0, 1, 1}; clusters U = {0, 1, 1, 1}.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Cluster</th><th>class 0</th><th>class 1</th><th>majority count</th></tr></thead>
+<tbody>
+<tr><td>cluster 0</td><td>1</td><td>0</td><td>1</td></tr>
+<tr><td>cluster 1</td><td>1</td><td>2</td><td>2</td></tr>
+</tbody></table></div>
+<p>Purity = (1 + 2)/4 = <b>0.75</b>.</p>
+<p class="mx-note">Purity has a known flaw: splitting clusters can only raise it. Put every point in its own cluster and purity is 1.0. Try the "Every point alone" preset below.</p>
+<h4>Try it</h4>
+<p class="mx-hint">Tap a label to change it. Square chips are true classes, round chips are cluster assignments.</p>
+<div class="mx-widget" id="w-pur"></div>
+</div></div>
+
+<!-- ===================== RI / ARI ===================== -->
+<div class="mx-box" id="mx-ari">
+<div class="mx-head"><h3>9.5 Rand index (RI) and adjusted Rand index (ARI)</h3><span>external · higher is better</span></div>
+<div class="mx-body">
+<p>Look at every pair of points. A pair <em>agrees</em> if both labelings put it together, or both put it apart. RI is the fraction of pairs that agree. ARI subtracts the agreement you would expect from a random assignment with the same cluster sizes, so a random clustering scores about 0.</p>
+<div class="mx-formula">
+RI = <span class="frac"><span>(pairs together in both) + (pairs apart in both)</span><span>C(N, 2)</span></span><br><br>
+ARI = <span class="frac"><span>Index − Expected</span><span>Max − Expected</span></span>, with
+Index = Σ<sub>kc</sub> C(n<sub>kc</sub>, 2),
+Expected = <span class="frac"><span>Σ<sub>k</sub> C(a<sub>k</sub>, 2) · Σ<sub>c</sub> C(b<sub>c</sub>, 2)</span><span>C(N, 2)</span></span>,
+Max = ½[Σ<sub>k</sub> C(a<sub>k</sub>, 2) + Σ<sub>c</sub> C(b<sub>c</sub>, 2)]
+</div>
+<p class="mx-note">a<sub>k</sub> = size of cluster k, b<sub>c</sub> = size of class c, C(n, 2) = n(n − 1)/2. This is the slide 79 formula (RI − Expected RI)/(max RI − Expected RI) written in pair counts; the two give the same number, with max RI = 1.</p>
+<h4>Worked example (same data)</h4>
+<p>V = {0, 0, 1, 1}, U = {0, 1, 1, 1}. There are C(4, 2) = 6 pairs.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Pair</th><th>Same class?</th><th>Same cluster?</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>(1, 2)</td><td>yes</td><td>no</td><td>disagree</td></tr>
+<tr><td>(1, 3)</td><td>no</td><td>no</td><td>agree (apart)</td></tr>
+<tr><td>(1, 4)</td><td>no</td><td>no</td><td>agree (apart)</td></tr>
+<tr><td>(2, 3)</td><td>no</td><td>yes</td><td>disagree</td></tr>
+<tr><td>(2, 4)</td><td>no</td><td>yes</td><td>disagree</td></tr>
+<tr><td>(3, 4)</td><td>yes</td><td>yes</td><td>agree (together)</td></tr>
+</tbody></table></div>
+<p>RI = (1 + 2)/6 = <b>0.5</b>.</p>
+<p>For ARI: cluster sizes a = (1, 3), class sizes b = (2, 2), and the only cell with two or more points is (cluster 1, class 1) with 2. Index = C(2,2) = 1. Σ C(a<sub>k</sub>,2) = 0 + 3 = 3 and Σ C(b<sub>c</sub>,2) = 1 + 1 = 2. Expected = 3 × 2 / 6 = 1. Max = (3 + 2)/2 = 2.5. ARI = (1 − 1)/(2.5 − 1) = <b>0</b>.</p>
+<p class="mx-note">Same data, three verdicts: purity 0.75, RI 0.5, ARI 0. ARI says this clustering agrees with the truth no better than chance. The range is also narrower than slide 79 suggests: ARI cannot go below −0.5 (Chacón &amp; Rastrojo, 2023). The "Worst case" preset reaches that floor.</p>
+<h4>Try it</h4>
+<div class="mx-widget" id="w-ari"></div>
+</div></div>
+
+<!-- ===================== NMI ===================== -->
+<div class="mx-box" id="mx-nmi">
+<div class="mx-head"><h3>9.6 Normalized mutual information (NMI)</h3><span>external · higher is better</span></div>
+<div class="mx-body">
+<p>Mutual information I(U; V) measures how much knowing a point's cluster tells you about its class, in bits. Dividing by the average of the two entropies puts it on a 0 to 1 scale.</p>
+<div class="mx-formula">
+H(U) = −Σ<sub>k</sub> P(k) log<sub>2</sub> P(k) &nbsp;&nbsp;
+I(U; V) = Σ<sub>k,c</sub> P(k, c) log<sub>2</sub> <span class="frac"><span>P(k, c)</span><span>P(k) P(c)</span></span> &nbsp;&nbsp;
+NMI = <span class="frac"><span>2 · I(U; V)</span><span>H(U) + H(V)</span></span>
+</div>
+<h4>Worked example (slides 76–78)</h4>
+<p>V = {0, 0, 1, 1}, U = {0, 1, 1, 1}.</p>
+<div class="mx-scroll"><table>
+<thead><tr><th>Step</th><th>Calculation</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>H(V)</td><td>−(0.5 log<sub>2</sub> 0.5 + 0.5 log<sub>2</sub> 0.5)</td><td>1.000 bit</td></tr>
+<tr><td>H(U)</td><td>−(0.25 log<sub>2</sub> 0.25 + 0.75 log<sub>2</sub> 0.75)</td><td>0.811 bit</td></tr>
+<tr><td>(k=0, c=0)</td><td>0.25 log<sub>2</sub>(0.25 / (0.25 × 0.5)) = 0.25 × 1</td><td>0.250</td></tr>
+<tr><td>(k=1, c=0)</td><td>0.25 log<sub>2</sub>(0.25 / (0.75 × 0.5)) = 0.25 × (−0.585)</td><td>−0.146</td></tr>
+<tr><td>(k=1, c=1)</td><td>0.5 log<sub>2</sub>(0.5 / (0.75 × 0.5)) = 0.5 × 0.415</td><td>0.208</td></tr>
+<tr><td>I(U; V)</td><td>0.250 − 0.146 + 0.208</td><td>0.311 bit</td></tr>
+<tr><td>NMI</td><td>2 × 0.3113 / (0.8113 + 1)</td><td><b>0.344</b></td></tr>
+</tbody></table></div>
+<p class="mx-note">Slide 78 shows 0.343 because it rounds I and H(U) before dividing. Carried at full precision the value is 0.3437, which is what scikit-learn returns. The base of the logarithm cancels in the ratio, so NMI is the same in bits or nats.</p>
+<h4>Try it</h4>
+<div class="mx-widget" id="w-nmi"></div>
+</div></div>
+
+<!-- ===================== ALL TOGETHER ===================== -->
+<div class="mx-box" id="mx-all">
+<div class="mx-head"><h3>9.7 All seven metrics on one 2-D dataset</h3><span>internal vs external</span></div>
+<div class="mx-body">
+<p>Fifteen points from three true classes (the marker shape). The fill colour is the cluster assignment. One class-▲ point sits inside the class-■ region on purpose. Drag points to move them, tap a point to change its cluster, or let K-means assign them. Distances are Euclidean.</p>
+<div class="mx-widget" id="w-all"></div>
+<div class="mx-try"><b>Things to try.</b>
+<ol>
+<li>Press <i>K-means, K = 3</i>, then <i>Clusters = true classes</i>. Which labelling do the internal metrics prefer, and which do the external ones prefer? Why can they disagree?</li>
+<li>Look at the "choose K" table. Do silhouette, DBI and CH agree on the best K for this data?</li>
+<li>Drag the stray ▲ point up among the other ▲ points (for example to (5, 7.25)) and run K-means with K = 3 again. What happens to each metric?</li>
+</ol>
+<details><summary>Answers</summary>
+<ol>
+<li>K-means (K = 3) scores silhouette 0.708, DBI 0.361, CH 60.19; the true classes score 0.602, 0.483 and 30.83, worse on all three internal metrics. The external metrics prefer the true classes (they score 1 by definition), with K-means at ARI 0.792. Internal metrics cannot see labels: the stray ▲ point really does sit with the ■ points geometrically.</li>
+<li>Yes, all three pick K = 3 here. On real data they often disagree, which is why slide 80 recommends checking several.</li>
+<li>Once the point is where its class is, K-means recovers the true classes exactly, so ARI, NMI and purity all reach 1. The internal metrics improve too (at (5, 7.25): silhouette 0.739, DBI 0.326, CH 75.66), because the clusters became more compact and better separated.</li>
+</ol></details>
+</div>
+</div></div>
+
+<p class="mx-note"><b>References.</b> Rousseeuw, P. J. (1987), Silhouettes, <i>J. Comput. Appl. Math.</i> 20, 53–65. Davies, D. L. &amp; Bouldin, D. W. (1979), <i>IEEE TPAMI</i> 1(2), 224–227. Caliński, T. &amp; Harabasz, J. (1974), <i>Communications in Statistics</i> 3(1), 1–27. Hubert, L. &amp; Arabie, P. (1985), Comparing partitions, <i>J. Classification</i> 2, 193–218. Chacón, J. E. &amp; Rastrojo, A. I. (2023), Minimum adjusted Rand index for two clusterings of a given size, <i>Adv. Data Anal. Classif.</i> 17, 125–133. <a href="https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation">scikit-learn: clustering performance evaluation</a>.</p>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
 <section class="tab-panel" id="t9">
-<h2>9. Process, Applications &amp; References</h2>
+<h2>10. Process, Applications &amp; References</h2>
 <div class="slide" id="s82">
   <div class="sh"><h3>The Unsupervised Learning Process</h3><span class="num">Slide 82</span></div>
   <div class="imgwrap"><img src="assets/ml05/slide-82.jpg" alt="The Unsupervised Learning Process" loading="lazy" width="1100" height="825"></div>
@@ -844,6 +1142,483 @@
   window.addEventListener('hashchange', function(){
     var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
   });
+})();
+</script>
+<script>
+var CM = (function(){
+  function dist(p,q){ var s=0; for(var k=0;k<p.length;k++){ var t=p[k]-q[k]; s+=t*t; } return Math.sqrt(s); }
+  function groups(lab){ var g={}; for(var i=0;i<lab.length;i++){ (g[lab[i]]=g[lab[i]]||[]).push(i); } return g; }
+  function ids(g){ return Object.keys(g).map(Number).sort(function(a,b){return a-b;}); }
+  function mean(P,idx){ var m=P[idx[0]].map(function(){return 0;}); idx.forEach(function(i){ for(var k=0;k<m.length;k++) m[k]+=P[i][k]; }); return m.map(function(v){return v/idx.length;}); }
+  function comb2(n){ return n*(n-1)/2; }
+  function log2(x){ return Math.log(x)/Math.LN2; }
+
+  function silhouette(P,lab){
+    var g=groups(lab), C=ids(g), n=P.length;
+    if(C.length<2) return {error:'Needs at least 2 clusters.'};
+    if(C.length>n-1) return {error:'Needs at least one cluster with 2 or more points.'};
+    var items=[], tot=0;
+    for(var i=0;i<n;i++){
+      var own=g[lab[i]].filter(function(j){return j!==i;});
+      var others=C.filter(function(c){return c!==lab[i];}).map(function(c){
+        var ds=g[c].map(function(j){return dist(P[i],P[j]);});
+        return {c:c, ds:ds, idx:g[c], m:ds.reduce(function(a,b){return a+b;},0)/ds.length};
+      });
+      var nb=others.reduce(function(best,o){return (best===null||o.m<best.m)?o:best;},null);
+      var it={i:i, ownIdx:own, ownDs:own.map(function(j){return dist(P[i],P[j]);}), others:others, nearest:nb.c, b:nb.m};
+      if(own.length===0){ it.a=0; it.s=0; it.single=true; }
+      else {
+        it.a=it.ownDs.reduce(function(a,b){return a+b;},0)/own.length;
+        var mx=Math.max(it.a,it.b); it.s = mx===0 ? 0 : (it.b-it.a)/mx;
+      }
+      tot+=it.s; items.push(it);
+    }
+    return {items:items, mean:tot/n};
+  }
+
+  function dbi(P,lab){
+    var g=groups(lab), C=ids(g);
+    if(C.length<2) return {error:'Needs at least 2 clusters.'};
+    var cl=C.map(function(c){ var cen=mean(P,g[c]); var ds=g[c].map(function(i){return dist(P[i],cen);});
+      return {c:c, idx:g[c], cen:cen, ds:ds, sigma:ds.reduce(function(a,b){return a+b;},0)/ds.length}; });
+    var R=cl.map(function(a,i){ return cl.map(function(b,j){ if(i===j) return null; var d=dist(a.cen,b.cen); return {d:d, r: d===0?Infinity:(a.sigma+b.sigma)/d}; }); });
+    var tot=0;
+    cl.forEach(function(a,i){ var best=-1, bj=-1; R[i].forEach(function(e,j){ if(e && e.r>best){best=e.r;bj=j;} }); a.rmax=best; a.worst=bj; tot+=best; });
+    return {clusters:cl, R:R, value:tot/cl.length};
+  }
+
+  function ch(P,lab){
+    var g=groups(lab), C=ids(g), n=P.length, K=C.length;
+    if(K<2) return {error:'Needs at least 2 clusters.'};
+    if(K>n-1) return {error:'Needs fewer clusters than points.'};
+    var all=P.map(function(_,i){return i;}), gm=mean(P,all), B=0, W=0;
+    var cl=C.map(function(c){ var cen=mean(P,g[c]); var dc=dist(cen,gm); var b=g[c].length*dc*dc;
+      var w=g[c].reduce(function(s,i){ var d=dist(P[i],cen); return s+d*d; },0); B+=b; W+=w;
+      return {c:c, idx:g[c], cen:cen, n:g[c].length, b:b, w:w}; });
+    var val = W===0 ? Infinity : (B/(K-1))/(W/(n-K));
+    return {clusters:cl, gm:gm, B:B, W:W, K:K, n:n, value:val};
+  }
+
+  function contingency(V,U){
+    var ru=ids(groups(U)), cv=ids(groups(V));
+    var M=ru.map(function(){ return cv.map(function(){return 0;}); });
+    for(var i=0;i<V.length;i++){ M[ru.indexOf(U[i])][cv.indexOf(V[i])]++; }
+    return {rows:ru, cols:cv, M:M,
+      rsum:M.map(function(r){return r.reduce(function(a,b){return a+b;},0);}),
+      csum:cv.map(function(_,j){return M.reduce(function(s,r){return s+r[j];},0);}), N:V.length};
+  }
+
+  function purity(V,U){
+    var t=contingency(V,U), s=0;
+    var mx=t.M.map(function(r){ var m=Math.max.apply(null,r); s+=m; return m; });
+    return {table:t, maxes:mx, value:s/t.N};
+  }
+
+  function rand(V,U){
+    var t=contingency(V,U), N=t.N;
+    var sij=0; t.M.forEach(function(r){ r.forEach(function(x){ sij+=comb2(x); }); });
+    var sU=t.rsum.reduce(function(s,x){return s+comb2(x);},0);
+    var sV=t.csum.reduce(function(s,x){return s+comb2(x);},0);
+    var P=comb2(N);
+    var TT=sij, TF=sV-sij, FT=sU-sij, FF=P-sU-sV+sij;
+    var E=sU*sV/P, Mx=(sU+sV)/2;
+    var ari = (Mx===E) ? 1 : (sij-E)/(Mx-E);
+    return {table:t, pairs:P, TT:TT, TF:TF, FT:FT, FF:FF, ri:(TT+FF)/P, sij:sij, sU:sU, sV:sV, E:E, Mx:Mx, ari:ari};
+  }
+
+  function nmi(V,U){
+    var t=contingency(V,U), N=t.N;
+    var pu=t.rsum.map(function(x){return x/N;}), pv=t.csum.map(function(x){return x/N;});
+    var HU=-pu.reduce(function(s,p){return s+(p>0?p*log2(p):0);},0);
+    var HV=-pv.reduce(function(s,p){return s+(p>0?p*log2(p):0);},0);
+    var terms=[], I=0;
+    t.M.forEach(function(r,i){ r.forEach(function(x,j){ if(x>0){ var p=x/N, v=p*log2(p/(pu[i]*pv[j])); terms.push({i:i,j:j,p:p,pu:pu[i],pv:pv[j],v:v}); I+=v; } }); });
+    if(Math.abs(I)<1e-12) I=0;
+    var val;
+    if(t.rows.length===1 && t.cols.length===1) val=1;
+    else if(I===0) val=0;
+    else val=I/((HU+HV)/2);
+    return {table:t, pu:pu, pv:pv, HU:HU, HV:HV, terms:terms, I:I, value:val};
+  }
+
+  function kmeans(P,K){
+    var n=P.length; if(K>n) K=n;
+    var cen=[P[0].slice()];
+    while(cen.length<K){
+      var bi=-1, bd=-1;
+      for(var i=0;i<n;i++){ var m=Math.min.apply(null,cen.map(function(c){return dist(P[i],c);})); if(m>bd+1e-12){bd=m;bi=i;} }
+      cen.push(P[bi].slice());
+    }
+    var lab=new Array(n).fill(-1);
+    for(var it=0;it<100;it++){
+      var changed=false;
+      for(var i=0;i<n;i++){ var b=0, bdist=Infinity; for(var k=0;k<K;k++){ var d=dist(P[i],cen[k]); if(d<bdist-1e-12){bdist=d;b=k;} } if(lab[i]!==b){lab[i]=b;changed=true;} }
+      for(var k=0;k<K;k++){ var idx=[]; for(var i=0;i<n;i++) if(lab[i]===k) idx.push(i); if(idx.length) cen[k]=mean(P,idx); }
+      if(!changed) break;
+    }
+    return lab;
+  }
+
+  return {dist:dist, silhouette:silhouette, dbi:dbi, ch:ch, contingency:contingency, purity:purity, rand:rand, nmi:nmi, kmeans:kmeans, comb2:comb2};
+})();
+</script>
+<script>
+(function(){
+  if(!document.getElementById('metrics-lab')) return;
+  var NS='http://www.w3.org/2000/svg';
+  var COL=['#2D5B8A','#BD582C','#3C7A5A','#8c3ca5','#E78439','#566273'];
+  var CN=['A','B','C','D'];
+  function f(x,d){ if(x===Infinity) return '∞'; if(!isFinite(x)) return '—'; d=(d==null)?3:d; var s=x.toFixed(d); if(s.indexOf('.')>=0) s=s.replace(/0+$/,'').replace(/\.$/,''); if(s==='-0') s='0'; return s.replace('-','−'); }
+  function f3(x){ if(x===Infinity) return '∞'; if(!isFinite(x)) return '—'; return x.toFixed(3).replace('-','−'); }
+  function sv(tag,a,p){ var e=document.createElementNS(NS,tag); for(var k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; }
+  function h(tag,cls,html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+  function frac(n,d){ return '<span class="frac"><span>'+n+'</span><span>'+d+'</span></span>'; }
+  function btn(label,fn,cls){ var b=h('button','mx-btn'+(cls?' '+cls:''),label); b.type='button'; b.addEventListener('click',fn); return b; }
+  function svgPoint(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
+  function sw(c){ return '<span class="mx-sw" style="background:'+COL[c]+'"></span>'; }
+  function verdict(s){ if(s>=0.5) return 'well inside its cluster'; if(s>0.1) return 'reasonably placed'; if(s>=-0.1) return 'on the border between clusters'; return 'closer to another cluster: probably misassigned'; }
+
+  /* ---------------- 1-D number-line widget ---------------- */
+  function LineWidget(root,cfg){
+    var W=760, H=cfg.height||200, pad=30, lineY=cfg.lineY||130, xmin=cfg.xmin, xmax=cfg.xmax, nC=cfg.nClusters||3;
+    var base, sel, shift=0, spread=1, drag=null;
+    var ctr=h('div','mx-controls'); root.appendChild(ctr);
+    ctr.appendChild(btn('Reset example',function(){ reset(); }));
+    ctr.appendChild(btn('Add point',function(){
+      if(base.length>=12) return; commit();
+      var c=(sel!=null&&base[sel])?base[sel].c:0, x=Math.round((xmin+xmax)/2);
+      var used={}; base.forEach(function(p){used[p.x]=1;}); var k=0; while(used[x]&&k<40){ x+= (k%2?-1:1)*(k+1)*0.5; k++; }
+      base.push({x:Math.max(xmin,Math.min(xmax,x)),c:c}); sel=base.length-1; render(); }));
+    ctr.appendChild(btn('Remove selected',function(){ if(base.length<=3||sel==null) return; commit(); base.splice(sel,1); sel=Math.min(sel,base.length-1); render(); }));
+    var mv=h('span','mx-assign','Move selected to: '); ctr.appendChild(mv);
+    for(var c=0;c<nC;c++){ (function(c){ var b=btn(CN[c],function(){ if(sel==null) return; commit(); base[sel].c=c; render(); },'mx-cbtn'); b.style.background=COL[c]; b.style.borderColor=COL[c]; mv.appendChild(b); })(c); }
+    var sl={};
+    if(cfg.sliders){
+      var srow=h('div','mx-controls mx-sliders'); root.appendChild(srow);
+      function mk(key,label,min,max,step,val,unit){
+        var lab=h('label','',label+' '); var r=document.createElement('input'); r.type='range'; r.min=min; r.max=max; r.step=step; r.value=val;
+        var o=h('output','',''); lab.appendChild(r); lab.appendChild(o); srow.appendChild(lab);
+        r.addEventListener('input',function(){ if(key==='shift') shift=+r.value; else spread=+r.value; render(); });
+        sl[key]={r:r,o:o,unit:unit};
+      }
+      mk('shift','Shift cluster B',-6,6,0.5,0,'');
+      mk('spread','Spread of cluster B',0.25,3,0.05,1,'×');
+    }
+    function syncSliders(){ if(!cfg.sliders) return; sl.shift.r.value=shift; sl.spread.r.value=spread; sl.shift.o.textContent=(shift>0?'+':'')+f(shift,2); sl.spread.o.textContent='×'+f(spread,2); }
+    root.appendChild(h('p','mx-hint','Drag a point along the line to move it; tap a point to select it.'));
+    var wrap=h('div','mx-scroll'); root.appendChild(wrap);
+    var svg=sv('svg',{viewBox:'0 0 '+W+' '+H,'class':'mx-svg',role:'img','aria-label':cfg.aria||'Number line with draggable points'}); wrap.appendChild(svg);
+    var panel=h('div','mx-panel'); root.appendChild(panel);
+    function X(v){ return pad+(v-xmin)/(xmax-xmin)*(W-2*pad); }
+    function cur(){
+      if(!cfg.sliders||(shift===0&&spread===1)) return base;
+      var idx=[]; base.forEach(function(p,i){ if(p.c===1) idx.push(i); }); if(!idx.length) return base;
+      var m=idx.reduce(function(s,i){return s+base[i].x;},0)/idx.length;
+      return base.map(function(p){ return p.c===1?{x:Math.round((m+(p.x-m)*spread+shift)*1000)/1000,c:1}:p; });
+    }
+    function commit(){ if(!cfg.sliders) return; base=cur().map(function(p){return {x:p.x,c:p.c};}); shift=0; spread=1; syncSliders(); }
+    function reset(){ base=cfg.points.map(function(p){return {x:p[0],c:p[1]};}); sel=(cfg.select!=null)?cfg.select:0; shift=0; spread=1; syncSliders(); render(); }
+    function render(){
+      syncSliders();
+      var pts=cur(), P=pts.map(function(p){return [p.x];}), lab=pts.map(function(p){return p.c;});
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      sv('line',{x1:X(xmin),x2:X(xmax),y1:lineY,y2:lineY,stroke:'#233343','stroke-width':1.5},svg);
+      for(var t=Math.ceil(xmin);t<=xmax;t++){
+        sv('line',{x1:X(t),x2:X(t),y1:lineY-4,y2:lineY+4,stroke:'#233343'},svg);
+        var tx=sv('text',{x:X(t),y:lineY+20,'text-anchor':'middle','class':'mx-tick'},svg); tx.textContent=t;
+      }
+      var ctx={svg:svg,X:X,lineY:lineY,H:H,pts:pts,P:P,lab:lab,sel:sel,sv:sv,COL:COL};
+      if(cfg.overlay) cfg.overlay(ctx);
+      var stack={};
+      pts.forEach(function(p,i){
+        var key=Math.round(p.x*1000), lvl=stack[key]||0; stack[key]=lvl+1;
+        var cy=lineY-lvl*20;
+        var g=sv('g',{'class':'mx-pt'},svg);
+        if(i===sel) sv('circle',{cx:X(p.x),cy:cy,r:13,fill:'none',stroke:'#E78439','stroke-width':3},g);
+        sv('circle',{cx:X(p.x),cy:cy,r:9,fill:COL[p.c],stroke:'#fff','stroke-width':1.5},g);
+        var tl=sv('text',{x:X(p.x),y:cy-16,'text-anchor':'middle','class':'mx-plab'},g); tl.textContent='P'+(i+1);
+        g.addEventListener('pointerdown',function(e){ e.preventDefault(); commit(); drag={i:i,x0:e.clientX,moved:false}; });
+      });
+      panel.innerHTML=cfg.explain(ctx);
+      if(cfg.after) cfg.after(ctx,panel,function(i){ sel=i; render(); });
+    }
+    window.addEventListener('pointermove',function(e){
+      if(!drag) return;
+      if(Math.abs(e.clientX-drag.x0)>3) drag.moved=true;
+      if(!drag.moved) return;
+      var v=(svgPoint(svg,e).x-pad)/(W-2*pad)*(xmax-xmin)+xmin;
+      v=Math.max(xmin,Math.min(xmax,Math.round(v*2)/2));
+      if(base[drag.i].x!==v){ base[drag.i].x=v; sel=drag.i; render(); }
+    });
+    window.addEventListener('pointerup',function(){ if(!drag) return; if(!drag.moved){ sel=drag.i; render(); } drag=null; });
+    reset();
+  }
+
+  /* ---------------- silhouette ---------------- */
+  function silBars(res,lab,sel){
+    var order=res.items.map(function(it){return it.i;}).sort(function(a,b){ return lab[a]-lab[b] || res.items[b].s-res.items[a].s; });
+    var rowH=22, top=24, Wb=360, x0=40, x1=Wb-12, H=top+order.length*rowH+26;
+    var X=function(v){ return x0+(v+1)/2*(x1-x0); };
+    var s='<svg class="mx-svg mx-bars" viewBox="0 0 '+Wb+' '+H+'" role="img" aria-label="Silhouette value of every point">';
+    s+='<text x="'+X(0)+'" y="14" text-anchor="middle" class="mx-tick">s(i)</text>';
+    [-1,-0.5,0,0.5,1].forEach(function(v){ s+='<line x1="'+X(v)+'" x2="'+X(v)+'" y1="'+(top-4)+'" y2="'+(H-22)+'" stroke="'+(v===0?'#233343':'#e3d8cf')+'"/><text x="'+X(v)+'" y="'+(H-8)+'" text-anchor="middle" class="mx-tick">'+f(v)+'</text>'; });
+    order.forEach(function(i,r){
+      var it=res.items[i], y=top+r*rowH, a=X(Math.min(0,it.s)), b=X(Math.max(0,it.s));
+      s+='<g class="mx-bar" data-i="'+i+'" style="cursor:pointer">';
+      s+='<rect x="0" y="'+y+'" width="'+Wb+'" height="'+rowH+'" fill="'+(i===sel?'#FBE8DA':'transparent')+'"/>';
+      s+='<text x="4" y="'+(y+15)+'" class="mx-plab">P'+(i+1)+'</text>';
+      s+='<rect x="'+a+'" y="'+(y+4)+'" width="'+Math.max(1,b-a)+'" height="'+(rowH-8)+'" fill="'+COL[lab[i]]+'"/>';
+      s+='</g>';
+    });
+    var mx=X(res.mean); s+='<line x1="'+mx+'" x2="'+mx+'" y1="'+(top-4)+'" y2="'+(H-22)+'" stroke="#E78439" stroke-width="2" stroke-dasharray="5 4"/>';
+    return s+'</svg>';
+  }
+  function arc(ctx,xa,xb,up,color,hmax){
+    var X=ctx.X, y=ctx.lineY, dx=Math.abs(X(xb)-X(xa)), hh=Math.min(hmax,10+dx*0.22);
+    ctx.sv('path',{d:'M'+X(xa)+' '+y+' Q '+((X(xa)+X(xb))/2)+' '+(y-hh*2)+' '+X(xb)+' '+y,fill:'none',stroke:color,'stroke-width':1.6,'stroke-dasharray':up?'':'5 4',opacity:.85},ctx.svg);
+  }
+  LineWidget(document.getElementById('w-sil'),{
+    xmin:0,xmax:15,points:[[1,0],[2,0],[3,0],[10,1],[11,1]],select:2,nClusters:3,height:210,lineY:150,
+    aria:'Number line with the silhouette example points',
+    overlay:function(ctx){
+      var r=CM.silhouette(ctx.P,ctx.lab); if(r.error||ctx.sel==null) return; var it=r.items[ctx.sel], xi=ctx.pts[ctx.sel].x;
+      it.ownIdx.forEach(function(j){ arc(ctx,xi,ctx.pts[j].x,true,'#233343',45); });
+      var nb=it.others.filter(function(o){return o.c===it.nearest;})[0];
+      nb.idx.forEach(function(j){ arc(ctx,xi,ctx.pts[j].x,false,'#BD582C',60); });
+    },
+    explain:function(ctx){
+      var r=CM.silhouette(ctx.P,ctx.lab);
+      if(r.error) return '<p class="mx-warn">'+r.error+' Move a point to another cluster.</p>';
+      var i=ctx.sel, it=r.items[i], xi=ctx.pts[i].x, s='<div class="mx-grid2"><div>';
+      s+='<p><b>Selected: P'+(i+1)+' = '+f(xi)+'</b> '+sw(ctx.lab[i])+' cluster '+CN[ctx.lab[i]]+'</p>';
+      if(it.single){ s+='<p>P'+(i+1)+' is alone in its cluster, so a(i) is undefined and s(i) = 0 by convention.</p>'; }
+      else {
+        var num=it.ownIdx.map(function(j){ return '|'+f(xi)+' − '+f(ctx.pts[j].x)+'|'; }).join(' + ');
+        s+='<p>a(i) = '+frac(num,it.ownIdx.length)+' = '+frac(it.ownDs.map(function(d){return f(d);}).join(' + '),it.ownIdx.length)+' = <b>'+f(it.a)+'</b></p>';
+      }
+      it.others.forEach(function(o){
+        var num=o.idx.map(function(j){ return '|'+f(xi)+' − '+f(ctx.pts[j].x)+'|'; }).join(' + ');
+        s+='<p>mean distance to '+sw(o.c)+' '+CN[o.c]+' = '+frac(num,o.idx.length)+' = '+f(o.m)+(o.c===it.nearest?' &nbsp;← <b>nearest, so b(i) = '+f(o.m)+'</b>':'')+'</p>';
+      });
+      if(!it.single) s+='<p>s(i) = '+frac(f(it.b)+' − '+f(it.a),'max('+f(it.a)+', '+f(it.b)+')')+' = <b class="mx-big">'+f3(it.s)+'</b><br><i>'+verdict(it.s)+'</i></p>';
+      s+='<p class="mx-hint">Solid arcs: distances used in a(i). Dashed arcs: distances to the nearest other cluster, used in b(i).</p>';
+      s+='</div><div>'+silBars(r,ctx.lab,i)+'<p>Mean silhouette <b>S = '+f3(r.mean)+'</b> (dashed orange line). Tap a bar to select that point.</p></div></div>';
+      return s;
+    },
+    after:function(ctx,panel,select){ panel.querySelectorAll('.mx-bar').forEach(function(g){ g.addEventListener('click',function(){ select(+g.getAttribute('data-i')); }); }); }
+  });
+
+  /* ---------------- DBI ---------------- */
+  function centroidMarks(ctx,cl,labelY){
+    cl.forEach(function(c){
+      var x=ctx.X(c.cen[0]), y=ctx.lineY+34;
+      ctx.sv('path',{d:'M'+x+' '+(y-7)+' L'+(x+7)+' '+y+' L'+x+' '+(y+7)+' L'+(x-7)+' '+y+' Z',fill:'#fff',stroke:COL[c.c],'stroke-width':2.5},ctx.svg);
+      var t=ctx.sv('text',{x:x,y:y+22,'text-anchor':'middle','class':'mx-plab',fill:COL[c.c]},ctx.svg); t.textContent='μ'+CN[c.c]+' = '+f(c.cen[0],2);
+    });
+  }
+  LineWidget(document.getElementById('w-dbi'),{
+    xmin:0,xmax:20,points:[[1,0],[2,0],[3,0],[8,1],[10,1],[12,1]],select:null,nClusters:3,sliders:true,height:230,lineY:130,
+    aria:'Number line with the Davies-Bouldin example points',
+    overlay:function(ctx){
+      var r=CM.dbi(ctx.P,ctx.lab); if(r.error) return;
+      r.clusters.forEach(function(c){ var a=ctx.X(c.cen[0]-c.sigma), b=ctx.X(c.cen[0]+c.sigma);
+        ctx.sv('rect',{x:a,y:ctx.lineY-7,width:Math.max(2,b-a),height:14,fill:COL[c.c],opacity:.18},ctx.svg); });
+      var best=null; r.clusters.forEach(function(c,i){ r.R[i].forEach(function(e,j){ if(e&&(!best||e.r>best.r)) best={r:e.r,i:i,j:j,d:e.d}; }); });
+      if(best){ var ci=r.clusters[best.i].cen[0], cj=r.clusters[best.j].cen[0], y=34;
+        ctx.sv('path',{d:'M'+ctx.X(ci)+' '+(y+8)+' V'+y+' H'+ctx.X(cj)+' V'+(y+8),fill:'none',stroke:'#233343','stroke-width':1.5},ctx.svg);
+        var t=ctx.sv('text',{x:(ctx.X(ci)+ctx.X(cj))/2,y:y-6,'text-anchor':'middle','class':'mx-plab'},ctx.svg); t.textContent='d(μ'+CN[r.clusters[best.i].c]+', μ'+CN[r.clusters[best.j].c]+') = '+f(best.d,2)+'  (the most similar pair)'; }
+      centroidMarks(ctx,r.clusters);
+    },
+    explain:function(ctx){
+      var r=CM.dbi(ctx.P,ctx.lab); if(r.error) return '<p class="mx-warn">'+r.error+'</p>';
+      var s='<div class="mx-scroll"><table><thead><tr><th>Cluster</th><th>Points</th><th>Centroid μ</th><th>Scatter σ = mean |x − μ|</th></tr></thead><tbody>';
+      r.clusters.forEach(function(c){ var xs=c.idx.map(function(i){return ctx.pts[i].x;});
+        s+='<tr><td>'+sw(c.c)+' '+CN[c.c]+'</td><td>{'+xs.map(function(x){return f(x,2);}).join(', ')+'}</td><td>'+f(c.cen[0])+'</td><td>'+frac(xs.map(function(x){return '|'+f(x,2)+' − '+f(c.cen[0])+'|';}).join(' + '),xs.length)+' = <b>'+f(c.sigma)+'</b></td></tr>'; });
+      s+='</tbody></table></div><div class="mx-scroll"><table><thead><tr><th>R<sub>ij</sub> = (σ<sub>i</sub> + σ<sub>j</sub>) / d(μ<sub>i</sub>, μ<sub>j</sub>)</th>';
+      r.clusters.forEach(function(c){ s+='<th>j = '+CN[c.c]+'</th>'; }); s+='<th>max over j</th></tr></thead><tbody>';
+      var coinc=false;
+      r.clusters.forEach(function(a,i){ s+='<tr><td>i = '+sw(a.c)+' '+CN[a.c]+'</td>';
+        r.R[i].forEach(function(e,j){ if(!e){ s+='<td>—</td>'; return; } if(e.r===Infinity) coinc=true; var b=r.clusters[j];
+          s+='<td'+(j===a.worst?' class="mx-hi"':'')+'>('+f(a.sigma)+' + '+f(b.sigma)+') / '+f(e.d)+' = '+f(e.r)+'</td>'; });
+        s+='<td><b>'+f(a.rmax)+'</b></td></tr>'; });
+      s+='</tbody></table></div>';
+      s+='<p>DBI = '+frac(r.clusters.map(function(c){return f(c.rmax);}).join(' + '),r.clusters.length)+' = <b class="mx-big">'+f3(r.value)+'</b></p>';
+      if(coinc) s+='<p class="mx-warn">Two centroids coincide, so d = 0 and R is infinite. scikit-learn silently treats such a pair as 0 instead, which hides the problem.</p>';
+      s+='<p class="mx-hint">Shaded bands show μ ± σ for each cluster; the bracket marks the pair with the largest R.</p>';
+      return s;
+    }
+  });
+
+  /* ---------------- CH ---------------- */
+  LineWidget(document.getElementById('w-ch'),{
+    xmin:0,xmax:20,points:[[1,0],[2,0],[3,0],[8,1],[10,1],[12,1]],select:null,nClusters:3,sliders:true,height:270,lineY:130,
+    aria:'Number line with the Calinski-Harabasz example points',
+    overlay:function(ctx){
+      var r=CM.ch(ctx.P,ctx.lab); if(r.error) return;
+      var gx=ctx.X(r.gm[0]);
+      ctx.sv('line',{x1:gx,x2:gx,y1:40,y2:ctx.lineY+50,stroke:'#233343','stroke-width':1.5,'stroke-dasharray':'6 4'},ctx.svg);
+      var t=ctx.sv('text',{x:gx,y:32,'text-anchor':'middle','class':'mx-plab'},ctx.svg); t.textContent='x̄ = '+f(r.gm[0]);
+      r.clusters.forEach(function(c){ var cx=ctx.X(c.cen[0]);
+        ctx.sv('line',{x1:cx,x2:gx,y1:ctx.lineY+34,y2:ctx.lineY+34,stroke:COL[c.c],'stroke-width':3,opacity:.5},ctx.svg);
+        c.idx.forEach(function(i,k){ var yy=ctx.lineY+74+k*5, xx=ctx.X(ctx.pts[i].x); ctx.sv('line',{x1:xx,x2:cx,y1:yy,y2:yy,stroke:COL[c.c],'stroke-width':1.5,opacity:.75},ctx.svg); ctx.sv('circle',{cx:xx,cy:yy,r:2.5,fill:COL[c.c]},ctx.svg); }); });
+      centroidMarks(ctx,r.clusters);
+    },
+    explain:function(ctx){
+      var r=CM.ch(ctx.P,ctx.lab); if(r.error) return '<p class="mx-warn">'+r.error+'</p>';
+      var s='<p>N = '+r.n+', K = '+r.K+', x̄ = '+frac(ctx.pts.map(function(p){return f(p.x,2);}).join(' + '),r.n)+' = '+f(r.gm[0])+'</p>';
+      s+='<div class="mx-scroll"><table><thead><tr><th>Cluster</th><th>n<sub>k</sub></th><th>μ<sub>k</sub></th><th>between: n<sub>k</sub>(μ<sub>k</sub> − x̄)²</th><th>within: Σ (x − μ<sub>k</sub>)²</th></tr></thead><tbody>';
+      r.clusters.forEach(function(c){ var xs=c.idx.map(function(i){return ctx.pts[i].x;});
+        s+='<tr><td>'+sw(c.c)+' '+CN[c.c]+'</td><td>'+c.n+'</td><td>'+f(c.cen[0])+'</td><td>'+c.n+'('+f(c.cen[0])+' − '+f(r.gm[0])+')² = '+f(c.b)+'</td><td>'+xs.map(function(x){return '('+f(x,2)+' − '+f(c.cen[0])+')²';}).join(' + ')+' = '+f(c.w)+'</td></tr>'; });
+      s+='<tr><td colspan="3"><b>Total</b></td><td><b>B = '+f(r.B)+'</b></td><td><b>W = '+f(r.W)+'</b></td></tr></tbody></table></div>';
+      if(r.value===Infinity) s+='<p class="mx-warn">W = 0 (every cluster sits on a single value), so CH is unbounded. scikit-learn returns 1.0 in this case.</p>';
+      else s+='<p>CH = '+frac(f(r.B)+' / ('+r.K+' − 1)',f(r.W)+' / ('+r.n+' − '+r.K+')')+' = '+frac(f(r.B/(r.K-1)),f(r.W/(r.n-r.K)))+' = <b class="mx-big">'+f(r.value,3)+'</b></p>';
+      s+='<p class="mx-hint">Thick lines through the ◇ markers: centroid-to-x̄ distances (B). Thin lines at the bottom: point-to-centroid distances (W).</p>';
+      return s;
+    }
+  });
+
+  /* ---------------- external: label editor ---------------- */
+  var PRESETS=[
+    {n:'Slide example',V:[0,0,1,1],U:[0,1,1,1]},
+    {n:'Perfect match',V:[0,0,1,1],U:[0,0,1,1]},
+    {n:'Cluster names swapped',V:[0,0,1,1],U:[1,1,0,0]},
+    {n:'All in one cluster',V:[0,0,1,1],U:[0,0,0,0]},
+    {n:'Every point alone',V:[0,0,1,1],U:[0,1,2,3]},
+    {n:'Worst case (ARI = −0.5)',V:[0,0,1,1],U:[0,1,0,1]},
+    {n:'Larger: 8 points',V:[0,0,0,1,1,1,2,2],U:[0,0,1,1,1,1,2,2]}
+  ];
+  function LabelWidget(root,explain){
+    var V,U;
+    var pr=h('div','mx-controls'); root.appendChild(pr); pr.appendChild(h('span','mx-assign','Presets: '));
+    PRESETS.forEach(function(p){ pr.appendChild(btn(p.n,function(){ V=p.V.slice(); U=p.U.slice(); render(); },'mx-small')); });
+    var ed=h('div','mx-controls'); root.appendChild(ed);
+    ed.appendChild(btn('Add item',function(){ if(V.length>=10) return; V.push(0); U.push(0); render(); }));
+    ed.appendChild(btn('Remove last item',function(){ if(V.length<=3) return; V.pop(); U.pop(); render(); }));
+    var grid=h('div','mx-scroll'); root.appendChild(grid);
+    var panel=h('div','mx-panel'); root.appendChild(panel);
+    function row(name,arr,shape,mod){
+      var tr=document.createElement('tr'); tr.appendChild(h('th','',name));
+      arr.forEach(function(v,i){ var td=document.createElement('td'); var b=h('button','mx-chip '+shape,String(v)); b.type='button'; b.style.background=COL[v];
+        b.title='Tap to change'; b.setAttribute('aria-label',name+' of item '+(i+1)+': '+v);
+        b.addEventListener('click',function(){ arr[i]=(arr[i]+1)%mod; render(); }); td.appendChild(b); tr.appendChild(td); });
+      return tr;
+    }
+    function render(){
+      var t=h('table','mx-labels'), hd=document.createElement('tr'); hd.appendChild(h('th','','Item'));
+      V.forEach(function(_,i){ hd.appendChild(h('th','',String(i+1))); }); t.appendChild(hd);
+      t.appendChild(row('True class V',V,'sq',3)); t.appendChild(row('Cluster U',U,'rd',4));
+      grid.innerHTML=''; grid.appendChild(t);
+      panel.innerHTML=explain(V,U);
+    }
+    V=PRESETS[0].V.slice(); U=PRESETS[0].U.slice(); render();
+  }
+  function ctable(t,cellFn,extraCol){
+    var s='<div class="mx-scroll"><table class="mx-ct"><thead><tr><th>cluster \\ class</th>';
+    t.cols.forEach(function(c){ s+='<th>class '+c+'</th>'; }); s+='<th>cluster size a<sub>k</sub></th>'+(extraCol?'<th>'+extraCol.h+'</th>':'')+'</tr></thead><tbody>';
+    t.M.forEach(function(r,i){ s+='<tr><td>cluster '+t.rows[i]+'</td>'; r.forEach(function(x,j){ s+=cellFn(x,i,j); }); s+='<td>'+t.rsum[i]+'</td>'+(extraCol?'<td>'+extraCol.f(i)+'</td>':'')+'</tr>'; });
+    s+='<tr><td>class size b<sub>c</sub></td>'; t.csum.forEach(function(x){ s+='<td>'+x+'</td>'; }); s+='<td>N = '+t.N+'</td>'+(extraCol?'<td></td>':'')+'</tr></tbody></table></div>';
+    return s;
+  }
+  LabelWidget(document.getElementById('w-pur'),function(V,U){
+    var r=CM.purity(V,U), t=r.table;
+    var s=ctable(t,function(x,i,j){ var hi=(x===r.maxes[i])&&(t.M[i].indexOf(x)===j); return '<td'+(hi?' class="mx-hi"':'')+'>'+x+'</td>'; },{h:'majority count',f:function(i){return '<b>'+r.maxes[i]+'</b>';}});
+    s+='<p>Purity = '+frac(r.maxes.join(' + '),t.N)+' = <b class="mx-big">'+f3(r.value)+'</b></p>';
+    return s;
+  });
+  LabelWidget(document.getElementById('w-ari'),function(V,U){
+    var r=CM.rand(V,U), t=r.table, N=V.length, s='';
+    if(N<=8){
+      s+='<details class="mx-pairs" open><summary>All '+r.pairs+' pairs</summary><div class="mx-scroll mx-tall"><table><thead><tr><th>Pair</th><th>Same class?</th><th>Same cluster?</th><th>Result</th></tr></thead><tbody>';
+      for(var i=0;i<N;i++) for(var j=i+1;j<N;j++){ var sv_=V[i]===V[j], su=U[i]===U[j], ag=(sv_===su);
+        s+='<tr'+(ag?'':' class="mx-bad"')+'><td>('+(i+1)+', '+(j+1)+')</td><td>'+(sv_?'yes':'no')+'</td><td>'+(su?'yes':'no')+'</td><td>'+(ag?(sv_?'agree (together)':'agree (apart)'):'disagree')+'</td></tr>'; }
+      s+='</tbody></table></div></details>';
+    }
+    s+='<div class="mx-scroll"><table><thead><tr><th></th><th>same cluster</th><th>different cluster</th></tr></thead><tbody>';
+    s+='<tr><td>same class</td><td class="mx-hi">'+r.TT+' (agree)</td><td>'+r.TF+'</td></tr><tr><td>different class</td><td>'+r.FT+'</td><td class="mx-hi">'+r.FF+' (agree)</td></tr></tbody></table></div>';
+    s+='<p>RI = '+frac(r.TT+' + '+r.FF,'C('+N+', 2) = '+r.pairs)+' = <b class="mx-big">'+f3(r.ri)+'</b></p>';
+    s+=ctable(t,function(x){ return '<td>'+x+(x>=2?' <small>→ C = '+CM.comb2(x)+'</small>':'')+'</td>'; },null);
+    var cA=t.rsum.map(function(x){return CM.comb2(x);}), cB=t.csum.map(function(x){return CM.comb2(x);});
+    s+='<p>Index = Σ C(n<sub>kc</sub>, 2) = <b>'+r.sij+'</b>; &nbsp; Σ C(a<sub>k</sub>, 2) = '+cA.join(' + ')+' = '+r.sU+'; &nbsp; Σ C(b<sub>c</sub>, 2) = '+cB.join(' + ')+' = '+r.sV+'</p>';
+    s+='<p>Expected = '+frac(r.sU+' × '+r.sV,r.pairs)+' = '+f(r.E)+'; &nbsp; Max = '+frac(r.sU+' + '+r.sV,2)+' = '+f(r.Mx)+'</p>';
+    if(r.Mx===r.E) s+='<p>Max = Expected, so the formula is 0/0; by convention ARI = 1 here (both labelings are trivial in the same way). ARI = <b class="mx-big">1.000</b></p>';
+    else s+='<p>ARI = '+frac(r.sij+' − '+f(r.E),f(r.Mx)+' − '+f(r.E))+' = <b class="mx-big">'+f3(r.ari)+'</b></p>';
+    return s;
+  });
+  LabelWidget(document.getElementById('w-nmi'),function(V,U){
+    var r=CM.nmi(V,U), t=r.table, s='';
+    function H(ps){ return '−('+ps.map(function(p){return f(p)+' log<sub>2</sub> '+f(p);}).join(' + ')+')'; }
+    s+='<p>H(V) = '+H(r.pv)+' = <b>'+f3(r.HV)+'</b> bit<br>H(U) = '+H(r.pu)+' = <b>'+f3(r.HU)+'</b> bit</p>';
+    s+=ctable(t,function(x){ return '<td>'+x+' <small>(P = '+f(x/t.N)+')</small></td>'; },null);
+    s+='<div class="mx-scroll"><table><thead><tr><th>cell (k, c)</th><th>P(k, c) log<sub>2</sub> [P(k, c) / (P(k) P(c))]</th><th>term</th></tr></thead><tbody>';
+    r.terms.forEach(function(e){ var ratio=e.p/(e.pu*e.pv); s+='<tr><td>('+t.rows[e.i]+', '+t.cols[e.j]+')</td><td>'+f(e.p)+' log<sub>2</sub>('+f(e.p)+' / ('+f(e.pu)+' × '+f(e.pv)+')) = '+f(e.p)+' × '+f(Math.log(ratio)/Math.LN2)+'</td><td>'+f3(e.v)+'</td></tr>'; });
+    s+='<tr><td colspan="2"><b>I(U; V)</b> (empty cells contribute 0)</td><td><b>'+f3(r.I)+'</b></td></tr></tbody></table></div>';
+    if(t.rows.length===1&&t.cols.length===1) s+='<p>Both labelings put everything in one group, so H(U) = H(V) = 0 and the ratio is 0/0; by convention NMI = <b class="mx-big">1.000</b>.</p>';
+    else s+='<p>NMI = '+frac('2 × '+f(r.I,4),f(r.HU,4)+' + '+f(r.HV,4))+' = <b class="mx-big">'+f3(r.value)+'</b></p>';
+    return s;
+  });
+
+  /* ---------------- 2-D playground ---------------- */
+  (function(){
+    var root=document.getElementById('w-all');
+    var P0=[[1.5,2],[2,3],[2.5,1.5],[1,1],[3,2.5],[7,2],[8,1.5],[7.5,3],[8.5,2.5],[6.5,1],[4,7],[5,8],[5.5,6.5],[4.5,8.5],[6.8,3.6]];
+    var T=[0,0,0,0,0,1,1,1,1,1,2,2,2,2,2];
+    var P,L,drag=null, S=420, pad=30;
+    function canon(l){ var m={},k=0; return l.map(function(v){ if(!(v in m)) m[v]=k++; return m[v]; }); }
+    var ctr=h('div','mx-controls'); root.appendChild(ctr);
+    [2,3,4].forEach(function(k){ ctr.appendChild(btn('K-means, K = '+k,function(){ L=canon(CM.kmeans(P,k)); render(); })); });
+    ctr.appendChild(btn('Clusters = true classes',function(){ L=T.slice(); render(); }));
+    ctr.appendChild(btn('Reset',function(){ reset(); }));
+    root.appendChild(h('p','mx-hint','Drag a point to move it; tap a point to cycle its cluster colour (4 colours). K-means starts from point 1 and adds the farthest point each time, so its result is repeatable.'));
+    var g2=h('div','mx-grid2'); root.appendChild(g2);
+    var left=h('div',''), right=h('div',''); g2.appendChild(left); g2.appendChild(right);
+    var svg=sv('svg',{viewBox:'0 0 '+S+' '+S,'class':'mx-svg mx-sq',role:'img','aria-label':'Two-dimensional scatter plot with draggable points'}); left.appendChild(svg);
+    left.appendChild(h('p','mx-hint','Shape = true class (● ■ ▲). Fill = cluster.'));
+    function X(v){ return pad+v/10*(S-2*pad); } function Y(v){ return S-pad-v/10*(S-2*pad); }
+    function reset(){ P=P0.map(function(p){return p.slice();}); L=canon(CM.kmeans(P,3)); render(); }
+    function shape(g,x,y,cls,fill,selRing){
+      var st={fill:fill,stroke:'#233343','stroke-width':1.5};
+      if(cls===0) sv('circle',Object.assign({cx:x,cy:y,r:9},st),g);
+      else if(cls===1) sv('rect',Object.assign({x:x-8,y:y-8,width:16,height:16},st),g);
+      else sv('path',Object.assign({d:'M'+x+' '+(y-10)+' L'+(x+10)+' '+(y+8)+' L'+(x-10)+' '+(y+8)+' Z'},st),g);
+    }
+    function render(){
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      for(var t=0;t<=10;t++){
+        sv('line',{x1:X(t),x2:X(t),y1:Y(0),y2:Y(10),stroke:'#eee4dc'},svg); sv('line',{x1:X(0),x2:X(10),y1:Y(t),y2:Y(t),stroke:'#eee4dc'},svg);
+        if(t%2===0){ var a=sv('text',{x:X(t),y:Y(0)+16,'text-anchor':'middle','class':'mx-tick'},svg); a.textContent=t; var b=sv('text',{x:X(0)-8,y:Y(t)+4,'text-anchor':'end','class':'mx-tick'},svg); b.textContent=t; }
+      }
+      P.forEach(function(p,i){ var g=sv('g',{'class':'mx-pt'},svg); shape(g,X(p[0]),Y(p[1]),T[i],COL[L[i]]);
+        g.addEventListener('pointerdown',function(e){ e.preventDefault(); drag={i:i,x0:e.clientX,y0:e.clientY,moved:false}; }); });
+      right.innerHTML=table()+kscan();
+    }
+    function table(){
+      var si=CM.silhouette(P,L), db=CM.dbi(P,L), c=CM.ch(P,L), pu=CM.purity(T,L), ra=CM.rand(T,L), nm=CM.nmi(T,L);
+      var rows=[['Silhouette',si.error?'—':f3(si.mean),'↑','no'],['Davies–Bouldin',db.error?'—':f3(db.value),'↓','no'],['Calinski–Harabasz',c.error?'—':(c.value===Infinity?'∞':c.value.toFixed(2)),'↑','no'],
+        ['Purity',f3(pu.value),'↑','yes'],['Rand index',f3(ra.ri),'↑','yes'],['Adjusted Rand',f3(ra.ari),'↑','yes'],['NMI',f3(nm.value),'↑','yes']];
+      var s='<table class="mx-mt"><thead><tr><th>Metric</th><th>Value</th><th>Better</th><th>Uses labels</th></tr></thead><tbody>';
+      rows.forEach(function(r,i){ s+='<tr'+(i===3?' class="mx-sep"':'')+'><td>'+r[0]+'</td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>'; });
+      var k=Object.keys(L.reduce(function(o,v){o[v]=1;return o;},{})).length;
+      s+='</tbody></table><p class="mx-hint">Current number of clusters: '+k+'.'+(si.error?' Internal metrics need at least 2 clusters.':'')+'</p>';
+      return s;
+    }
+    function kscan(){
+      var rows=[], bs=-2, bd=Infinity, bc=-1;
+      for(var k=2;k<=6;k++){ var l=CM.kmeans(P,k), a=CM.silhouette(P,l), b=CM.dbi(P,l), c=CM.ch(P,l);
+        var r={k:k,s:a.error?NaN:a.mean,d:b.error?NaN:b.value,c:c.error?NaN:c.value}; rows.push(r);
+        if(r.s>bs) bs=r.s; if(r.d<bd) bd=r.d; if(r.c>bc) bc=r.c; }
+      var s='<h4>Choose K with the internal metrics</h4><table class="mx-mt"><thead><tr><th>K (K-means)</th><th>Silhouette ↑</th><th>DBI ↓</th><th>CH ↑</th></tr></thead><tbody>';
+      rows.forEach(function(r){ s+='<tr><td>'+r.k+'</td><td'+(r.s===bs?' class="mx-hi"':'')+'>'+f3(r.s)+'</td><td'+(r.d===bd?' class="mx-hi"':'')+'>'+f3(r.d)+'</td><td'+(r.c===bc?' class="mx-hi"':'')+'>'+(isFinite(r.c)?r.c.toFixed(2):f3(r.c))+'</td></tr>'; });
+      return s+'</tbody></table><p class="mx-hint">Highlighted = best value in each column. Recomputed from the current point positions.</p>';
+    }
+    window.addEventListener('pointermove',function(e){
+      if(!drag) return; if(Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0)>4) drag.moved=true; if(!drag.moved) return;
+      var q=svgPoint(svg,e), x=(q.x-pad)/(S-2*pad)*10, y=(S-pad-q.y)/(S-2*pad)*10;
+      x=Math.max(0,Math.min(10,Math.round(x*4)/4)); y=Math.max(0,Math.min(10,Math.round(y*4)/4));
+      if(P[drag.i][0]!==x||P[drag.i][1]!==y){ P[drag.i]=[x,y]; render(); }
+    });
+    window.addEventListener('pointerup',function(){ if(!drag) return; if(!drag.moved){ L[drag.i]=(L[drag.i]+1)%4; render(); } drag=null; });
+    reset();
+  })();
 })();
 </script>
 </body>
