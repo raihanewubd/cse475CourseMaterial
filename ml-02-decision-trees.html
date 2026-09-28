@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 3 — Decision Trees &amp; Random Forests — CSE475 Machine Learning</title>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html{font-size:15px}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  h4{color:var(--navy);margin:14px 0 4px;font-size:1rem}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  code{font-family:Consolas,"Courier New",monospace;font-size:.93em;background:#f3efeb;padding:0 3px;border-radius:3px}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide img{display:block;width:100%;max-width:860px;margin:0 auto;height:auto;background:#fff}
+  .slide .imgwrap{border-bottom:1px solid var(--line);background:#fafafa}
+  .slide .txt{padding:8px 14px 6px;background:var(--card);font-size:1rem}
+  .slide .txt ul{margin:.3em 0}
+  .fix{background:#fdecea;border-left:4px solid #b3261e;padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .note{background:#eef3f8;border-left:4px solid var(--blue);padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  /* ---- elaboration boxes (Tab 2) ---- */
+  .ex-box{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden}
+  .ex-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;background:var(--rust);color:#fff;padding:7px 14px}
+  .ex-head h3{color:#fff;margin:0;font-size:1.06rem}
+  .ex-head span{color:#fde7d5;font-size:.82rem}
+  .ex-body{padding:8px 16px 14px}
+  .ex-formula{background:var(--card);border-left:4px solid var(--rust);padding:8px 14px;margin:8px 0;overflow-x:auto;font-size:1.02rem}
+  .ex-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  @media(max-width:760px){.ex-grid2{grid-template-columns:1fr}}
+  .ex-card{border:1px solid var(--line);border-radius:6px;padding:4px 12px 8px;background:#fff}
+  .ex-card h4{margin:8px 0 4px}
+  .ex-card.ex-bad{border-color:#b3261e;background:#fdecea}
+  .ex-card.ex-good{border-color:var(--green);background:#edf5ef}
+  .ex-warn{background:#fff7e6;border-left:4px solid var(--orange);padding:6px 10px;margin:8px 0;border-radius:3px}
+  .ex-hint{font-size:.9rem;color:var(--gray);margin:2px 0 6px}
+  .ex-widget{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:#fff}
+  .ex-controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px}
+  .ex-controls label{display:inline-flex;align-items:center;gap:4px;font-size:.92rem}
+  .ex-controls input[type=number]{width:62px;font:inherit;padding:2px 4px;border:1px solid var(--line);border-radius:4px}
+  .ex-controls input[type=range]{accent-color:var(--rust);width:200px}
+  .ex-controls output{min-width:3em;font-weight:bold;color:var(--rust)}
+  .ex-lab{font-weight:bold;color:var(--navy);margin-right:2px}
+  .ex-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:4px 10px;border-radius:5px}
+  .ex-btn:hover{background:var(--peach)}
+  .ex-btn.ex-small{font-size:.8rem;padding:3px 8px}
+  .ex-svg{display:block;width:100%;height:auto;max-width:440px}
+  .ex-mt{font-size:.92rem;margin:4px 0}
+  .ex-mt td,.ex-mt th{padding:4px 8px}
+  tr.ex-sep td{border-top:2px solid var(--rust)}
+  tr.ex-win td{background:#edf5ef!important}
+  .ex-keep li{margin:4px 0}
+  .ex-res{font-size:.95rem;margin-top:6px}
+  .ex-res b.g{color:var(--green)}
+
+  .slide .body{padding:10px 16px 8px}
+  .slide .body>ul:first-child{margin-top:.2em}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin:8px 0}
+  .two.wide{grid-template-columns:1fr 2fr}
+  .two>div,.three>div{min-width:0;overflow-x:auto}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin:8px 0}
+  @media(max-width:760px){.two,.three{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:6px;padding:4px 12px 8px;background:#fff}
+  .formula{background:var(--card);border-left:4px solid var(--rust);padding:8px 14px;margin:8px 0;overflow-x:auto;font-size:1.02rem;line-height:1.7}
+  .cap{font-size:.9rem;color:#3d4955;margin:4px 0}
+  figure{margin:8px 0}
+  figure img{display:block;width:100%;max-width:820px;margin:0 auto;height:auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+  figure.small img{max-width:520px}
+  figcaption{font-size:.88rem;color:var(--gray);text-align:center;margin-top:4px}
+  svg.tree{display:block;width:100%;max-width:720px;height:auto;margin:6px auto}
+  table.dt{font-size:.92rem;width:auto;margin:6px 0}
+  table.dt.compact td,table.dt.compact th{padding:3px 8px;white-space:nowrap}
+  table.dt tr.hl td{background:var(--peach)!important;font-weight:bold}
+  b.y{color:var(--green)} b.n{color:#b3261e}
+  pre{background:#1e2933;color:#f2efe9;padding:12px 16px;border-radius:6px;overflow-x:auto;font-size:.92rem;line-height:1.45;margin:6px 0}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  h4{margin:14px 0 4px}
+  @media(max-width:680px){.page{padding:18px}}
+  @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
+  @media print{.tabbar,.navrow,.ex-widget{display:none}.tab-panel{display:block!important}.slide,.ex-box{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 3 — Decision Trees &amp; Random Forests</h1>
+  <div class="sub">ML-02: entropy, information gain, ID3, Gini, pruning, C4.5, random forests and boosting</div>
+  <div class="attr">Slides adapted from Radu Ionescu; rewritten as web notes with corrections and elaborations for CSE475.</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> A decision tree asks one attribute at a time until it can name the class. This lecture shows how such a tree is learned from labelled data: entropy measures how mixed a set is, information gain measures how much a question un-mixes it, and ID3 always asks the question with the highest gain. The Gini alternative, the ID3 pseudo-code, pruning against overfitting, thresholds for numerical attributes, five ways to handle missing values, C4.5, and then random forests, bagging, random subspaces and boosting follow. Tab 2 carries three elaborations with two small interactive tools for building intuition about entropy and gain. <em>Use the tabs to move between sections. Every slide is rewritten as text, tables and figures; the source slide numbers are shown on the right of each block. Red boxes record values that were corrected after recomputation.</em> <a href="index.html">&#8592; Back to course material</a></p>
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What is a Decision Tree?</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Entropy &amp; Information Gain</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>Gini Impurity</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>The Algorithm in Pseudo-code</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>Pruning</button>
+  <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Numerical Attributes</button>
+  <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>Missing Values &amp; C4.5</button>
+  <button class="tab-btn" role="tab" data-tab="t8"><span class="n">8</span>Boundaries, History &amp; Summary</button>
+  <button class="tab-btn" role="tab" data-tab="t9"><span class="n">9</span>Random Forests &amp; Ensembles</button>
+  <button class="tab-btn" role="tab" data-tab="t10"><span class="n">10</span>Python &amp; References</button>
+</div>
+
+<section class="tab-panel" id="t1">
+<h2>1. What is a Decision Tree?</h2>
+<div class="slide" id="b1-1">
+  <div class="sh"><h3>Definition</h3><span class="num">Slides 2–4</span></div>
+  <div class="body">
+<ul><li>A decision tree is a tree-like model of a series of tests leading to decisions.</li>
+<li>Each internal node tests one attribute; each branch is one outcome of that test; each leaf is a decision.</li></ul>
+<figure class=""><img src="assets/ml02/loan-tree.png" alt="Who to loan? A tree over Student, Income, Credit Record and Age." loading="lazy"><figcaption>Who to loan? A tree over Student, Income, Credit Record and Age.</figcaption></figure>
+<div class="two">
+<div class="card"><h4>Applicant 1</h4><ul><li>Not a student · 45 years old · Medium income · Fair credit record</li></ul>
+<p>Student? No → Income? Medium → Credit Record? Fair → Age? &gt; 40 → <b class="y">Yes</b>.</p><figure class="small"><img src="assets/ml02/loan-path-1.png" alt="The path for applicant 1." loading="lazy"><figcaption>The path for applicant 1.</figcaption></figure></div>
+<div class="card"><h4>Applicant 2</h4><ul><li>Student · 27 years old · Low income · Excellent credit record</li></ul>
+<p>Student? Yes → Income? Low → Credit Record? Excellent → Age? &gt; 25 → <b class="n">No</b>.</p><figure class="small"><img src="assets/ml02/loan-path-2.png" alt="The path for applicant 2." loading="lazy"><figcaption>The path for applicant 2.</figcaption></figure></div>
+</div>
+<p>Prediction is a walk from the root to a leaf. Attributes not on the path are never read.</p></div>
+</div>
+<div class="slide" id="b1-2">
+  <div class="sh"><h3>Decision Tree Learning</h3><span class="num">Slides 5–10</span></div>
+  <div class="body">
+<ul><li>We use labelled data to obtain a suitable decision tree for future predictions.</li>
+<li>We want a tree that works well on <i>unseen</i> data while asking as few questions as possible.</li>
+<li>Basic step: choose an attribute and, based on its values, split the data into smaller sets. Repeat recursively until the label can be decided with certainty.</li></ul>
+<h4>The PlayTennis dataset (Mitchell, 1997) — 14 days, 9 Yes / 5 No</h4>
+<table class="dt compact"><thead><tr><th>Day</th><th>Outlook</th><th>Temperature</th><th>Humidity</th><th>Wind</th><th>Play Tennis?</th></tr></thead><tbody><tr><td>1</td><td>Sunny</td><td>Hot</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>2</td><td>Sunny</td><td>Hot</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>3</td><td>Overcast</td><td>Hot</td><td>High</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>4</td><td>Rainy</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>5</td><td>Rainy</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>6</td><td>Rainy</td><td>Cool</td><td>Normal</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>7</td><td>Overcast</td><td>Cool</td><td>Normal</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>8</td><td>Sunny</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>9</td><td>Sunny</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>10</td><td>Rainy</td><td>Mild</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>11</td><td>Sunny</td><td>Mild</td><td>Normal</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>12</td><td>Overcast</td><td>Mild</td><td>High</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>13</td><td>Overcast</td><td>Hot</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>14</td><td>Rainy</td><td>Mild</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr></tbody></table>
+<h4>Step 1 — split on Outlook</h4>
+<svg class="tree " viewBox="0 0 720 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="360" y1="35.0" x2="160" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="255.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Sunny</text><line x1="360" y1="35.0" x2="360" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="366.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Overcast</text><line x1="360" y1="35.0" x2="560" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="466.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Rainy</text><rect x="324.8" y="13.0" width="70.4" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="360" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Outlook</text><rect x="146.4" y="109.0" width="27.2" height="22" rx="9" fill="#fff7e6" stroke="#E78439" stroke-width="1.5"/><text x="160" y="125.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">?</text><rect x="346.4" y="109.0" width="27.2" height="22" rx="9" fill="#fff7e6" stroke="#E78439" stroke-width="1.5"/><text x="360" y="125.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">?</text><rect x="546.4" y="109.0" width="27.2" height="22" rx="9" fill="#fff7e6" stroke="#E78439" stroke-width="1.5"/><text x="560" y="125.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">?</text></svg>
+<div class="three">
+<div><p class="cap"><b>Outlook = Sunny</b> — 2 Yes / 3 No</p><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>1</td><td>Hot</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>2</td><td>Hot</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>8</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>9</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>11</td><td>Mild</td><td>Normal</td><td>Strong</td><td><b class="y">Yes</b></td></tr></tbody></table></div>
+<div><p class="cap"><b>Outlook = Overcast</b> — 4 Yes / 0 No</p><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>3</td><td>Hot</td><td>High</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>7</td><td>Cool</td><td>Normal</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>12</td><td>Mild</td><td>High</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>13</td><td>Hot</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr></tbody></table></div>
+<div><p class="cap"><b>Outlook = Rainy</b> — 3 Yes / 2 No</p><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>4</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>5</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>6</td><td>Cool</td><td>Normal</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>10</td><td>Mild</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>14</td><td>Mild</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr></tbody></table></div>
+</div>
+<p>Overcast is already pure: it becomes a leaf labelled Yes. Sunny and Rainy are still mixed, so each gets another question.</p>
+<h4>Step 2 — inside Sunny ask Humidity; inside Rainy ask Wind</h4>
+<svg class="tree " viewBox="0 0 720 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="360" y1="35.0" x2="160" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="255.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Sunny</text><line x1="360" y1="35.0" x2="360" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="366.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Overcast</text><line x1="360" y1="35.0" x2="560" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="466.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Rainy</text><rect x="324.8" y="13.0" width="70.4" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="360" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Outlook</text><rect x="121.2" y="109.0" width="77.6" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="160" y="125.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Humidity</text><rect x="339.2" y="109.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="360" y="125.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text><rect x="535.6" y="109.0" width="48.8" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="560" y="125.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Wind</text></svg>
+<div class="two">
+<div><p class="cap">Sunny · Humidity = High → all No; Humidity = Normal → all Yes</p><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>1</td><td>Hot</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>2</td><td>Hot</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>8</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="n">No</b></td></tr></tbody></table><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>9</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>11</td><td>Mild</td><td>Normal</td><td>Strong</td><td><b class="y">Yes</b></td></tr></tbody></table></div>
+<div><p class="cap">Rainy · Wind = Strong → all No; Wind = Weak → all Yes</p><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>6</td><td>Cool</td><td>Normal</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>14</td><td>Mild</td><td>High</td><td>Strong</td><td><b class="n">No</b></td></tr></tbody></table><table class="dt compact"><thead><tr><th>Day</th><th>Temp.</th><th>Humidity</th><th>Wind</th><th>Play?</th></tr></thead><tbody><tr><td>4</td><td>Mild</td><td>High</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>5</td><td>Cool</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>10</td><td>Mild</td><td>Normal</td><td>Weak</td><td><b class="y">Yes</b></td></tr></tbody></table></div>
+</div>
+<h4>Final tree</h4>
+<svg class="tree " viewBox="0 0 720 250" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="360" y1="35.0" x2="160" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="255.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Sunny</text><line x1="360" y1="35.0" x2="360" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="366.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Overcast</text><line x1="360" y1="35.0" x2="560" y2="109.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="466.0" y="69.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Rainy</text><line x1="160" y1="131.0" x2="80" y2="209.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="115.0" y="167.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">High</text><line x1="160" y1="131.0" x2="240" y2="209.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="206.0" y="167.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Normal</text><line x1="560" y1="131.0" x2="480" y2="209.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="515.0" y="167.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Strong</text><line x1="560" y1="131.0" x2="640" y2="209.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="606.0" y="167.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">Weak</text><rect x="324.8" y="13.0" width="70.4" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="360" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Outlook</text><rect x="121.2" y="109.0" width="77.6" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="160" y="125.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Humidity</text><rect x="339.2" y="109.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="360" y="125.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text><rect x="535.6" y="109.0" width="48.8" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="560" y="125.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Wind</text><rect x="62.8" y="209.0" width="34.4" height="22" rx="9" fill="#fbe3df" stroke="#b3261e" stroke-width="1.5"/><text x="80" y="225.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">No</text><rect x="219.2" y="209.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="240" y="225.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text><rect x="462.8" y="209.0" width="34.4" height="22" rx="9" fill="#fbe3df" stroke="#b3261e" stroke-width="1.5"/><text x="480" y="225.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">No</text><rect x="619.2" y="209.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="640" y="225.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text></svg>
+<ul><li>Depth 2. Temperature is never tested: it was never the best question at any node.</li>
+<li>All 14 training rows are classified correctly. That is expected for a tree grown to purity on clean data and says nothing about unseen data (see the Pruning tab).</li>
+<li>How "choose an attribute" is decided is the subject of the next tab.</li></ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t2">
+<h2>2. Entropy &amp; Information Gain</h2>
+<div class="slide" id="b2-1">
+  <div class="sh"><h3>What is a good attribute?</h3><span class="num">Slide 12</span></div>
+  <div class="body">
+<div class="two wide"><div><table class="dt compact narrow"><thead><tr><th>Does it fly?</th><th>Color</th><th>Class</th></tr></thead><tbody><tr><td>No</td><td>Brown</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>Yes</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr></tbody></table><p class="cap">7 animals, two attributes, two classes (3 Mammals, 4 Birds).</p></div>
+<div><div class="two"><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Brown</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">White</text><rect x="122.0" y="13.0" width="56.0" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Color</text><rect x="31.200000000000003" y="92.0" width="77.6" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="70" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Mammal</text><text x="70" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text></svg><p class="cap">Split on Color: both children stay mixed.</p></div><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Yes</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">No</text><rect x="125.6" y="13.0" width="48.8" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Fly?</text><rect x="34.8" y="99.0" width="70.4" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="70" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Bird</text></svg><p class="cap">Split on Fly?: one child is pure. This is the better attribute.</p></div></div></div></div>
+<ul><li>Which attribute provides the better split, and why?</li>
+<li>Fly? — because the resulting subsets are more <b>pure</b>. Knowing the value of this attribute gives us more information about the label: the entropy of the subsets is lower.</li></ul></div>
+</div>
+<div class="slide" id="b2-2">
+  <div class="sh"><h3>Entropy</h3><span class="num">Slide 14</span></div>
+  <div class="body">
+<ul><li>Entropy measures the degree of randomness (mixing) in a set of labelled samples.</li></ul>
+<div class="two"><div>
+<div class="formula">entropy(X) = − Σ<sub>i=1..k</sub> p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div>
+<p>where p<sub>i</sub> is the proportion of elements of class i among the k classes in X.</p>
+<figure class="small"><img src="assets/ml02/entropy-baskets.png" alt="Low entropy: one kind of fruit. High entropy: many kinds mixed." loading="lazy"><figcaption>Low entropy: one kind of fruit. High entropy: many kinds mixed.</figcaption></figure>
+<ul><li>For two classes: 0 when the set is pure, 1 bit when it is 50/50.</li><li><b>Lower entropy implies greater predictability.</b></li></ul>
+</div><div><figure class=""><img src="assets/ml02/entropy-plot.png" alt="Entropy of a two-class set as a function of p₊." loading="lazy"><figcaption>Entropy of a two-class set as a function of p₊.</figcaption></figure></div></div></div>
+</div>
+<div class="ex-box" id="ex-entropy">
+  <div class="ex-head"><h3>Elaboration 1 — What the entropy number means</h3><span>7-animal example</span></div>
+  <div class="ex-body">
+  <p>Entropy turns "pure vs. mixed" into a number you can compute. A pure node scores 0; a perfect 50/50 two-class node scores 1 bit. For the 7 animals (3 mammals, 4 birds):</p>
+  <div class="ex-formula">entropy(X) = −(3/7) log<sub>2</sub>(3/7) − (4/7) log<sub>2</sub>(4/7) = 0.5239 + 0.4613 ≈ <b>0.985 bits</b></div>
+  <div class="ex-grid2">
+    <div class="ex-card"><h4>What the number means</h4><p>0.985 sits just below the 1.0 maximum: almost a full bit of uncertainty is waiting to be removed by a good question. A set with 6 mammals and 1 bird would score 0.592; with 7 mammals, 0.</p></div>
+    <div class="ex-card"><h4>Why bits?</h4><p>Because the log is base 2. One bit is one fair yes/no question's worth of doubt, which is why a 50/50 set scores exactly 1. Entropy is the average number of yes/no questions needed to pin down the label of a random element.</p></div>
+  </div>
+  <div class="ex-warn"><b>Watch out.</b> A pure branch needs the term 0 · log<sub>2</sub>(0). Calculators say "undefined". Use the convention 0 · log 0 = 0, so a pure node has entropy exactly 0. (Formally, p log p → 0 as p → 0.)</div>
+
+    </div>
+</div>
+<div class="slide" id="b2-3">
+  <div class="sh"><h3>Information Gain</h3><span class="num">Slide 15</span></div>
+  <div class="body">
+<ul><li>The information gain of an attribute a is the expected reduction in entropy due to splitting on the values of a:</li></ul>
+<div class="formula">gain(X, a) = entropy(X) − Σ<sub>v ∈ Values(a)</sub> ( |X<sub>v</sub>| / |X| ) · entropy(X<sub>v</sub>)</div>
+<p>where X<sub>v</sub> is the subset of X for which a = v. Read it as: entropy before the split minus the size-weighted average entropy after the split.</p></div>
+</div>
+<div class="ex-box" id="ex-weighted">
+  <div class="ex-head"><h3>Elaboration 2 — Why the average after the split is size-weighted</h3><span>reading the gain formula</span></div>
+  <div class="ex-body">
+  <p>The children are not the same size. A plain average pretends they are, and gives a number that does not describe the data. Worst case: a split sends 6 of 7 samples into a fully mixed branch (entropy 1.0) and 1 sample into a pure branch (entropy 0).</p>
+  <div class="ex-grid2">
+    <div class="ex-card ex-bad"><h4>Plain average — wrong</h4><div class="ex-formula">(1.0 + 0) / 2 = <b>0.5</b></div><p>Fooled by the tiny pure branch: it looks like a decent split.</p></div>
+    <div class="ex-card ex-good"><h4>Weighted average — correct</h4><div class="ex-formula">(6/7)(1.0) + (1/7)(0) = <b>0.857</b></div><p>Knows that almost everything is still stuck in the mixed branch.</p></div>
+  </div>
+  <p><b>The reason it must be weighted.</b> "Entropy after the split" answers: if I pick a random sample, how much uncertainty is it now sitting in? A sample is more likely to land in a bigger branch, so the branch sizes <i>are</i> probabilities. The weights |X<sub>v</sub>|/|X| in the gain formula are exactly those probabilities, which makes the second term an expected value: the expected entropy after asking about a.</p>
+  </div>
+</div>
+<div class="slide" id="b2-4">
+  <div class="sh"><h3>Best attribute = highest information gain</h3><span class="num">Slides 16–22</span></div>
+  <div class="body">
+<div class="two wide"><div><table class="dt compact narrow"><thead><tr><th>Does it fly?</th><th>Color</th><th>Class</th></tr></thead><tbody><tr><td>No</td><td>Brown</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>Yes</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr></tbody></table></div><div><div class="two"><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Brown</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">White</text><rect x="122.0" y="13.0" width="56.0" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Color</text><rect x="31.200000000000003" y="92.0" width="77.6" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="70" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Mammal</text><text x="70" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text></svg><p class="cap">Split on Color: both children stay mixed.</p></div><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Yes</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">No</text><rect x="125.6" y="13.0" width="48.8" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Fly?</text><rect x="34.8" y="99.0" width="70.4" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="70" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Bird</text></svg><p class="cap">Split on Fly?: one child is pure. This is the better attribute.</p></div></div></div></div>
+<h4>Whole set: 3 mammals, 4 birds</h4>
+<div class="formula">entropy(X) = −p<sub>mammal</sub> log<sub>2</sub> p<sub>mammal</sub> − p<sub>bird</sub> log<sub>2</sub> p<sub>bird</sub> = −(3/7) log<sub>2</sub>(3/7) − (4/7) log<sub>2</sub>(4/7) = 0.5239 + 0.4613 ≈ <b>0.985</b></div>
+<h4>Split on Color</h4>
+<div class="formula">entropy(X<sub>color=brown</sub>) = −(1/3) log<sub>2</sub>(1/3) − (2/3) log<sub>2</sub>(2/3) ≈ 0.918 &nbsp;&nbsp;&nbsp; entropy(X<sub>color=white</sub>) = 1 (2 mammals, 2 birds)</div>
+<div class="formula"><b>gain(X, color) = 0.985 − (3/7)·0.918 − (4/7)·1 ≈ 0.020</b></div>
+<h4>Split on Fly?</h4>
+<div class="formula">entropy(X<sub>fly=yes</sub>) = 0 (3 birds, pure) &nbsp;&nbsp;&nbsp; entropy(X<sub>fly=no</sub>) = −(3/4) log<sub>2</sub>(3/4) − (1/4) log<sub>2</sub>(1/4) ≈ 0.811</div>
+<div class="formula"><b>gain(X, fly) = 0.985 − (3/7)·0 − (4/7)·0.811 ≈ 0.522</b></div>
+<ul><li>gain(X, fly) ≫ gain(X, color), so Fly? is chosen for the root.</li>
+<li>In practice entropy(X) is computed only once and reused for every candidate attribute.</li></ul>
+<div class="fix"><b>Correction.</b> The source slide prints gain(X, fly) ≈ 0.521. The full-precision value is 0.5216, which rounds to 0.522 (and 0.985 − 0.463 = 0.522 on the slide's own numbers); 0.521 is a truncation.</div></div>
+</div>
+<div class="ex-box" id="ex-compare">
+  <div class="ex-head"><h3>Elaboration 3 — Compare the two splits, then pick the winner</h3><span>the rule inside ID3</span></div>
+  <div class="ex-body">
+  <p>Entropy before the split is computed once (0.985). Whichever attribute leaves the least mixing after the split wins the largest gain.</p>
+  <table class="ex-mt"><thead><tr><th>Attribute</th><th>Entropy before</th><th>Weighted entropy after</th><th>Gain (entropy removed)</th></tr></thead>
+  <tbody><tr><td>Color</td><td>0.9852</td><td>(3/7)(0.9183) + (4/7)(1.0000) = 0.9650</td><td>0.0202 (≈ 0.020)</td></tr>
+  <tr class="ex-win"><td>Fly?</td><td>0.9852</td><td>(3/7)(0) + (4/7)(0.8113) = 0.4636</td><td><b>0.5216 (≈ 0.522)</b></td></tr></tbody></table>
+  <p><b>ID3 picks Fly?</b> — it removes about 26 times more uncertainty than Color. Both branches of Color stay muddy, so the average barely moves; the one pure branch of Fly? pulls the average down to 0.464. This single comparison is the line <code>a = select_attribute_with_highest_information_gain(X)</code> in the pseudo-code: at every node the tree greedily asks the question that buys the biggest immediate drop in uncertainty, then recurses on each child.</p>
+
+  <h4>Try it — a two-way split explorer</h4>
+  <p class="ex-hint">Type the class counts that land in each branch. The parent is their sum. Everything is recomputed with full precision and shown to 4 decimals, so you can see where 3-decimal rounding on the slides comes from.</p>
+  <div class="ex-widget">
+    <div class="ex-controls">
+      <span class="ex-lab">Branch 1:</span> <label>A <input type="number" id="a1" min="0" max="999" value="1"></label> <label>B <input type="number" id="b1" min="0" max="999" value="2"></label>
+      <span class="ex-lab">Branch 2:</span> <label>A <input type="number" id="a2" min="0" max="999" value="2"></label> <label>B <input type="number" id="b2" min="0" max="999" value="2"></label>
+    </div>
+    <div class="ex-controls">
+      <button class="ex-btn ex-small" data-set="1,2,2,2">Color: brown (1M,2B) | white (2M,2B)</button>
+      <button class="ex-btn ex-small" data-set="0,3,3,1">Fly?: yes (0M,3B) | no (3M,1B)</button>
+      <button class="ex-btn ex-small" data-set="3,4,6,1">PlayTennis Humidity: High (3Y,4N) | Normal (6Y,1N)</button>
+      <button class="ex-btn ex-small" data-set="6,2,3,3">PlayTennis Wind: Weak (6Y,2N) | Strong (3Y,3N)</button>
+      <button class="ex-btn ex-small" data-set="6,1,3,4">Humidity ≤ 83.5 (6Y,1N) | &gt; 83.5 (3Y,4N)</button>
+    </div>
+    <div id="gout"></div>
+  </div>
+
+  <h4>The one idea to keep</h4>
+  <ol class="ex-keep">
+    <li><b>Entropy = mixing.</b> Pure node 0, perfect 50/50 = 1 bit. It makes "messy" computable.</li>
+    <li><b>Gain = mixing removed.</b> Entropy before minus the size-weighted entropy after. A big gap is a good split.</li>
+    <li><b>Weight by branch size.</b> Otherwise one clean outlier branch can fake a good split.</li>
+    <li><b>Pick the highest gain.</b> That greedy choice is the entire attribute-selection rule in ID3.</li>
+  </ol>
+  <p>Swap entropy for Gini and gain for impurity decrease and the selection rule is identical (next tab). Measuring purity and chasing its biggest reduction is the point.</p>
+  </div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t3">
+<h2>3. Gini Impurity</h2>
+<div class="slide" id="b3-1">
+  <div class="sh"><h3>Gini Impurity</h3><span class="num">Slide 25</span></div>
+  <div class="body">
+<ul><li>Gini impurity measures how often a randomly chosen element would be incorrectly labelled if it were labelled at random according to the label distribution.</li></ul>
+<div class="two"><div>
+<div class="formula">gini(X) = 1 − Σ<sub>i=1..k</sub> p<sub>i</sub><sup>2</sup></div>
+<p>where p<sub>i</sub> is the proportion of elements of class i.</p>
+<figure class="small"><img src="assets/ml02/gini-baskets.png" alt="Pick a random fruit and a random label from the basket: how often are they different?" loading="lazy"><figcaption>Pick a random fruit and a random label from the basket: how often are they different?</figcaption></figure>
+<ul><li>Same shape as entropy but lower: maximum 0.5 for two classes.</li><li><b>Can be used as an alternative to entropy for selecting attributes</b> (this is what CART does).</li></ul>
+</div><div><figure class=""><img src="assets/ml02/gini-plot.png" alt="Gini impurity (solid) and entropy (dotted) against p₊." loading="lazy"><figcaption>Gini impurity (solid) and entropy (dotted) against p₊.</figcaption></figure></div></div></div>
+</div>
+<div class="slide" id="b3-2">
+  <div class="sh"><h3>Best attribute = highest impurity decrease</h3><span class="num">Slide 26</span></div>
+  <div class="body">
+<div class="two wide"><div><table class="dt compact narrow"><thead><tr><th>Does it fly?</th><th>Color</th><th>Class</th></tr></thead><tbody><tr><td>No</td><td>Brown</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>Yes</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr></tbody></table></div><div><div class="two"><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Brown</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">White</text><rect x="122.0" y="13.0" width="56.0" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Color</text><rect x="31.200000000000003" y="92.0" width="77.6" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="70" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Mammal</text><text x="70" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">2 Birds</text></svg><p class="cap">Split on Color: both children stay mixed.</p></div><div><svg class="tree " viewBox="0 0 300 160" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="150" y1="35.0" x2="70" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="105.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">Yes</text><line x1="150" y1="35.0" x2="230" y2="92.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="196.0" y="60.5" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">No</text><rect x="125.6" y="13.0" width="48.8" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="150" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Fly?</text><rect x="34.8" y="99.0" width="70.4" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="70" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Birds</text><rect x="187.6" y="92.0" width="84.8" height="36" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="230" y="108.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">3 Mammals</text><text x="230" y="122.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">1 Bird</text></svg><p class="cap">Split on Fly?: one child is pure. This is the better attribute.</p></div></div></div></div>
+<div class="formula">gini(X) = 1 − (3/7)<sup>2</sup> − (4/7)<sup>2</sup> = 24/49 ≈ 0.490</div>
+<div class="formula">gini(X<sub>color=brown</sub>) = 1 − (1/3)<sup>2</sup> − (2/3)<sup>2</sup> = 4/9 ≈ 0.444 &nbsp;&nbsp;&nbsp; gini(X<sub>color=white</sub>) = 0.5</div>
+<div class="formula"><b>Δgini(X, color) = 0.490 − (3/7)·0.444 − (4/7)·0.5 ≈ 0.014</b></div>
+<div class="formula">gini(X<sub>fly=yes</sub>) = 0 &nbsp;&nbsp;&nbsp; gini(X<sub>fly=no</sub>) = 1 − (3/4)<sup>2</sup> − (1/4)<sup>2</sup> = 6/16 = 0.375</div>
+<div class="formula"><b>Δgini(X, fly) = 0.490 − (3/7)·0 − (4/7)·0.375 ≈ 0.276</b></div>
+<ul><li>Fly? wins again. gini(X) is computed once and reused.</li></ul>
+<div class="fix"><b>Correction.</b> The source slide prints gini(X) ≈ 0.489, Δgini(X, color) ≈ 0.013 and Δgini(X, fly) ≈ 0.274. Recomputed: 0.4898, 0.0136 and 0.2755, i.e. 0.490, 0.014 and 0.276 at three decimals (0.274 is not even the truncation: 0.489 − 0.214 = 0.275). The ranking is unaffected.</div></div>
+</div>
+<div class="slide" id="b3-3">
+  <div class="sh"><h3>Entropy versus Gini Impurity</h3><span class="num">Slide 27</span></div>
+  <div class="body">
+<div class="two"><div>
+<ul><li>Entropy and Gini impurity give similar results in practice.</li>
+<li>They disagree on the chosen attribute in only about 2% of cases — "Theoretical Comparison between the Gini Index and Information Gain Criteria" (Răileanu &amp; Stoffel, AMAI 2004).</li>
+<li>Entropy may be slower to compute because of the logarithm.</li></ul></div>
+<div><figure class=""><img src="assets/ml02/entropy-vs-gini.png" alt="Entropy (dotted) against 2·gini (solid): nearly the same curve." loading="lazy"><figcaption>Entropy (dotted) against 2·gini (solid): nearly the same curve.</figcaption></figure></div></div></div>
+</div>
+<div class="ex-box" id="ex-gini">
+  <div class="ex-head"><h3>Try it — entropy and Gini of a two-class set</h3><span>same curves, same peak, different scale</span></div>
+  <div class="ex-body">
+<p>Both measures are 0 for a pure set and largest at 50/50; entropy peaks at 1 bit, Gini at 0.5. Because one is roughly twice the other everywhere (compare the 2·gini plot above), they rank splits the same way almost always.</p>
+
+  <p class="ex-hint">Drag the slider to change the fraction p<sub>+</sub> of the first class. Both curves are symmetric about 0.5 and both are 0 at the ends; Gini peaks at 0.5, entropy at 1.</p>
+  <div class="ex-widget">
+    <div class="ex-controls"><label>p<sub>+</sub> = <input type="range" id="pslider" min="0" max="1" value="0.4285714" step="any"> <output id="pout">0.43</output></label>
+      <button class="ex-btn ex-small" data-p="0.4285714">3 mammals / 4 birds (0.43)</button>
+      <button class="ex-btn ex-small" data-p="0.6428571">9 Yes / 5 No (0.64)</button>
+      <button class="ex-btn ex-small" data-p="0.5">50 / 50</button>
+      <button class="ex-btn ex-small" data-p="0.9152542">54 Yes / 5 No (0.92)</button></div>
+    <div class="ex-grid2">
+      <svg class="ex-svg" id="hsvg" viewBox="0 0 420 260" aria-label="entropy and gini versus p"></svg>
+      <table class="ex-mt" id="htab"><thead><tr><th>Quantity</th><th>Value</th></tr></thead><tbody>
+        <tr><td>p<sub>+</sub></td><td id="v_p"></td></tr><tr><td>p<sub>−</sub> = 1 − p<sub>+</sub></td><td id="v_q"></td></tr>
+        <tr><td>−p<sub>+</sub> log<sub>2</sub> p<sub>+</sub></td><td id="v_t1"></td></tr><tr><td>−p<sub>−</sub> log<sub>2</sub> p<sub>−</sub></td><td id="v_t2"></td></tr>
+        <tr class="ex-sep"><td><b>entropy (bits)</b></td><td id="v_h"></td></tr><tr><td><b>gini = 1 − p<sub>+</sub><sup>2</sup> − p<sub>−</sub><sup>2</sup></b></td><td id="v_g"></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t4">
+<h2>4. The Algorithm in Pseudo-code</h2>
+<p class="lead" style="margin-top:4px"><b>Where these two slides sit.</b> In the original deck the generic <code>make_tree</code> appears right after the first-split walkthrough and <code>ID3</code> right after the information-gain example. They are placed together here, after entropy, gain and Gini have been defined, so that every function name in the pseudo-code already has a meaning. Read them as one algorithm: the first is the skeleton, the second fills in the two blanks.</p>
+<div class="slide" id="b4-1">
+  <div class="sh"><h3>Decision Tree Learning (Python)</h3><span class="num">Slide 11, moved</span></div>
+  <div class="body">
+<pre><code>def make_tree(X):
+    node = TreeNode(X)
+    if should_be_leaf_node(X):
+        node.label = majority_label(X)
+    else:
+        a = select_best_splitting_attribute(X)
+        for v in values(a):
+            X_v = {x ∈ X | x[a] == v}
+            node.children.append(make_tree(X_v))
+    return node</code></pre>
+<ul><li>The generic skeleton. Everything specific to ID3 hides in two functions: <code>should_be_leaf_node</code> and <code>select_best_splitting_attribute</code>. The next block fills them in.</li></ul>
+<div class="note">Moved here from its original position (after the first-split walkthrough) so that the two pseudo-code slides sit together, after entropy, information gain and Gini have been defined and before pruning starts.</div></div>
+</div>
+<div class="slide" id="b4-2">
+  <div class="sh"><h3>ID3 Algorithm (Python)</h3><span class="num">Slide 23, moved</span></div>
+  <div class="body">
+<pre><code># ID = Iterative Dichotomiser
+def ID3(X):
+    node = TreeNode(X)
+    if all_points_have_same_class(X):
+        node.label = majority_label(X)
+    else:
+        a = select_attribute_with_highest_information_gain(X)
+        if gain(X, a) == 0:
+            node.label = majority_label(X)
+        else:
+            for v in values(a):
+                X_v = {x ∈ X | x[a] == v}
+                node.children.append(ID3(X_v))
+    return node</code></pre>
+<ul><li>Leaf test: all points share a class, or no attribute has positive gain. Leaf label: majority class.</li>
+<li>Split rule: the attribute with the highest information gain (Quinlan, 1986); one child per attribute value; recurse on each child.</li></ul>
+<div class="note">Moved here from its original position (after the information-gain example).</div></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t5">
+<h2>5. Pruning</h2>
+<div class="slide" id="b5-1">
+  <div class="sh"><h3>Pruning</h3><span class="num">Slide 29</span></div>
+  <div class="body">
+<ul><li>Pruning reduces the size of a decision tree by removing branches that provide little predictive power.</li>
+<li>It is a regularisation method: a smaller tree is a less complex model, which reduces overfitting. <b>Decision trees are prone to overfitting.</b></li>
+<li>Pre-pruning: stop the tree-building algorithm before it fully classifies the data.</li>
+<li>Post-pruning: build the complete tree, then replace some non-leaf nodes by leaves if this improves validation error.</li></ul></div>
+</div>
+<div class="slide" id="b5-2">
+  <div class="sh"><h3>Pre-pruning</h3><span class="num">Slide 30</span></div>
+  <div class="body">
+<div class="two"><div>
+<ul><li>Pre-pruning is early stopping: if some condition is met, the current node is not split even though it is not 100% pure.</li>
+<li>It becomes a leaf with the label of the majority class in the current set; the class distribution can be reported as prediction confidence.</li>
+<li>Common stopping criteria are thresholds on the entropy (or Gini impurity) of the current set, the number of samples in it, the gain of the best attribute, or the depth of the tree.</li>
+<li>Example: a node with 54 Yes / 5 No becomes a leaf "Yes" with confidence 54/59 ≈ 91.5%.</li></ul></div>
+<div><figure class="small"><img src="assets/ml02/prepruning.png" alt="Minimum-entropy threshold: stop, even if the node could be split." loading="lazy"><figcaption>Minimum-entropy threshold: stop, even if the node could be split.</figcaption></figure></div></div>
+<div class="fix"><b>Correction.</b> The slide's entropy(54|5) = 0.29 is a natural-log value (0.290 nats). With the log<sub>2</sub> definition used throughout the lecture, entropy(54|5) = 0.419 bits, which is <i>above</i> θ<sub>ent</sub> = 0.4, so the illustrated stop would not fire. Read the example with θ<sub>ent</sub> = 0.5; the mechanism is unchanged. (54/59 = 91.53%, printed as 91.52%.)</div></div>
+</div>
+<div class="slide" id="b5-3">
+  <div class="sh"><h3>Post-pruning</h3><span class="num">Slides 31–33</span></div>
+  <div class="body">
+<ul><li>Prune nodes in a bottom-up manner if it decreases the validation error.</li>
+<li>As nodes are pruned, training error rises while validation error first falls and then rises. Stop at the minimum of the validation curve.</li></ul>
+<div class="two"><div><figure class=""><img src="assets/ml02/postprune-tree-1.png" alt="Full tree, nothing pruned." loading="lazy"><figcaption>Full tree, nothing pruned.</figcaption></figure></div><div><figure class="small"><img src="assets/ml02/postprune-curve-1.png" alt="Red line at 0 pruned nodes." loading="lazy"><figcaption>Red line at 0 pruned nodes.</figcaption></figure></div></div>
+<div class="two"><div><figure class=""><img src="assets/ml02/postprune-tree-2.png" alt="Three Age sub-trees replaced by leaves." loading="lazy"><figcaption>Three Age sub-trees replaced by leaves.</figcaption></figure></div><div><figure class="small"><img src="assets/ml02/postprune-curve-2.png" alt="Validation error still falling." loading="lazy"><figcaption>Validation error still falling.</figcaption></figure></div></div>
+<div class="two"><div><figure class=""><img src="assets/ml02/postprune-tree-3.png" alt="One more sub-tree collapsed: the pruned tree." loading="lazy"><figcaption>One more sub-tree collapsed: the pruned tree.</figcaption></figure></div><div><figure class="small"><img src="assets/ml02/postprune-curve-3.png" alt="Validation error at its minimum; stop here." loading="lazy"><figcaption>Validation error at its minimum; stop here.</figcaption></figure></div></div></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t6">
+<h2>6. Numerical Attributes</h2>
+<div class="slide" id="b6-1">
+  <div class="sh"><h3>Handling numerical attributes — the problem</h3><span class="num">Slide 35</span></div>
+  <div class="body">
+<ul><li>How does ID3 handle numerical attributes? Consider a numerical value for Humidity.</li></ul>
+<div class="two"><div><table class="dt compact"><thead><tr><th>Day</th><th>Outlook</th><th>Temperature</th><th>Humidity</th><th>Wind</th><th>Play Tennis?</th></tr></thead><tbody><tr><td>1</td><td>Sunny</td><td>Hot</td><td>90</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>2</td><td>Sunny</td><td>Hot</td><td>87</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>3</td><td>Overcast</td><td>Hot</td><td>93</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>4</td><td>Rainy</td><td>Mild</td><td>89</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>5</td><td>Rainy</td><td>Cool</td><td>79</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>6</td><td>Rainy</td><td>Cool</td><td>59</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>7</td><td>Overcast</td><td>Cool</td><td>77</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>8</td><td>Sunny</td><td>Mild</td><td>91</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>9</td><td>Sunny</td><td>Cool</td><td>68</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>10</td><td>Rainy</td><td>Mild</td><td>80</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>11</td><td>Sunny</td><td>Mild</td><td>72</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>12</td><td>Overcast</td><td>Mild</td><td>96</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>13</td><td>Overcast</td><td>Hot</td><td>74</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>14</td><td>Rainy</td><td>Mild</td><td>97</td><td>Strong</td><td><b class="n">No</b></td></tr></tbody></table></div><div><svg class="tree " viewBox="0 0 720 150" role="img"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#233343"/></marker></defs><line x1="360" y1="35.0" x2="80" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="215.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">90</text><line x1="360" y1="35.0" x2="190" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="270.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">87</text><line x1="360" y1="35.0" x2="300" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="325.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="end">93</text><line x1="360" y1="35.0" x2="420" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="396.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">…</text><line x1="360" y1="35.0" x2="540" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="456.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">74</text><line x1="360" y1="35.0" x2="650" y2="99.0" stroke="#233343" stroke-width="1.4" marker-end="url(#ar)"/><text x="511.0" y="64.0" font-size="12" font-style="italic" fill="#3d4955" text-anchor="start">97</text><rect x="321.2" y="13.0" width="77.6" height="22" rx="3" fill="#e9ecef" stroke="#233343" stroke-width="1.5"/><text x="360" y="29.0" font-size="13" font-weight="bold" text-anchor="middle" fill="#1c2530">Humidity</text><rect x="62.8" y="99.0" width="34.4" height="22" rx="9" fill="#fbe3df" stroke="#b3261e" stroke-width="1.5"/><text x="80" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">No</text><rect x="172.8" y="99.0" width="34.4" height="22" rx="9" fill="#fbe3df" stroke="#b3261e" stroke-width="1.5"/><text x="190" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">No</text><rect x="279.2" y="99.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="300" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text><rect x="406.4" y="99.0" width="27.2" height="22" rx="9" fill="#fff" stroke="#233343" stroke-width="1.5"/><text x="420" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">…</text><rect x="519.2" y="99.0" width="41.6" height="22" rx="9" fill="#e3f1e7" stroke="#3C7A5A" stroke-width="1.5"/><text x="540" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">Yes</text><rect x="632.8" y="99.0" width="34.4" height="22" rx="9" fill="#fbe3df" stroke="#b3261e" stroke-width="1.5"/><text x="650" y="115.0" font-size="13" font-weight="normal" text-anchor="middle" fill="#1c2530">No</text></svg>
+<ul><li>One branch per distinct value: any numerical attribute would almost always bring entropy down to zero.</li><li>That means it completely overfits the training data.</li></ul></div></div></div>
+</div>
+<div class="slide" id="b6-2">
+  <div class="sh"><h3>Handling numerical attributes — find the best splitting value</h3><span class="num">Slides 36–43</span></div>
+  <div class="body">
+<ul><li>Numerical attributes have to be treated differently: find the best splitting value t and test a ≤ t versus a &gt; t.</li></ul>
+<div class="formula">gain(X, a, t) = entropy(X) − ( |X<sub>a≤t</sub>| / |X| ) entropy(X<sub>a≤t</sub>) − ( |X<sub>a&gt;t</sub>| / |X| ) entropy(X<sub>a&gt;t</sub>)</div>
+<ul><li>Sort the values; the candidate thresholds are the midpoints of consecutive values (13 candidates for 14 rows). Compute the gain of every candidate and keep the best.</li></ul>
+<table class="dt compact"><thead><tr><th>Humidity (sorted)</th><th>Play?</th><th>Candidate t (midpoint)</th><th>≤ t</th><th>&gt; t</th><th>gain(X, humidity, t)</th></tr></thead><tbody><tr><td>59</td><td><b class="n">No</b></td><td>63.5</td><td>0 Y / 1 N</td><td>9 Y / 4 N</td><td>0.1134</td></tr><tr><td>68</td><td><b class="y">Yes</b></td><td>70</td><td>1 Y / 1 N</td><td>8 Y / 4 N</td><td>0.0103</td></tr><tr><td>72</td><td><b class="y">Yes</b></td><td>73</td><td>2 Y / 1 N</td><td>7 Y / 4 N</td><td>0.0005</td></tr><tr><td>74</td><td><b class="y">Yes</b></td><td>75.5</td><td>3 Y / 1 N</td><td>6 Y / 4 N</td><td>0.0150</td></tr><tr><td>77</td><td><b class="y">Yes</b></td><td>78</td><td>4 Y / 1 N</td><td>5 Y / 4 N</td><td>0.0453</td></tr><tr><td>79</td><td><b class="y">Yes</b></td><td>79.5</td><td>5 Y / 1 N</td><td>4 Y / 4 N</td><td>0.0903</td></tr><tr class="hl"><td>80</td><td><b class="y">Yes</b></td><td>83.5</td><td>6 Y / 1 N</td><td>3 Y / 4 N</td><td>0.1518</td></tr><tr><td>87</td><td><b class="n">No</b></td><td>88</td><td>6 Y / 2 N</td><td>3 Y / 3 N</td><td>0.0481</td></tr><tr><td>89</td><td><b class="y">Yes</b></td><td>89.5</td><td>7 Y / 2 N</td><td>2 Y / 3 N</td><td>0.1022</td></tr><tr><td>90</td><td><b class="n">No</b></td><td>90.5</td><td>7 Y / 3 N</td><td>2 Y / 2 N</td><td>0.0251</td></tr><tr><td>91</td><td><b class="n">No</b></td><td>92</td><td>7 Y / 4 N</td><td>2 Y / 1 N</td><td>0.0005</td></tr><tr><td>93</td><td><b class="y">Yes</b></td><td>94.5</td><td>8 Y / 4 N</td><td>1 Y / 1 N</td><td>0.0103</td></tr><tr><td>96</td><td><b class="y">Yes</b></td><td>96.5</td><td>9 Y / 4 N</td><td>0 Y / 1 N</td><td>0.1134</td></tr><tr><td>97</td><td><b class="n">No</b></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+<h4>Worked candidate t = 83.5</h4>
+<div class="formula">entropy(X) = −(9/14) log<sub>2</sub>(9/14) − (5/14) log<sub>2</sub>(5/14) = 0.4098 + 0.5305 ≈ 0.940</div>
+<div class="formula">Left (≤ 83.5): {59, 68, 72, 74, 77, 79, 80} → 6 Yes, 1 No: entropy = −(6/7) log<sub>2</sub>(6/7) − (1/7) log<sub>2</sub>(1/7) = 0.1906 + 0.4011 ≈ 0.592</div>
+<div class="formula">Right (&gt; 83.5): {87, 89, 90, 91, 93, 96, 97} → 3 Yes, 4 No: entropy = −(3/7) log<sub>2</sub>(3/7) − (4/7) log<sub>2</sub>(4/7) = 0.5239 + 0.4614 ≈ 0.985</div>
+<div class="formula"><b>gain(X, humidity, 83.5) = 0.940 − (7/14)·0.592 − (7/14)·0.985 ≈ 0.152</b></div>
+<ul><li><b>83.5 is the best splitting value for Humidity, with information gain 0.152.</b></li></ul>
+<h4>Humidity is now a two-valued attribute</h4>
+<div class="two"><div><table class="dt compact"><thead><tr><th>Day</th><th>Outlook</th><th>Temperature</th><th>Humidity</th><th>Wind</th><th>Play Tennis?</th></tr></thead><tbody><tr><td>1</td><td>Sunny</td><td>Hot</td><td>&gt; 83.5</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>2</td><td>Sunny</td><td>Hot</td><td>&gt; 83.5</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>3</td><td>Overcast</td><td>Hot</td><td>&gt; 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>4</td><td>Rainy</td><td>Mild</td><td>&gt; 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>5</td><td>Rainy</td><td>Cool</td><td>≤ 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>6</td><td>Rainy</td><td>Cool</td><td>≤ 83.5</td><td>Strong</td><td><b class="n">No</b></td></tr><tr><td>7</td><td>Overcast</td><td>Cool</td><td>≤ 83.5</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>8</td><td>Sunny</td><td>Mild</td><td>&gt; 83.5</td><td>Weak</td><td><b class="n">No</b></td></tr><tr><td>9</td><td>Sunny</td><td>Cool</td><td>≤ 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>10</td><td>Rainy</td><td>Mild</td><td>≤ 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>11</td><td>Sunny</td><td>Mild</td><td>≤ 83.5</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>12</td><td>Overcast</td><td>Mild</td><td>&gt; 83.5</td><td>Strong</td><td><b class="y">Yes</b></td></tr><tr><td>13</td><td>Overcast</td><td>Hot</td><td>≤ 83.5</td><td>Weak</td><td><b class="y">Yes</b></td></tr><tr><td>14</td><td>Rainy</td><td>Mild</td><td>&gt; 83.5</td><td>Strong</td><td><b class="n">No</b></td></tr></tbody></table></div><div><ul>
+<li>Humidity is treated as a categorical attribute with two values, ≤ 83.5 and &gt; 83.5 (the same seven rows as "High" in the categorical dataset).</li>
+<li>A new optimal split value is computed at every level of the tree.</li>
+<li>A numerical attribute can therefore be used several times in the tree with different split values.</li></ul></div></div>
+<div class="fix"><b>Correction.</b> The source slide lists the first candidate as 63; the midpoint of 59 and 68 is 63.5 (table above). The other twelve candidates and all thirteen gains on the slide agree with the recomputation.</div></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t7">
+<h2>7. Missing Values &amp; C4.5</h2>
+<div class="slide" id="b7-1">
+  <div class="sh"><h3>Handling missing values at training time</h3><span class="num">Slides 45–50</span></div>
+  <div class="body">
+<ul><li>Datasets might have samples with missing values for some attributes (shown as ?). Simply ignoring those samples would throw away a lot of information. Better ways:</li></ul>
+<div class="two"><div><table class="dt compact narrow"><thead><tr><th>Does it fly?</th><th>Color</th><th>Class</th></tr></thead><tbody><tr><td>No</td><td><b>?</b></td><td><b>Mammal</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td><b>?</b></td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr><tr><td>No</td><td>White</td><td><b>Mammal</b></td></tr><tr><td>No</td><td>Brown</td><td><b>Bird</b></td></tr><tr><td>Yes</td><td>White</td><td><b>Bird</b></td></tr></tbody></table><p class="cap">Row 1 has no Color, row 3 has no Fly? value.</p></div><div>
+<h4>1. Set them to the most common value</h4>
+<p>Among known rows Fly? is 4 No / 2 Yes and Color is 4 White / 2 Brown, so row 1 → White and row 3 → No.</p>
+<h4>2. Set them to the most probable value given the label</h4>
+<p>Row 1 is a Mammal: P(White | Mammal) = 1, P(Brown | Mammal) = 0 → White. Row 3 is a Bird: P(Yes | Bird) = 2/3, P(No | Bird) = 1/3 → Yes. (Uses the label, so training time only.)</p>
+<h4>3. Add a new instance for each possible value</h4>
+<p>Row 1 becomes (No, White, Mammal) and (No, Brown, Mammal); row 3 becomes (Yes, Brown, Bird) and (No, Brown, Bird): 7 rows become 9. C4.5 does a weighted version, giving each copy a fractional weight equal to the value's frequency.</p>
+</div></div>
+<h4>4. Leave them unknown, but discard the sample when evaluating the gain of that attribute</h4>
+<p>For Color, use the 6 rows where Color is known: brown = 2 birds (entropy 0); white = 2 mammals + 2 birds (entropy 1). If the attribute is chosen for splitting, send the instances with unknown values to all children.</p>
+<div class="formula">parent on the 6 known rows: 2 mammals, 4 birds → entropy = 0.918 &nbsp;&nbsp;&nbsp; gain(X, color) = 0.918 − (2/6)·0 − (4/6)·1 ≈ 0.252 &nbsp; (C4.5 then scales by the known fraction 6/7: 0.216)</div>
+<div class="fix"><b>Correction.</b> The source slide computes gain(X|color) = 0.985 − (2/6)·0 − (4/6)·1 = 0.318, taking entropy(X) over all 7 rows but the child weights over the 6 known rows; the two must be computed on the same rows. The corrected value is above. The slide's notation also slips from gain(X, a) to gain(X|a) — same quantity.</div>
+<h4>5. Build a decision tree on all other attributes (including the label) to predict the missing values</h4>
+<div class="two"><div><figure class="small"><img src="assets/ml02/missing-predict-trees.png" alt="Left: predict Fly? from Class and Color. Right: predict Color from Class and Fly?." loading="lazy"><figcaption>Left: predict Fly? from Class and Color. Right: predict Color from Class and Fly?.</figcaption></figure></div>
+<div><p>Train each tree on the instances where the attribute is defined. Row 1 (Mammal) → White; row 3 (Bird, Brown) → No.</p></div></div></div>
+</div>
+<div class="slide" id="b7-2">
+  <div class="sh"><h3>Handling missing values at inference time</h3><span class="num">Slides 51–52</span></div>
+  <div class="body">
+<ul><li>When we encounter a node that checks an attribute with a missing value, we explore all possibilities.</li>
+<li>We follow every branch and take the final prediction from a (weighted) vote of the corresponding leaves. C4.5 weights each branch by the fraction of training rows that went down it.</li></ul>
+<div class="two"><div><figure class=""><img src="assets/ml02/loan-tree-missing.png" alt="Not a student · 49 years old · unknown income · fair credit record." loading="lazy"><figcaption>Not a student · 49 years old · unknown income · fair credit record.</figcaption></figure></div>
+<div><p>Student? No → Income is unknown, so both branches are explored: High → Age &gt; 30 → Yes; Medium → Credit Record Fair → Age &gt; 40 → Yes. Both leaves say Yes → <b class="y">Yes</b>.</p></div></div></div>
+</div>
+<div class="slide" id="b7-3">
+  <div class="sh"><h3>C4.5 Algorithm</h3><span class="num">Slide 53</span></div>
+  <div class="body">
+<ul><li>C4.5 (Quinlan, 1993) extends ID3 with several improvements:</li>
+<li>Handles both categorical and numerical attributes (continuous attributes are split at the best threshold).</li>
+<li>Handles missing values at training time (not used when gain is computed) and at inference time (all corresponding branches are explored).</li>
+<li>Handles attributes with different costs.</li>
+<li>Post-pruning, bottom-up, removing branches that increase validation error (i.e. that hurt generalisation).</li></ul>
+<div class="fix"><b>Correction.</b> One improvement is missing from the source slide, and it is the one that changes the split rule: C4.5 selects attributes by <b>gain ratio</b> = gain(X, a) / splitInfo(X, a), where splitInfo is the entropy of the attribute's own value distribution. Plain gain favours attributes with many values (a day-ID column would look like a perfect split). On PlayTennis the correction nearly changes the root: gain ratio is Outlook 0.156, Humidity 0.152, Wind 0.049, Temperature 0.019.</div></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t8">
+<h2>8. Boundaries, History &amp; Summary</h2>
+<div class="slide" id="b8-1">
+  <div class="sh"><h3>Decision Boundaries</h3><span class="num">Slide 54</span></div>
+  <div class="body">
+<ul><li>Decision trees produce non-linear decision boundaries: every test is on one attribute, so the boundary is a union of axis-aligned boxes.</li></ul>
+<figure class=""><img src="assets/ml02/boundaries.png" alt="Left: a linear SVM boundary. Right: a decision tree on the same apples-and-oranges data (mass vs. colour)." loading="lazy"><figcaption>Left: a linear SVM boundary. Right: a decision tree on the same apples-and-oranges data (mass vs. colour).</figcaption></figure></div>
+</div>
+<div class="slide" id="b8-2">
+  <div class="sh"><h3>Decision Trees: Training and Inference</h3><span class="num">Slide 55</span></div>
+  <div class="body">
+<figure class=""><img src="assets/ml02/train-infer.png" alt="Training: labelled points → learning algorithm → a partition of feature space. Inference: locate the new point and read its label." loading="lazy"><figcaption>Training: labelled points → learning algorithm → a partition of feature space. Inference: locate the new point and read its label.</figcaption></figure></div>
+</div>
+<div class="slide" id="b8-3">
+  <div class="sh"><h3>History of Decision Trees</h3><span class="num">Slide 56</span></div>
+  <div class="body">
+<ul><li>First regression-tree algorithm: Automatic Interaction Detection (AID), Morgan &amp; Sonquist, 1963.</li>
+<li>First classification-tree algorithm: THAID, Messenger &amp; Mandell, 1972.</li>
+<li>Decision trees become popular: CART, Breiman et al., 1984.</li>
+<li>ID3: "Induction of Decision Trees", Quinlan, 1986.</li>
+<li>C4.5: "C4.5: Programs for Machine Learning", Quinlan, 1993.</li></ul></div>
+</div>
+<div class="slide" id="b8-4">
+  <div class="sh"><h3>Summary</h3><span class="num">Slide 57</span></div>
+  <div class="body">
+<ul><li>Decision trees are a tool based on a tree-like graph of decisions and their possible outcomes.</li>
+<li>Decision-tree learning is a machine-learning method that uses a decision tree as the predictive model.</li>
+<li>ID3 builds the tree by iteratively splitting the data on the attribute with the largest information gain (decrease in entropy); the decrease in Gini impurity is a commonly used alternative.</li>
+<li>C4.5 extends ID3 to continuous attributes and missing values, and adds regularisation by pruning branches likely to overfit.</li></ul></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t9">
+<h2>9. Random Forests &amp; Ensembles</h2>
+<div class="slide" id="b9-1">
+  <div class="sh"><h3>Random Forests</h3><span class="num">Slide 59</span></div>
+  <div class="body">
+<ul><li>Instead of building a single decision tree, build many slightly different trees and combine their predictions.</li>
+<li>We have a single dataset, so how do we obtain slightly different trees?</li>
+<li><b>1. Bagging (Bootstrap Aggregating):</b> draw N bootstrap samples of the training set and fit a decision tree on each.</li>
+<li><b>2. Random Subspace Method (feature bagging):</b> fit N trees, each constrained to a random subset of the features.</li></ul>
+<div class="fix"><b>Correction.</b> The source slide says bagging takes "random subsets" to create "N smaller data sets". A bootstrap sample has the <i>same size</i> as the training set and is drawn with replacement, so about 63% of the rows appear (some more than once) and about 37% are left out. The figures below draw the samples smaller than the original.</div></div>
+</div>
+<div class="slide" id="b9-2">
+  <div class="sh"><h3>Bagging</h3><span class="num">Slides 60–61</span></div>
+  <div class="body">
+<figure class=""><img src="assets/ml02/bagging-train.png" alt="Training: N samples drawn with replacement, one tree per sample, each learning a different partition." loading="lazy"><figcaption>Training: N samples drawn with replacement, one tree per sample, each learning a different partition.</figcaption></figure>
+<figure class=""><img src="assets/ml02/bagging-infer.png" alt="Inference: every tree votes; 3 of 4 say apple → apple with 75% confidence." loading="lazy"><figcaption>Inference: every tree votes; 3 of 4 say apple → apple with 75% confidence.</figcaption></figure></div>
+</div>
+<div class="slide" id="b9-3">
+  <div class="sh"><h3>Random Subspace Method</h3><span class="num">Slides 62–63</span></div>
+  <div class="body">
+<figure class=""><img src="assets/ml02/rsm-train.png" alt="Training: each tree sees a random pair of features (colour+mass, texture+pH, pH+mass)." loading="lazy"><figcaption>Training: each tree sees a random pair of features (colour+mass, texture+pH, pH+mass).</figcaption></figure>
+<figure class=""><img src="assets/ml02/rsm-infer.png" alt="Inference: each tree votes with its own features; 2 of 3 say apple → apple with 66% confidence." loading="lazy"><figcaption>Inference: each tree votes with its own features; 2 of 3 say apple → apple with 66% confidence.</figcaption></figure></div>
+</div>
+<div class="slide" id="b9-4">
+  <div class="sh"><h3>Random Forests — putting it together</h3><span class="num">Slides 64–65</span></div>
+  <div class="body">
+<figure class=""><img src="assets/ml02/random-forest.png" alt="Bagging + random subspace method + decision-tree learning → N trees that vote." loading="lazy"><figcaption>Bagging + random subspace method + decision-tree learning → N trees that vote.</figcaption></figure>
+<ul><li>Random subspace method: "Random Decision Forests" (Ho, 1995) and "The Random Subspace Method for Constructing Decision Forests" (Ho, 1998).</li>
+<li>Bagging combined with random subspaces, and the term Random Forest (a trademark of Leo Breiman and Adele Cutler): "Random Forests" (Breiman, 2001).</li></ul>
+<div class="note">Precision note: the random subspace method as drawn picks one feature subset per tree (Ho, 1998). Breiman's random forest picks a fresh random subset of features <i>at every split</i>; that per-split randomness is what decorrelates the trees. scikit-learn's <code>max_features</code> is this per-split parameter.</div></div>
+</div>
+<div class="slide" id="b9-5">
+  <div class="sh"><h3>Ensemble Learning and Boosting</h3><span class="num">Slides 66–72</span></div>
+  <div class="body">
+<ul><li>Ensemble learning combines multiple learning algorithms to obtain performance improvements over its components. Random forests are one of the most common examples.</li>
+<li>Bagging: multiple models on random subsets of samples. Random subspace method: multiple models on random subsets of features.</li>
+<li>Boosting: train models iteratively, making the current model focus on the mistakes of the previous ones by increasing the weight of misclassified samples.</li></ul>
+<figure class=""><img src="assets/ml02/boosting-reweight.png" alt="Round 1: all samples weighted equally; then re-weight on the model’s mistakes (misclassified samples drawn larger)." loading="lazy"><figcaption>Round 1: all samples weighted equally; then re-weight on the model’s mistakes (misclassified samples drawn larger).</figcaption></figure>
+<figure class=""><img src="assets/ml02/boosting-final.png" alt="Each new model sees the re-weighted samples; the models are combined by a (weighted) vote." loading="lazy"><figcaption>Each new model sees the re-weighted samples; the models are combined by a (weighted) vote.</figcaption></figure>
+<ul><li>AdaBoost weights each model by its accuracy; gradient boosting instead adds models that fit the residual error.</li></ul></div>
+</div>
+<div class="slide" id="b9-6">
+  <div class="sh"><h3>Summary — ensembles</h3><span class="num">Slide 73</span></div>
+  <div class="body">
+<ul><li>Ensemble methods combine multiple learners to beat any one of them: bagging, random subspace method, boosting.</li>
+<li>Random forests build multiple decision trees through bagging and the random subspace method; averaging many trees cuts the variance that makes a single tree overfit.</li></ul>
+<div class="note">"They rectify the overfitting problem of decision trees" (source slide) is stronger than what a forest guarantees: averaging reduces variance, but a forest of fully grown trees can still fit label noise. Keep the pruning tools in mind.</div></div>
+</div>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<section class="tab-panel" id="t10">
+<h2>10. Python &amp; References</h2>
+<div class="slide" id="b10-1">
+  <div class="sh"><h3>Decision Trees and Random Forest (Python)</h3><span class="num">Slide 74</span></div>
+  <div class="body">
+<pre><code>from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+clf = DecisionTreeClassifier(criterion="entropy", min_samples_leaf=3)
+# criterion = "gini" / "entropy"; max_depth; min_impurity_decrease; ...
+clf.fit(X, y)              # numerical features; encode categoricals first
+clf.predict([x])           # predict the class of x
+clf.feature_importances_   # importance of each feature
+clf.tree_                  # the underlying tree object
+
+clf = RandomForestClassifier(n_estimators=20)   # random forest with 20 trees</code></pre>
+<div class="fix"><b>Correction.</b> Three things on the source slide are out of date or misleading for current scikit-learn and are changed above. (1) <code>min_impurity_split</code> was removed in scikit-learn 1.0; the parameter is <code>min_impurity_decrease</code>. (2) <code>LabelEncoder</code> is meant for the target; encode categorical <i>features</i> with <code>OrdinalEncoder</code> or <code>OneHotEncoder</code>. (3) scikit-learn's tree is CART: every split is binary even with <code>criterion="entropy"</code>, so it will not produce the three-way Outlook split of ID3. Since version 1.3 it also accepts missing values (<code>NaN</code>) in <code>fit</code>.</div></div>
+</div>
+<h3>References</h3>
+<ul>
+<li>J. R. Quinlan, "Induction of Decision Trees", <i>Machine Learning</i> 1(1):81–106, 1986 (ID3).</li>
+<li>J. R. Quinlan, <i>C4.5: Programs for Machine Learning</i>, Morgan Kaufmann, 1993.</li>
+<li>L. Breiman, J. Friedman, R. Olshen, C. Stone, <i>Classification and Regression Trees</i>, Wadsworth, 1984 (CART, Gini).</li>
+<li>T. M. Mitchell, <i>Machine Learning</i>, McGraw-Hill, 1997, Chapter 3 (the PlayTennis dataset).</li>
+<li>L. E. Răileanu, K. Stoffel, "Theoretical Comparison between the Gini Index and Information Gain Criteria", <i>Annals of Mathematics and Artificial Intelligence</i> 41:77–93, 2004.</li>
+<li>T. K. Ho, "Random Decision Forests", ICDAR 1995; "The Random Subspace Method for Constructing Decision Forests", <i>IEEE TPAMI</i> 20(8), 1998.</li>
+<li>L. Breiman, "Random Forests", <i>Machine Learning</i> 45:5–32, 2001.</li>
+<li>scikit-learn user guide, section 1.10 "Decision Trees" and 1.11 "Ensembles".</li>
+</ul>
+<h3>How these notes were made</h3>
+<p>Every slide of the source deck (Radu Ionescu) was rewritten as HTML: text, tables, formulas and trees are native; plots and diagrams are cropped from the original. Sequences of build-up slides are merged into one block, labelled with the source slide numbers. All numbers were recomputed; where a slide's printed value disagrees with the recomputation, the corrected value is used in the text and a red <b>Correction</b> box records what the source printed (slides 22, 26, 30, 36, 49, 53, 59 and 74). Slides 11 and 23 were moved to the pseudo-code tab; section-divider slides and the title slide are omitted.</p>
+<div class="navrow"><button class="prev">&#8592; Previous section</button><button class="next">Next section &#8594;</button></div>
+</section>
+
+<div class="footer">
+  <span>CSE475 · Fall 2026</span>
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University.</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+<script>
+(function(){
+  function log2(x){ return Math.log(x)/Math.LN2; }
+  function ent(p){ var q=1-p, s=0; if(p>0) s-=p*log2(p); if(q>0) s-=q*log2(q); return s; }
+  function gini(p){ return 1-p*p-(1-p)*(1-p); }
+  function f4(x){ return (Math.round(x*10000)/10000).toFixed(4); }
+  function f3(x){ return (Math.round(x*1000)/1000).toFixed(3); }
+
+  /* ---- entropy / gini slider ---- */
+  var svg=document.getElementById('hsvg'), sl=document.getElementById('pslider'), out=document.getElementById('pout');
+  if(svg){
+    var W=420,Hh=260,L=44,R=12,T=14,B=34, pw=W-L-R, ph=Hh-T-B;
+    function X(p){ return L+p*pw; } function Y(v){ return T+ph-v*ph; }
+    function path(fn,n){ var d=''; for(var i=0;i<=n;i++){ var p=i/n; d+=(i?'L':'M')+X(p).toFixed(1)+' '+Y(fn(p)).toFixed(1)+' '; } return d; }
+    var s='<line x1="'+L+'" y1="'+Y(0)+'" x2="'+(W-R)+'" y2="'+Y(0)+'" stroke="#888"/><line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+Y(0)+'" stroke="#888"/>';
+    [0,0.25,0.5,0.75,1].forEach(function(v){ s+='<text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#555">'+v.toFixed(2)+'</text><line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="#eee"/>'; });
+    [0,0.25,0.5,0.75,1].forEach(function(p){ s+='<text x="'+X(p)+'" y="'+(Y(0)+16)+'" text-anchor="middle" font-size="11" fill="#555">'+p.toFixed(2)+'</text>'; });
+    s+='<text x="'+(L+pw/2)+'" y="'+(Hh-4)+'" text-anchor="middle" font-size="12" fill="#233343">p+ (fraction of the first class)</text>';
+    s+='<path d="'+path(ent,200)+'" fill="none" stroke="#233343" stroke-width="2.2"/>';
+    s+='<path d="'+path(gini,200)+'" fill="none" stroke="#BD582C" stroke-width="2.2"/>';
+    s+='<text x="'+X(0.5)+'" y="'+(Y(1)+14)+'" text-anchor="middle" font-size="12" fill="#233343">entropy</text>';
+    s+='<text x="'+X(0.5)+'" y="'+(Y(0.5)+16)+'" text-anchor="middle" font-size="12" fill="#BD582C">gini</text>';
+    s+='<line id="pm_line" y1="'+T+'" y2="'+Y(0)+'" stroke="#E78439" stroke-dasharray="4 3"/><circle id="pm_h" r="5" fill="#233343"/><circle id="pm_g" r="5" fill="#BD582C"/>';
+    svg.innerHTML=s;
+    function upd(){
+      var p=Math.min(1,Math.max(0,+sl.value)), q=1-p, h=ent(p), g=gini(p);
+      out.value=p.toFixed(3);
+      document.getElementById('pm_line').setAttribute('x1',X(p)); document.getElementById('pm_line').setAttribute('x2',X(p));
+      document.getElementById('pm_h').setAttribute('cx',X(p)); document.getElementById('pm_h').setAttribute('cy',Y(h));
+      document.getElementById('pm_g').setAttribute('cx',X(p)); document.getElementById('pm_g').setAttribute('cy',Y(g));
+      document.getElementById('v_p').textContent=f4(p); document.getElementById('v_q').textContent=f4(q);
+      document.getElementById('v_t1').textContent=p>0?f4(-p*log2(p)):'0 (convention 0·log 0 = 0)';
+      document.getElementById('v_t2').textContent=q>0?f4(-q*log2(q)):'0 (convention 0·log 0 = 0)';
+      document.getElementById('v_h').textContent=f4(h); document.getElementById('v_g').textContent=f4(g);
+    }
+    sl.addEventListener('input',upd);
+    document.querySelectorAll('#ex-gini .ex-btn').forEach(function(b){ b.addEventListener('click',function(){ sl.value=b.dataset.p; upd(); }); });
+    upd();
+  }
+
+  /* ---- two-way split explorer ---- */
+  var ids=['a1','b1','a2','b2'], gout=document.getElementById('gout');
+  if(gout){
+    function H2(a,b){ var n=a+b; if(!n) return 0; return ent(a/n); } function G2(a,b){ var n=a+b; if(!n) return 0; return gini(a/n); }
+    function run(){
+      var v=ids.map(function(i){ return Math.max(0, +document.getElementById(i).value||0); });
+      var a1=v[0],b1=v[1],a2=v[2],b2=v[3], n1=a1+b1, n2=a2+b2, n=n1+n2, A=a1+a2, Bc=b1+b2;
+      if(n===0){ gout.innerHTML='<p class="ex-hint">Enter at least one sample.</p>'; return; }
+      var Hp=H2(A,Bc), H1=H2(a1,b1), Hh2=H2(a2,b2), rem=n1/n*H1+n2/n*Hh2, gain=Hp-rem;
+      var Gp=G2(A,Bc), G1=G2(a1,b1), G2v=G2(a2,b2), grem=n1/n*G1+n2/n*G2v, dg=Gp-grem;
+      var t='<table class="ex-mt"><thead><tr><th>Set</th><th>A / B</th><th>n</th><th>weight</th><th>entropy</th><th>gini</th></tr></thead><tbody>';
+      t+='<tr><td>Parent</td><td>'+A+' / '+Bc+'</td><td>'+n+'</td><td>—</td><td>'+f4(Hp)+'</td><td>'+f4(Gp)+'</td></tr>';
+      t+='<tr><td>Branch 1</td><td>'+a1+' / '+b1+'</td><td>'+n1+'</td><td>'+n1+'/'+n+' = '+f4(n1/n)+'</td><td>'+f4(H1)+'</td><td>'+f4(G1)+'</td></tr>';
+      t+='<tr><td>Branch 2</td><td>'+a2+' / '+b2+'</td><td>'+n2+'</td><td>'+n2+'/'+n+' = '+f4(n2/n)+'</td><td>'+f4(Hh2)+'</td><td>'+f4(G2v)+'</td></tr>';
+      t+='</tbody></table>';
+      t+='<div class="ex-res">Weighted entropy after = '+f4(n1/n)+'·'+f4(H1)+' + '+f4(n2/n)+'·'+f4(Hh2)+' = '+f4(rem)+
+         '<br><b>gain = '+f4(Hp)+' − '+f4(rem)+' = <b class="g">'+f4(gain)+'</b></b> (≈ '+f3(gain)+' to 3 dp)'+
+         '<br>Δgini = '+f4(Gp)+' − '+f4(grem)+' = <b class="g">'+f4(dg)+'</b> (≈ '+f3(dg)+')';
+      if(n1===0||n2===0) t+='<br><span class="ex-hint">One branch is empty: the split does nothing, so gain = 0.</span>';
+      else if(H1===0&&Hh2===0) t+='<br><span class="ex-hint">Both branches are pure: gain equals the parent entropy, the maximum possible.</span>';
+      t+='</div>';
+      gout.innerHTML=t;
+    }
+    ids.forEach(function(i){ document.getElementById(i).addEventListener('input',run); });
+    document.querySelectorAll('#ex-compare .ex-btn').forEach(function(b){ b.addEventListener('click',function(){ var s=b.dataset.set.split(','); ids.forEach(function(i,k){ document.getElementById(i).value=s[k]; }); run(); }); });
+    run();
+  }
+})();
+</script>
+</body>
+</html>
