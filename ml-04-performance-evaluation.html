@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 5 — Performance Evaluation — CSE475 Machine Learning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html{font-size:15px}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  h4{color:var(--navy);margin:14px 0 4px;font-size:1rem}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  code{font-family:Consolas,"Courier New",monospace;font-size:.93em;background:#f3efeb;padding:0 3px;border-radius:3px}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide .body{padding:10px 16px 8px;overflow-x:auto}
+  .lead,.note,.fix,.warn,.card{overflow-x:auto}
+  .slide .body>ul:first-child{margin-top:.2em}
+  .fix{background:#fdecea;border-left:4px solid #b3261e;padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .note{background:#eef3f8;border-left:4px solid var(--blue);padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .warn{background:#fff7e6;border-left:4px solid var(--orange);padding:6px 10px;margin:8px 0;border-radius:3px}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin:8px 0}
+  .two.wide{grid-template-columns:1fr 2fr}
+  .two>div,.three>div{min-width:0;overflow-x:auto}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin:8px 0}
+  @media(max-width:760px){.two,.three{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:6px;padding:4px 12px 8px;background:#fff}
+  .card.good{border-color:var(--green);background:#edf5ef}
+  .card.bad{border-color:#b3261e;background:#fdecea}
+  .formula{background:var(--card);border-left:4px solid var(--rust);padding:8px 14px;margin:8px 0;overflow-x:auto;font-size:1.02rem;line-height:1.7}
+  .cap{font-size:.9rem;color:#3d4955;margin:4px 0}
+  figure{margin:8px 0}
+  figcaption{font-size:.88rem;color:var(--gray);text-align:center;margin-top:4px}
+  svg.fig{display:block;width:100%;max-width:820px;height:auto;margin:6px auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+  table.dt{font-size:.92rem;width:auto;margin:6px 0}
+  table.dt.compact td,table.dt.compact th{padding:3px 8px;white-space:nowrap}
+  table.dt tr.hl td{background:var(--peach)!important;font-weight:bold}
+  tr.ex-sep td{border-top:2px solid var(--rust)}
+  b.y{color:var(--green)} b.n{color:#b3261e}
+  .katex{font-size:1.04em}
+  .katex-display{margin:.5em 0;overflow-x:auto;overflow-y:hidden}
+  pre{background:#1e2933;color:#f2efe9;padding:12px 16px;border-radius:6px;overflow-x:auto;font-size:.92rem;line-height:1.45;margin:6px 0}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:6px 0}
+  .kv b{color:var(--navy)}
+  @media(max-width:680px){.page{padding:18px}}
+  @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+
+  svg.cm{display:block;width:100%;max-width:300px;height:auto;margin:4px auto}
+  .big{font-family:"Caladea","Cambria","Georgia",serif;font-size:2.2rem;font-weight:bold;color:var(--rust);line-height:1.1;margin:4px 0}
+  .big small{display:block;font-family:"Carlito","Calibri",sans-serif;font-size:.85rem;color:var(--gray);font-weight:normal}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,max-content);gap:8px 14px;align-items:center;margin:8px 0}
+  .calc-grid label{font-weight:bold;color:var(--navy)}
+  .calc-grid input{width:80px;font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:4px}
+  .pill{display:inline-block;background:var(--navy);color:#fff;font-size:.78rem;padding:1px 8px;border-radius:10px;margin-left:6px}
+  .err{color:#b3261e;font-weight:bold}
+  .ai-note{font-size:.92rem;margin:0 0 14px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 5 — Performance Evaluation</h1>
+  <div class="sub">ML-04: confusion matrix, accuracy, precision, recall, F1, the accuracy paradox, K-fold and stratified K-fold cross-validation</div>
+  <div class="attr">Rewritten as web notes from the CSE475 slide deck (22 slides), with every number recomputed; red boxes record corrections, blue boxes add what the slides leave implicit.</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> Every classification metric in this lecture is arithmetic on four counts — true positives, false negatives, false positives, true negatives — so the confusion matrix comes first and the metrics follow. Accuracy is the share of correct predictions; precision asks whether a positive prediction can be trusted; recall asks whether the real positives were found; F1 is their harmonic mean. A worked disease-screening example gives all four from one matrix, a fraud example shows accuracy ranking a useless model first, and the last two tabs show why a single train/test split is not evidence and how K-fold and stratified K-fold cross-validation replace it. <em>Use the tabs to move between sections. Source slide numbers are shown on the right of each block.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="note ai-note"><b>A note on how these notes were made.</b> This page was prepared with the help of a generative AI assistant (Claude, by Anthropic) working from the lecture slides, under the instructor's direction. Every number on the page was recomputed independently in code before publication, but AI-assisted material can still contain mistakes, and no page replaces the lecture or the textbook. If anything here is unclear, looks wrong, or disagrees with what was said in class, please email <a href="mailto:raihan.islam@ewubd.edu">raihan.islam@ewubd.edu</a> or raise it in class. Reported errors are fixed on the page and the reporter is credited.</div>
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Confusion matrix</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Four metrics, worked</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>Accuracy paradox</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>Choosing a metric</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>K-fold CV</button>
+  <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Stratified K-fold</button>
+  <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>Summary &amp; practice</button>
+</div>
+
+<section class="tab-panel" id="t1">
+<h2>1. Why evaluation needs more than one number, and the confusion matrix</h2>
+
+<div class="slide"><div class="sh"><h3>A model is only as good as how you measure it</h3><span class="num">Slide 2</span></div><div class="body">
+<div class="two wide">
+<div><div class="card"><div class="big">99%<small>accuracy</small></div><div class="big">0 of 10<small>fraud cases caught</small></div><p class="cap">Same model, two very different stories.</p></div></div>
+<div>
+<p>A classifier that is correct 99% of the time can still be useless. Suppose 99% of transactions are legitimate. A model that labels <i>everything</i> legitimate scores 99% accuracy and catches zero fraud. The single number hides the failure entirely.</p>
+<p>This lecture builds the tools that expose what accuracy hides: the confusion matrix, the four metrics derived from it, and a validation scheme that does not lie about rare classes.</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The confusion matrix</h3><span class="num">Slide 3</span></div><div class="body">
+<div class="two wide">
+<div><svg class="cm" viewBox="0 0 300 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Confusion matrix">
+<text x="180" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Predicted</text>
+<text x="135" y="48" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text x="225" y="48" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<text transform="translate(14 146) rotate(-90)" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Actual</text>
+<text transform="translate(80 101) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text transform="translate(80 191) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<rect x="90" y="56" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="107" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">TP</text>
+<rect x="180" y="56" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="107" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">FN</text>
+<rect x="90" y="146" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="197" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">FP</text>
+<rect x="180" y="146" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="197" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">TN</text>
+</svg></div>
+<div>
+<p>Every prediction on a labelled test set lands in one of four buckets, formed by crossing what the model <i>predicted</i> with what was <i>actually</i> true. For binary classification that is a 2 × 2 table.</p>
+<p><b>Convention used here: rows = actual class, columns = predicted class.</b> scikit-learn's <code>confusion_matrix</code> uses the same orientation but orders the classes <i>negative first</i> (so TN sits top-left); some textbooks transpose the whole table. Always check which convention a source uses before reading TP off it.</p>
+<p>Everything else — accuracy, precision, recall, F1 — is arithmetic on these four counts. Get the table right and the rest follows.</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Four outcomes — two of them errors</h3><span class="num">Slide 4</span></div><div class="body">
+<table class="dt">
+<thead><tr><th>Outcome</th><th>Model says</th><th>Truth</th><th>Reading</th><th>Error type</th></tr></thead>
+<tbody>
+<tr><td><b>True positive (TP)</b></td><td>positive</td><td>positive</td><td>a hit</td><td>—</td></tr>
+<tr><td><b>True negative (TN)</b></td><td>negative</td><td>negative</td><td>a correct rejection</td><td>—</td></tr>
+<tr><td><b>False positive (FP)</b></td><td>positive</td><td>negative</td><td>a false alarm</td><td>Type I</td></tr>
+<tr><td><b>False negative (FN)</b></td><td>negative</td><td>positive</td><td>a miss</td><td>Type II</td></tr>
+</tbody></table>
+<p>Which error costs more depends on the problem: a false alarm wastes a follow-up; a miss can mean undetected cancer or fraud. Tab 4 returns to this.</p>
+<div class="note"><b>Two derived quantities the slides do not name.</b> The row totals are the class sizes: actual positives \(=\mathrm{TP}+\mathrm{FN}\), actual negatives \(=\mathrm{FP}+\mathrm{TN}\). The column totals are what the model predicted: predicted positives \(=\mathrm{TP}+\mathrm{FP}\), predicted negatives \(=\mathrm{FN}+\mathrm{TN}\). Precision divides by a column total, recall by a row total; keeping that straight is the whole trick to not mixing them up.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Four metrics &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t2">
+<h2>2. Worked example — four metrics from one matrix</h2>
+
+<div class="slide"><div class="sh"><h3>Disease screening: the four counts</h3><span class="num">Slide 5</span></div><div class="body">
+<div class="two wide">
+<div><svg class="cm" viewBox="0 0 300 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Confusion matrix">
+<text x="180" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Predicted</text>
+<text x="135" y="48" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text x="225" y="48" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<text transform="translate(14 146) rotate(-90)" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Actual</text>
+<text transform="translate(80 101) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text transform="translate(80 191) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<rect x="90" y="56" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">8</text>
+<text x="135" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TP</text>
+<rect x="180" y="56" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">2</text>
+<text x="225" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FN</text>
+<rect x="90" y="146" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">5</text>
+<text x="135" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FP</text>
+<rect x="180" y="146" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">85</text>
+<text x="225" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TN</text>
+</svg></div>
+<div>
+<p><b>Setup.</b> 100 patients tested; 10 actually have the disease (positive), 90 do not (negative).</p>
+<ul>
+<li><b>8</b> sick patients correctly flagged (TP)</li>
+<li><b>2</b> sick patients missed (FN)</li>
+<li><b>5</b> healthy patients false-alarmed (FP)</li>
+<li><b>85</b> healthy patients correctly cleared (TN)</li>
+</ul>
+<p>Row totals: 10 sick, 90 healthy. Column totals: 13 flagged positive, 87 flagged negative. Every metric below comes from exactly these four numbers.</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Accuracy</h3><span class="num">Slide 6</span></div><div class="body">
+<div class="formula">\[ \text{Accuracy}=\frac{\mathrm{TP}+\mathrm{TN}}{\mathrm{TP}+\mathrm{TN}+\mathrm{FP}+\mathrm{FN}}=\frac{8+85}{100}=\frac{93}{100}=\mathbf{93.0\%} \]</div>
+<p>The share of all predictions that were correct — the diagonal of the matrix over the total. Simple and intuitive, but it treats every class and every error as equally important. Tab 3 shows what it does when one class dominates.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Precision</h3><span class="num">Slide 7</span></div><div class="body">
+<div class="formula">\[ \text{Precision}=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}=\frac{8}{8+5}=\frac{8}{13}=\mathbf{61.5\%} \]</div>
+<p>Of everything flagged positive, how much was right: "when the model raises an alarm, can I trust it?" Looks at the <b>predicted-positive column</b> (TP and FP). Low precision means many false alarms; it matters when acting on a positive is expensive.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Recall (sensitivity, true-positive rate)</h3><span class="num">Slide 8</span></div><div class="body">
+<div class="formula">\[ \text{Recall}=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}=\frac{8}{8+2}=\frac{8}{10}=\mathbf{80.0\%} \]</div>
+<p>Of all the real positives, how many the model caught: "does it miss the cases that matter?" Looks at the <b>actual-positive row</b> (TP and FN). Low recall means many misses; it matters when missing a positive is dangerous.</p>
+<div class="note"><b>The mirror image: specificity.</b> Recall is the true-positive rate. The same question asked of the negatives is <b>specificity</b> \(=\mathrm{TN}/(\mathrm{TN}+\mathrm{FP})=85/90=94.4\%\): of the healthy patients, how many were cleared. The slides never name it, but it is the metric that answers "F1 ignores true negatives" in tab 4, and (recall, 1 − specificity) are the two axes of an ROC curve.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>F1-score</h3><span class="num">Slide 9</span></div><div class="body">
+<div class="formula">\[ F_1=\frac{2\,P\,R}{P+R}=\frac{2\cdot\frac{8}{13}\cdot\frac{8}{10}}{\frac{8}{13}+\frac{8}{10}}=\frac{16}{23}=\mathbf{69.6\%}
+\qquad\text{equivalently}\qquad F_1=\frac{2\,\mathrm{TP}}{2\,\mathrm{TP}+\mathrm{FP}+\mathrm{FN}}=\frac{16}{16+5+2}. \]</div>
+<p>The <b>harmonic mean</b> of precision and recall. Why harmonic and not the plain average: it punishes imbalance. If \(P=1.0\) and \(R=0.0\), the plain average is 0.5 but \(F_1=0\). You only score high when <i>both</i> are high. Here the plain average would say 70.8%; \(F_1\) is lower because \(P\) and \(R\) differ.</p>
+<div class="fix"><b>Correction to the slides.</b> Slide 9 writes the calculation as \(2\cdot(0.615\cdot0.80)/(0.615+0.80)\), which evaluates to 69.5%, and then prints 69.6%. The headline is right (the exact value is \(16/23=0.6957\)); the displayed arithmetic rounds \(P\) first and loses a tenth. Compute \(F_1\) from the counts, \(2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})\), which never needs intermediate rounding — and is the form that makes "F1 ignores TN" visible at a glance.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>All four metrics, one example</h3><span class="num">Slide 10</span></div><div class="body">
+<p>Disease screening: TP = 8, FN = 2, FP = 5, TN = 85 (100 patients).</p>
+<table class="dt">
+<thead><tr><th>Metric</th><th>Formula</th><th>Value</th><th>Exact</th><th>What it answers</th></tr></thead>
+<tbody>
+<tr><td>Accuracy</td><td>\((\mathrm{TP}+\mathrm{TN})/N\)</td><td>93.0%</td><td>93/100</td><td>Overall, how often is it correct?</td></tr>
+<tr><td>Precision</td><td>\(\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})\)</td><td>61.5%</td><td>8/13</td><td>Can I trust a positive prediction?</td></tr>
+<tr><td>Recall</td><td>\(\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})\)</td><td>80.0%</td><td>8/10</td><td>Did it catch the real positives?</td></tr>
+<tr><td>F1-score</td><td>\(2PR/(P+R)\)</td><td>69.6%</td><td>16/23</td><td>Balance of precision and recall</td></tr>
+<tr><td><i>Specificity</i></td><td>\(\mathrm{TN}/(\mathrm{TN}+\mathrm{FP})\)</td><td>94.4%</td><td>85/90</td><td><i>Did it clear the real negatives?</i> (not on the slide)</td></tr>
+</tbody></table>
+<p>All four come from the same four numbers. They disagree because they ask different questions, so the metric you report is a choice, not a default.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Try it: confusion-matrix calculator</h3><span class="num">New</span></div><div class="body">
+<p>Edit the four counts; every metric updates. Start from the disease example, then try the two fraud models from tab 3 (A: 0, 10, 0, 990; B: 8, 2, 20, 970).</p>
+<div class="calc-grid">
+<label for="c_tp">TP</label><input id="c_tp" type="number" min="0" value="8">
+<label for="c_fn">FN</label><input id="c_fn" type="number" min="0" value="2">
+<label for="c_fp">FP</label><input id="c_fp" type="number" min="0" value="5">
+<label for="c_tn">TN</label><input id="c_tn" type="number" min="0" value="85">
+</div>
+<table class="dt compact" id="calc_out">
+<thead><tr><th>Metric</th><th>Computation</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>N</td><td id="o_n_c"></td><td id="o_n"></td></tr>
+<tr><td>Accuracy</td><td id="o_acc_c"></td><td id="o_acc"></td></tr>
+<tr><td>Precision</td><td id="o_p_c"></td><td id="o_p"></td></tr>
+<tr><td>Recall</td><td id="o_r_c"></td><td id="o_r"></td></tr>
+<tr><td>Specificity</td><td id="o_s_c"></td><td id="o_s"></td></tr>
+<tr><td>F1</td><td id="o_f1_c"></td><td id="o_f1"></td></tr>
+<tr><td>F2 (recall-weighted)</td><td id="o_f2_c"></td><td id="o_f2"></td></tr>
+<tr><td>Balanced accuracy</td><td id="o_ba_c"></td><td id="o_ba"></td></tr>
+</tbody></table>
+<p class="cap">Undefined ratios (0/0) are shown as such; scikit-learn reports them as 0 with a warning (<code>zero_division</code>).</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Accuracy paradox &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t3">
+<h2>3. When accuracy lies — the imbalanced case</h2>
+
+<div class="slide"><div class="sh"><h3>Fraud detection: two models, two matrices</h3><span class="num">Slide 11</span></div><div class="body">
+<p>1000 transactions, only 10 are fraud (1% positive). Two models:</p>
+<div class="two">
+<div class="card"><h4>Model A — "always predict legitimate"</h4><svg class="cm" viewBox="0 0 300 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Confusion matrix">
+<text x="180" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Predicted</text>
+<text x="135" y="48" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text x="225" y="48" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<text transform="translate(14 146) rotate(-90)" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Actual</text>
+<text transform="translate(80 101) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text transform="translate(80 191) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<rect x="90" y="56" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">0</text>
+<text x="135" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TP</text>
+<rect x="180" y="56" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">10</text>
+<text x="225" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FN</text>
+<rect x="90" y="146" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">0</text>
+<text x="135" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FP</text>
+<rect x="180" y="146" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">990</text>
+<text x="225" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TN</text>
+</svg><p class="cap"><b>Accuracy = 990/1000 = 99.0%.</b> Catches 0 fraud.</p></div>
+<div class="card"><h4>Model B — a real fraud model</h4><svg class="cm" viewBox="0 0 300 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Confusion matrix">
+<text x="180" y="16" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Predicted</text>
+<text x="135" y="48" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text x="225" y="48" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<text transform="translate(14 146) rotate(-90)" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Actual</text>
+<text transform="translate(80 101) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Positive</text><text transform="translate(80 191) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#555">Negative</text>
+<rect x="90" y="56" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">8</text>
+<text x="135" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TP</text>
+<rect x="180" y="56" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="109" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">2</text>
+<text x="225" y="138" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FN</text>
+<rect x="90" y="146" width="90" height="90" fill="#E78439" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="135" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">20</text>
+<text x="135" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">FP</text>
+<rect x="180" y="146" width="90" height="90" fill="#2D5B8A" fill-opacity=".9" stroke="#fff" stroke-width="3"/>
+<text x="225" y="199" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">970</text>
+<text x="225" y="228" text-anchor="middle" font-size="11" fill="#fff" fill-opacity=".85">TN</text>
+</svg><p class="cap"><b>Accuracy = 978/1000 = 97.8%.</b> Catches 8 of 10 fraud.</p></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The accuracy paradox</h3><span class="num">Slide 12</span></div><div class="body">
+<table class="dt">
+<thead><tr><th>Metric</th><th>Model A (lazy)</th><th>Model B (real)</th><th>Exact (B)</th></tr></thead>
+<tbody>
+<tr><td>Accuracy</td><td><b>99.0%</b></td><td>97.8%</td><td>978/1000</td></tr>
+<tr><td>Precision</td><td>undefined (0/0)</td><td>28.6%</td><td>8/28 = 2/7</td></tr>
+<tr><td>Recall</td><td><span class="err">0.0%</span></td><td><b>80.0%</b></td><td>8/10</td></tr>
+<tr><td>F1-score</td><td><span class="err">0.0%</span> (by convention)</td><td><b>42.1%</b></td><td>16/38 = 8/19</td></tr>
+<tr><td>Specificity</td><td>100%</td><td>98.0%</td><td>970/990</td></tr>
+<tr><td>Balanced accuracy</td><td>50.0%</td><td>89.0%</td><td>(0.8 + 0.9798)/2</td></tr>
+<tr><td>Fraud caught</td><td>0 of 10</td><td>8 of 10</td><td></td></tr>
+</tbody></table>
+<p>Model A wins on accuracy and is worthless. Accuracy is dominated by the 99% majority class, so it rewards a model that ignores the minority. Recall exposes the failure (0% vs 80%); F1 confirms it (0 vs 42%). <b>On imbalanced data, never rank models by accuracy alone.</b></p>
+<div class="note"><b>Why "0.0%" for Model A's F1 is a convention, not arithmetic.</b> With \(\mathrm{TP}=\mathrm{FP}=0\), precision is \(0/0\), so the \(2PR/(P+R)\) form of \(F_1\) is undefined too. The count form is not: \(F_1=2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})=0/(0+0+10)=0\), perfectly defined. That is one more reason to compute \(F_1\) from counts. scikit-learn's <code>f1_score</code> returns 0 here and warns; <code>precision_score</code> returns 0 with a warning unless you set <code>zero_division</code>. Also shown: <b>balanced accuracy</b> \(=\tfrac12(\text{recall}+\text{specificity})\) is 50% for Model A — the value of a coin flip — which is the number accuracy should have reported.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Choosing a metric &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t4">
+<h2>4. Precision vs recall, the limits of F1, choosing a metric</h2>
+
+<div class="slide"><div class="sh"><h3>Precision vs recall: the cost of each error</h3><span class="num">Slide 13</span></div><div class="body">
+<p>You can usually trade one for the other. Which one you protect depends on which mistake hurts more.</p>
+<div class="two">
+<div class="card"><h4>Spam filter → protect precision</h4><p><b>False positive:</b> a real email lands in spam — you miss something important.</p><p><b>False negative:</b> spam reaches the inbox — mildly annoying.</p><p>The costly error is the false alarm, so tune for precision.</p></div>
+<div class="card"><h4>Cancer screening → protect recall</h4><p><b>False negative:</b> a tumour is missed — potentially fatal.</p><p><b>False positive:</b> an extra test is ordered — inconvenient.</p><p>The costly error is the miss, so tune for recall.</p></div>
+</div>
+<p><b>The lever is the decision threshold.</b> A classifier outputs a score; the label is "positive" when the score exceeds a threshold. Raise it and the model flags fewer cases: recall falls and precision usually rises. Lower it and recall rises while precision usually falls. There is no universally "right" metric — the cost of each error decides.</p>
+<div class="note"><b>"Usually", not "always".</b> Recall is monotone in the threshold (fewer flagged ⇒ never more hits). Precision is not: it can dip when raising the threshold drops a true positive before it drops a false positive. Over a whole precision–recall curve the trade-off holds; between two neighbouring thresholds it can briefly reverse.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>F1 is useful, not magic</h3><span class="num">Slide 14</span></div><div class="body">
+<ol>
+<li><b>It ignores true negatives entirely.</b> \(F_1=2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})\) has no TN term. Two problems with very different TN counts share the same F1; where correctly identifying negatives matters, F1 is silent. (Report specificity, or balanced accuracy, or MCC alongside it.)</li>
+<li><b>It weights precision and recall equally.</b> If a miss costs 10× a false alarm, equal weighting is simply wrong for your problem.</li>
+<li><b>It hides which side is weak.</b> A single F1 cannot tell you whether precision or recall is the problem. Always report both next to it.</li>
+</ol>
+<p>When the costs are unequal, generalise with the \(F_\beta\) score:</p>
+<div class="formula">\[ F_\beta=\frac{(1+\beta^2)\,P\,R}{\beta^2 P+R}, \qquad \beta>1\ \text{weights recall more (misses hurt)},\quad \beta<1\ \text{weights precision more (false alarms hurt)}. \]</div>
+<p>On the disease example (\(P=8/13\), \(R=8/10\)): \(F_1=69.6\%\), \(F_2=75.5\%\) (closer to recall), \(F_{0.5}=64.5\%\) (closer to precision). \(\beta\) is the number of times recall is worth more than precision to you.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Choosing a metric</h3><span class="num">Slide 15</span></div><div class="body">
+<table class="dt">
+<thead><tr><th>Situation</th><th>Lead with</th></tr></thead>
+<tbody>
+<tr><td>Balanced classes, errors equally costly</td><td>Accuracy</td></tr>
+<tr><td>A false positive is expensive (spam, ad spend)</td><td>Precision</td></tr>
+<tr><td>A false negative is dangerous (disease, fraud, safety)</td><td>Recall</td></tr>
+<tr><td>Imbalanced classes, need one balanced number</td><td>F1 (or PR-AUC, or MCC)</td></tr>
+<tr><td>Comparing models honestly</td><td>Confusion matrix + P + R together</td></tr>
+</tbody></table>
+<p><b>Rule of thumb:</b> don't collapse to a single number before you understand the confusion matrix behind it.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>More than two classes: macro and micro averaging</h3><span class="num">New</span></div><div class="body">
+<p>With \(C\) classes the confusion matrix is \(C\times C\), and precision/recall/F1 are defined <i>per class</i> by treating that class as positive and all others as negative. One summary number then needs an averaging rule:</p>
+<table class="dt">
+<thead><tr><th>Average</th><th>How</th><th>What it rewards</th></tr></thead>
+<tbody>
+<tr><td><b>Macro-F1</b></td><td>compute \(F_1\) for each class, take the plain mean</td><td>every class counts equally, however rare — a 1% class weighs as much as a 50% class. This is why the course project asks for macro-F1 on imbalanced datasets.</td></tr>
+<tr><td><b>Micro-F1</b></td><td>pool TP, FP, FN over all classes, then one \(F_1\)</td><td>every <i>sample</i> counts equally; for single-label classification micro-F1 equals accuracy exactly, so it inherits the accuracy paradox.</td></tr>
+<tr><td><b>Weighted-F1</b></td><td>per-class \(F_1\) weighted by class size</td><td>a compromise; large classes still dominate.</td></tr>
+</tbody></table>
+<p>scikit-learn: <code>f1_score(y_true, y_pred, average='macro')</code>; <code>classification_report</code> prints all per-class values plus the three averages.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: K-fold CV &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t5">
+<h2>5. Why one train/test split isn't enough — K-fold cross-validation</h2>
+
+<div class="slide"><div class="sh"><h3>One split is one sample of a random variable</h3><span class="num">Slide 16</span></div><div class="body">
+<div class="two wide">
+<div><div class="card"><div class="big">0.91<small>"lucky" split</small></div><div class="big">0.82<small>"unlucky" split</small></div><p class="cap">Same model, two 80/20 splits (illustrative values).</p></div></div>
+<div>
+<p>A single 80/20 split gives one score, and that score depends on which 20% you happened to hold out. An easy split flatters the model; an unlucky one buries it. On small datasets the swing can be several points. You cannot tell skill from luck.</p>
+<p>Which of 0.91 and 0.82 is the model's "true" score? Neither. <b>Cross-validation</b> fixes this: rotate the test set so every example is tested exactly once, then average the scores — and keep the spread, because the spread is information too.</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>K-fold cross-validation</h3><span class="num">Slide 17</span></div><div class="body">
+<p>Split the data into \(K\) (near-)equal folds. For \(k=1,\dots,K\): train on the other \(K-1\) folds, test on fold \(k\), record the score. Report the mean and the spread of the \(K\) scores.</p>
+<figure><svg class="fig" viewBox="0 0 720 316" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="K-fold cross-validation grid">
+<text x="120" y="24" text-anchor="middle" font-size="12" fill="#233343">Fold 1</text>
+<text x="228" y="24" text-anchor="middle" font-size="12" fill="#233343">Fold 2</text>
+<text x="336" y="24" text-anchor="middle" font-size="12" fill="#233343">Fold 3</text>
+<text x="444" y="24" text-anchor="middle" font-size="12" fill="#233343">Fold 4</text>
+<text x="552" y="24" text-anchor="middle" font-size="12" fill="#233343">Fold 5</text>
+<text x="60" y="60" text-anchor="end" font-size="12" font-weight="bold" fill="#233343">Iter 1</text>
+<rect x="70" y="36" width="100" height="40" rx="4" fill="#BD582C" stroke="#BD582C"/>
+<text x="120" y="60" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Test</text>
+<rect x="178" y="36" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="228" y="60" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="286" y="36" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="336" y="60" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="394" y="36" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="444" y="60" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="502" y="36" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="552" y="60" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<text x="614" y="60" font-size="12" fill="#555">→ score<tspan baseline-shift="sub" font-size="9">1</tspan></text>
+<text x="60" y="108" text-anchor="end" font-size="12" font-weight="bold" fill="#233343">Iter 2</text>
+<rect x="70" y="84" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="120" y="108" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="178" y="84" width="100" height="40" rx="4" fill="#BD582C" stroke="#BD582C"/>
+<text x="228" y="108" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Test</text>
+<rect x="286" y="84" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="336" y="108" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="394" y="84" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="444" y="108" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="502" y="84" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="552" y="108" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<text x="614" y="108" font-size="12" fill="#555">→ score<tspan baseline-shift="sub" font-size="9">2</tspan></text>
+<text x="60" y="156" text-anchor="end" font-size="12" font-weight="bold" fill="#233343">Iter 3</text>
+<rect x="70" y="132" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="120" y="156" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="178" y="132" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="228" y="156" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="286" y="132" width="100" height="40" rx="4" fill="#BD582C" stroke="#BD582C"/>
+<text x="336" y="156" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Test</text>
+<rect x="394" y="132" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="444" y="156" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="502" y="132" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="552" y="156" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<text x="614" y="156" font-size="12" fill="#555">→ score<tspan baseline-shift="sub" font-size="9">3</tspan></text>
+<text x="60" y="204" text-anchor="end" font-size="12" font-weight="bold" fill="#233343">Iter 4</text>
+<rect x="70" y="180" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="120" y="204" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="178" y="180" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="228" y="204" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="286" y="180" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="336" y="204" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="394" y="180" width="100" height="40" rx="4" fill="#BD582C" stroke="#BD582C"/>
+<text x="444" y="204" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Test</text>
+<rect x="502" y="180" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="552" y="204" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<text x="614" y="204" font-size="12" fill="#555">→ score<tspan baseline-shift="sub" font-size="9">4</tspan></text>
+<text x="60" y="252" text-anchor="end" font-size="12" font-weight="bold" fill="#233343">Iter 5</text>
+<rect x="70" y="228" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="120" y="252" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="178" y="228" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="228" y="252" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="286" y="228" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="336" y="252" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="394" y="228" width="100" height="40" rx="4" fill="#eef3f8" stroke="#2D5B8A"/>
+<text x="444" y="252" text-anchor="middle" font-size="12" fill="#2D5B8A" font-weight="normal">Train</text>
+<rect x="502" y="228" width="100" height="40" rx="4" fill="#BD582C" stroke="#BD582C"/>
+<text x="552" y="252" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">Test</text>
+<text x="614" y="252" font-size="12" fill="#555">→ score<tspan baseline-shift="sub" font-size="9">5</tspan></text>
+<text x="360" y="308" text-anchor="middle" font-size="12.5" fill="#233343" font-weight="bold">Final estimate = mean(score₁ … score₅) ± std</text>
+</svg><figcaption>K = 5: each row is one training run; the rust cell is the held-out fold for that run.</figcaption></figure>
+<p>Every sample appears in the training set \(K-1\) times and in the test set exactly once. Common choices: \(K=5\) or \(10\). Larger \(K\) means more training data per fold (less pessimistic bias) but \(K\) model fits and more correlated folds; \(K=N\) is leave-one-out.</p>
+<div class="fix"><b>Correction to the slides.</b> Slide 17 says "every point trains the model K−1 times". A point does not train anything; it <i>is in the training set</i> of \(K-1\) of the \(K\) runs. The slide's wording invites the misreading that each point is used \(K-1\) times within one fit.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>K-fold: reading the result</h3><span class="num">Slide 18</span></div><div class="body">
+<p>Same model, 5 folds, five accuracy scores: 0.85, 0.88, 0.82, 0.90, 0.86.</p>
+<figure><svg class="fig" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five fold accuracy scores">
+<line x1="56" y1="222.9" x2="700" y2="222.9" stroke="#eee"/><text x="50" y="226.9" text-anchor="end" font-size="11" fill="#555">0.80</text>
+<line x1="56" y1="189.7" x2="700" y2="189.7" stroke="#eee"/><text x="50" y="193.7" text-anchor="end" font-size="11" fill="#555">0.82</text>
+<line x1="56" y1="156.6" x2="700" y2="156.6" stroke="#eee"/><text x="50" y="160.6" text-anchor="end" font-size="11" fill="#555">0.84</text>
+<line x1="56" y1="123.4" x2="700" y2="123.4" stroke="#eee"/><text x="50" y="127.4" text-anchor="end" font-size="11" fill="#555">0.86</text>
+<line x1="56" y1="90.3" x2="700" y2="90.3" stroke="#eee"/><text x="50" y="94.3" text-anchor="end" font-size="11" fill="#555">0.88</text>
+<line x1="56" y1="57.1" x2="700" y2="57.1" stroke="#eee"/><text x="50" y="61.1" text-anchor="end" font-size="11" fill="#555">0.90</text>
+<rect x="56" y="75.4" width="644" height="89.5" fill="#E78439" fill-opacity=".15"/>
+<line x1="56" y1="120.1" x2="700" y2="120.1" stroke="#E78439" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="62" y="69.4" text-anchor="start" font-size="11.5" fill="#BD582C" font-weight="bold">mean = 0.862, shaded ± std = 0.027</text>
+<rect x="85.0" y="140.0" width="70.8" height="116.0" fill="#2D5B8A"/>
+<text x="120.4" y="134.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">0.85</text>
+<text x="120.4" y="272" text-anchor="middle" font-size="12" fill="#555">Fold 1</text>
+<rect x="213.8" y="90.3" width="70.8" height="165.7" fill="#2D5B8A"/>
+<text x="249.2" y="84.3" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">0.88</text>
+<text x="249.2" y="272" text-anchor="middle" font-size="12" fill="#555">Fold 2</text>
+<rect x="342.6" y="189.7" width="70.8" height="66.3" fill="#2D5B8A"/>
+<text x="378.0" y="183.7" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">0.82</text>
+<text x="378.0" y="272" text-anchor="middle" font-size="12" fill="#555">Fold 3</text>
+<rect x="471.4" y="57.1" width="70.8" height="198.9" fill="#2D5B8A"/>
+<text x="506.8" y="51.1" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">0.90</text>
+<text x="506.8" y="272" text-anchor="middle" font-size="12" fill="#555">Fold 4</text>
+<rect x="600.2" y="123.4" width="70.8" height="132.6" fill="#2D5B8A"/>
+<text x="635.6" y="117.4" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">0.86</text>
+<text x="635.6" y="272" text-anchor="middle" font-size="12" fill="#555">Fold 5</text>
+<line x1="56" y1="256.0" x2="700" y2="256.0" stroke="#888"/>
+<text transform="translate(14 140) rotate(-90)" text-anchor="middle" font-size="12" fill="#233343">accuracy on held-out fold</text>
+</svg><figcaption>Fold scores with their mean (dashed) and ± one standard deviation (shaded).</figcaption></figure>
+<div class="two">
+<div class="card"><h4>mean = 0.862</h4><p>\((0.85+0.88+0.82+0.90+0.86)/5=4.31/5\). The estimate of true performance.</p></div>
+<div class="card"><h4>std = 0.027</h4><p>How stable that estimate is. Deviations \(-0.012, +0.018, -0.042, +0.038, -0.002\); squares sum to 0.00368; \(\sqrt{0.00368/5}=0.0271\).</p></div>
+</div>
+<p>Report <b>0.862 ± 0.027</b>, not one lucky number. A large spread is itself a finding: the model is sensitive to which data it sees.</p>
+<div class="fix"><b>Correction to the slides.</b> The 0.027 is the <i>population</i> standard deviation (divide by \(K=5\); NumPy's default <code>np.std</code>). The <i>sample</i> standard deviation (divide by \(K-1=4\); <code>np.std(ddof=1)</code>, pandas' default) is 0.030. Both are in use; the slide does not say which, and with five numbers the two differ by 12%. State the convention whenever you print "± std", and note that neither is a confidence interval — fold scores are correlated (they share training data), so \(\pm\) std/\(\sqrt{K}\) understates the real uncertainty.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Stratified K-fold &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t6">
+<h2>6. Stratified K-fold — keep the classes balanced in every fold</h2>
+
+<div class="slide"><div class="sh"><h3>Why plain K-fold can fail on imbalanced data</h3><span class="num">Slide 19</span></div><div class="body">
+<p>Plain K-fold splits at random. On imbalanced data that is dangerous: by chance a fold can end up with very few, or zero, minority examples, which makes recall undefined on that fold and the average unstable. <b>Stratified K-fold</b> forces every fold to hold the same class proportion as the full dataset.</p>
+<figure><svg class="fig" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Positives per fold, random vs stratified">
+<text x="400" y="16" text-anchor="middle" font-size="12" fill="#555">10 positives / 90 negatives (10% minority), K = 5 — positives landing in each fold</text>
+<text x="200" y="34" text-anchor="middle" font-size="13" font-weight="bold" fill="#233343">Random K-fold (one shuffle)</text>
+<line x1="50" y1="260.0" x2="350" y2="260.0" stroke="#eee"/><text x="44" y="264.0" text-anchor="end" font-size="11" fill="#555">0</text>
+<line x1="50" y1="216.0" x2="350" y2="216.0" stroke="#eee"/><text x="44" y="220.0" text-anchor="end" font-size="11" fill="#555">1</text>
+<line x1="50" y1="172.0" x2="350" y2="172.0" stroke="#eee"/><text x="44" y="176.0" text-anchor="end" font-size="11" fill="#555">2</text>
+<line x1="50" y1="128.0" x2="350" y2="128.0" stroke="#eee"/><text x="44" y="132.0" text-anchor="end" font-size="11" fill="#555">3</text>
+<line x1="50" y1="84.0" x2="350" y2="84.0" stroke="#eee"/><text x="44" y="88.0" text-anchor="end" font-size="11" fill="#555">4</text>
+<line x1="50" y1="40.0" x2="350" y2="40.0" stroke="#eee"/><text x="44" y="44.0" text-anchor="end" font-size="11" fill="#555">5</text>
+<line x1="50" y1="172.0" x2="350" y2="172.0" stroke="#888" stroke-dasharray="5 4"/><text x="354" y="176.0" font-size="10.5" fill="#777">ideal = 2</text>
+<rect x="62.0" y="84.0" width="36.0" height="176.0" fill="#BD582C"/>
+<text x="80.0" y="78.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">4</text>
+<text x="80.0" y="276" text-anchor="middle" font-size="12" fill="#555">F1</text>
+<rect x="122.0" y="216.0" width="36.0" height="44.0" fill="#BD582C"/>
+<text x="140.0" y="210.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">1</text>
+<text x="140.0" y="276" text-anchor="middle" font-size="12" fill="#555">F2</text>
+<rect x="182.0" y="128.0" width="36.0" height="132.0" fill="#BD582C"/>
+<text x="200.0" y="122.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">3</text>
+<text x="200.0" y="276" text-anchor="middle" font-size="12" fill="#555">F3</text>
+<text x="260.0" y="254.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#b3261e">0</text>
+<text x="260.0" y="276" text-anchor="middle" font-size="12" fill="#555">F4</text>
+<rect x="302.0" y="172.0" width="36.0" height="88.0" fill="#BD582C"/>
+<text x="320.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="320.0" y="276" text-anchor="middle" font-size="12" fill="#555">F5</text>
+<line x1="50" y1="260.0" x2="350" y2="260.0" stroke="#888"/>
+<text x="600" y="34" text-anchor="middle" font-size="13" font-weight="bold" fill="#233343">Stratified K-fold</text>
+<line x1="450" y1="260.0" x2="750" y2="260.0" stroke="#eee"/><text x="444" y="264.0" text-anchor="end" font-size="11" fill="#555">0</text>
+<line x1="450" y1="216.0" x2="750" y2="216.0" stroke="#eee"/><text x="444" y="220.0" text-anchor="end" font-size="11" fill="#555">1</text>
+<line x1="450" y1="172.0" x2="750" y2="172.0" stroke="#eee"/><text x="444" y="176.0" text-anchor="end" font-size="11" fill="#555">2</text>
+<line x1="450" y1="128.0" x2="750" y2="128.0" stroke="#eee"/><text x="444" y="132.0" text-anchor="end" font-size="11" fill="#555">3</text>
+<line x1="450" y1="84.0" x2="750" y2="84.0" stroke="#eee"/><text x="444" y="88.0" text-anchor="end" font-size="11" fill="#555">4</text>
+<line x1="450" y1="40.0" x2="750" y2="40.0" stroke="#eee"/><text x="444" y="44.0" text-anchor="end" font-size="11" fill="#555">5</text>
+<line x1="450" y1="172.0" x2="750" y2="172.0" stroke="#888" stroke-dasharray="5 4"/><text x="754" y="176.0" font-size="10.5" fill="#777">ideal = 2</text>
+<rect x="462.0" y="172.0" width="36.0" height="88.0" fill="#2D5B8A"/>
+<text x="480.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="480.0" y="276" text-anchor="middle" font-size="12" fill="#555">F1</text>
+<rect x="522.0" y="172.0" width="36.0" height="88.0" fill="#2D5B8A"/>
+<text x="540.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="540.0" y="276" text-anchor="middle" font-size="12" fill="#555">F2</text>
+<rect x="582.0" y="172.0" width="36.0" height="88.0" fill="#2D5B8A"/>
+<text x="600.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="600.0" y="276" text-anchor="middle" font-size="12" fill="#555">F3</text>
+<rect x="642.0" y="172.0" width="36.0" height="88.0" fill="#2D5B8A"/>
+<text x="660.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="660.0" y="276" text-anchor="middle" font-size="12" fill="#555">F4</text>
+<rect x="702.0" y="172.0" width="36.0" height="88.0" fill="#2D5B8A"/>
+<text x="720.0" y="166.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">2</text>
+<text x="720.0" y="276" text-anchor="middle" font-size="12" fill="#555">F5</text>
+<line x1="450" y1="260.0" x2="750" y2="260.0" stroke="#888"/>
+<text x="260" y="58" text-anchor="middle" font-size="11" fill="#b3261e" font-weight="bold">F4: 0 positives → recall</text><text x="260" y="75" text-anchor="middle" font-size="11" fill="#b3261e" font-weight="bold">undefined on this fold</text>
+</svg><figcaption>Positives per fold for one random shuffle (left) and for stratified splitting (right).</figcaption></figure>
+<div class="note"><b>How likely is the empty fold? (not on the slide, computed.)</b> With 10 positives among 100 samples and \(K=5\), the chance that one particular fold of 20 gets no positive is \(\binom{90}{20}/\binom{100}{20}=9.5\%\). The chance that <i>at least one</i> of the five folds is empty is about <b>43%</b> (200,000 simulated shuffles), and the chance that some fold has at most one positive is 98.6%. The left panel is not a rare accident; it is close to the typical case.</div>
+<p>Default to stratified for any classification problem, and always for imbalanced ones — the same minority class that breaks accuracy also breaks a random split.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Stratified K-fold: the algorithm</h3><span class="num">Slide 20</span></div><div class="body">
+<p>Plain K-fold slices the whole index pool into \(K\) parts. Stratified slices <i>each class</i> into \(K\) parts, then merges, so every fold inherits the dataset's class ratio.</p>
+<pre><code>Input:   y = class labels for n samples;  K = number of folds
+Output:  K folds, each holding the class proportions of y
+
+1  Group sample indices by class
+       for each class c in unique(y):
+           bucket[c] = [ i : y[i] == c ]           # shuffle if wanted
+
+2  Slice each class into K parts, merge part k into fold k
+       fold[0..K-1] = empty
+       for each class c:
+           split bucket[c] into K near-equal parts  # sizes differ by &lt;= 1
+           for k in 0..K-1:   fold[k] += part[k]
+
+3  Cross-validate                                   # identical to plain K-fold from here
+       for k in 0..K-1:
+           test  = fold[k]
+           train = all indices not in fold[k]
+           fit on (X[train], y[train]); score on (X[test], y[test])
+       return mean(score), std(score)</code></pre>
+<p class="cap">Reference: Kohavi (1995) — the study that recommended ten-fold stratified CV for model selection. Implementation: scikit-learn <code>StratifiedKFold</code>.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>A worked split (K = 5)</h3><span class="num">Slide 21</span></div><div class="body">
+<div class="two wide">
+<div>
+<table class="dt compact"><thead><tr><th>Fold</th><th>Pos</th><th>Neg</th><th>Total</th><th>% pos</th></tr></thead><tbody>
+<tr><td>1</td><td>2</td><td>18</td><td>20</td><td>10%</td></tr><tr><td>2</td><td>2</td><td>18</td><td>20</td><td>10%</td></tr><tr><td>3</td><td>2</td><td>18</td><td>20</td><td>10%</td></tr><tr><td>4</td><td>2</td><td>18</td><td>20</td><td>10%</td></tr><tr><td>5</td><td>2</td><td>18</td><td>20</td><td>10%</td></tr>
+</tbody></table>
+</div>
+<div>
+<p>Dataset: 10 positives + 90 negatives (10% minority), \(K=5\).</p>
+<ol>
+<li><b>Group by class:</b> positives — 10 indices; negatives — 90 indices.</li>
+<li><b>Slice each class into 5 parts:</b> \(10\div5=2\) positives per part; \(90\div5=18\) negatives per part.</li>
+<li><b>Merge part \(k\) of every class into fold \(k\):</b> each fold = 2 pos + 18 neg = 20 samples.</li>
+</ol>
+<p>Every fold: \(2/20=10\%\) positive, the ratio of the full dataset. <b>Not divisible by \(K\)?</b> Parts differ by at most one — e.g. 11 positives → 2, 2, 2, 2, 3.</p>
+</div></div>
+<div class="fix"><b>Correction to the slides.</b> Slide 21 prints "Every fold: 2 / 18 = 10% positive". \(2/18=11.1\%\); the 10% is \(2/20\), positives over the <i>fold size</i>, which is what "class proportion" means. Minor, but it is exactly the row-total vs column-total confusion the confusion-matrix tab warns about.</div>
+<div class="note"><b>Granularity warning.</b> With 2 positives per fold, per-fold recall can only be 0, 0.5 or 1.0, and per-fold precision is just as coarse. Stratification removes the <i>empty-fold</i> problem; it does not give you fine-grained minority metrics. With 10 positives in total, report pooled metrics (concatenate the out-of-fold predictions, then build one confusion matrix) or repeat the whole CV with several shuffles, rather than averaging five recall values that can each only take three values.</div>
+<pre><code>from sklearn.model_selection import StratifiedKFold
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+for tr, te in skf.split(X, y):          # X may be a NumPy array or a torch tensor; y: labels
+    train(X[tr], y[tr]);  evaluate(X[te], y[te])</code></pre>
+<p class="cap">PyTorch has no native stratified splitter — scikit-learn builds the index arrays; you index your tensors with them. <code>split()</code> only reads <code>y</code> and the length of <code>X</code>, so a tensor <code>X</code> is fine; keep <code>y</code> as a 1-D array or CPU tensor.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Summary &amp; practice &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t7">
+<h2>7. Summary, practice questions, references</h2>
+
+<div class="slide"><div class="sh"><h3>What to carry out of this lecture</h3><span class="num">Slide 22</span></div><div class="body">
+<ol>
+<li><b>The confusion matrix is the source.</b> Accuracy, precision, recall and F1 are four questions asked of the same four counts.</li>
+<li><b>Accuracy alone misleads on imbalanced data</b> — it can rank a useless model first. Report precision and recall too (and balanced accuracy or MCC if negatives matter).</li>
+<li><b>Precision asks "can I trust a positive?", recall asks "did I miss positives?"</b> The costlier error picks your metric; \(F_\beta\) encodes the cost ratio.</li>
+<li><b>F1 balances the two but ignores true negatives and assumes equal cost;</b> report P and R beside it. Compute it from counts, \(2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})\).</li>
+<li><b>Validate with K-fold, and stratified K-fold when classes are imbalanced.</b> Same villain — the minority class — in both metrics and validation. Report mean ± std and say which std.</li>
+</ol>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Practice questions</h3><span class="num">New</span></div><div class="body">
+<ol>
+<li>A spam filter on 500 emails gives TP = 60, FN = 15, FP = 10, TN = 415. Compute accuracy, precision, recall, specificity and F1 as exact fractions, then as percentages. Which metric would you lead with, and why?</li>
+<li>Show algebraically that \(2PR/(P+R)=2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})\). Which of the two forms is defined when \(\mathrm{TP}=\mathrm{FP}=0\)?</li>
+<li>In the fraud example, Model C flags 50 transactions and catches all 10 frauds. Fill in its confusion matrix and compute accuracy, precision, recall and F1. Rank A, B and C by each metric; how many different rankings do you get?</li>
+<li>For the disease example, compute \(F_{0.5}\), \(F_1\) and \(F_2\) and explain in one sentence each which error cost they encode.</li>
+<li>Prove that recall never increases when the decision threshold is raised, and give a four-sample counter-example in which precision decreases when the threshold is raised.</li>
+<li>A dataset has 7 positives and 93 negatives. Write out the fold sizes (positives and negatives) that <code>StratifiedKFold(n_splits=5)</code> produces. What values can per-fold recall take?</li>
+<li>Five fold accuracies are 0.80, 0.84, 0.90, 0.78, 0.88. Compute mean, population std and sample std. Which would <code>np.std</code> give? Which would <code>pandas.Series.std</code> give?</li>
+<li>Explain why micro-averaged F1 equals accuracy for single-label multi-class classification, and why macro-F1 does not.</li>
+<li>With 10 positives in 100 samples and \(K=10\) plain K-fold, compute the probability that a given fold contains no positive. Is it higher or lower than for \(K=5\), and why?</li>
+</ol>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>References</h3><span class="num">Slide 20</span></div><div class="body">
+<ol>
+<li>Kohavi, R. (1995). A Study of Cross-Validation and Bootstrap for Accuracy Estimation and Model Selection. <i>Proc. 14th IJCAI</i>, vol. 2, 1137–1143.</li>
+<li>Powers, D. M. W. (2011). Evaluation: From Precision, Recall and F-measure to ROC, Informedness, Markedness and Correlation. <i>J. Machine Learning Technologies</i>, 2(1), 37–63.</li>
+<li>Saito, T. &amp; Rehmsmeier, M. (2015). The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets. <i>PLoS ONE</i>, 10(3), e0118432.</li>
+<li>Chicco, D. &amp; Jurman, G. (2020). The advantages of the Matthews correlation coefficient (MCC) over F1 score and accuracy in binary classification evaluation. <i>BMC Genomics</i>, 21, 6.</li>
+<li>scikit-learn User Guide, §3.3 Metrics and scoring; §3.1 Cross-validation.</li>
+</ol>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next" disabled>Next &rarr;</button></div>
+</section>
+
+<div class="footer">
+  <span>CSE475 · Fall 2026</span>
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University.</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+<script>
+(function(){
+  var ids=['c_tp','c_fn','c_fp','c_tn'];
+  function g(id){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)||v<0?0:v; }
+  function pct(x){ return (x*100).toFixed(1)+'%'; }
+  function set(id,calc,val){ document.getElementById(id+'_c').textContent=calc; document.getElementById(id).innerHTML=val; }
+  function ratio(num,den,label){ return den===0 ? [null,'<span class="err">undefined</span> ('+label+' = 0/0)'] : [num/den, pct(num/den)+' = '+num+'/'+den]; }
+  function upd(){
+    var TP=g('c_tp'),FN=g('c_fn'),FP=g('c_fp'),TN=g('c_tn'), N=TP+FN+FP+TN;
+    set('o_n','TP + FN + FP + TN', N);
+    var acc=ratio(TP+TN,N,'accuracy'); set('o_acc','(TP + TN) / N = ('+TP+' + '+TN+') / '+N, acc[1]);
+    var p=ratio(TP,TP+FP,'precision'); set('o_p','TP / (TP + FP) = '+TP+' / '+(TP+FP), p[1]);
+    var r=ratio(TP,TP+FN,'recall'); set('o_r','TP / (TP + FN) = '+TP+' / '+(TP+FN), r[1]);
+    var s=ratio(TN,TN+FP,'specificity'); set('o_s','TN / (TN + FP) = '+TN+' / '+(TN+FP), s[1]);
+    var f1=ratio(2*TP,2*TP+FP+FN,'F1'); set('o_f1','2TP / (2TP + FP + FN) = '+(2*TP)+' / '+(2*TP+FP+FN), f1[1]);
+    var f2=ratio(5*TP,5*TP+4*FN+FP,'F2'); set('o_f2','5TP / (5TP + 4FN + FP) = '+(5*TP)+' / '+(5*TP+4*FN+FP), f2[1]);
+    if(r[0]===null||s[0]===null){ set('o_ba','(recall + specificity) / 2','<span class="err">undefined</span>'); }
+    else { set('o_ba','(recall + specificity) / 2 = ('+r[0].toFixed(4)+' + '+s[0].toFixed(4)+') / 2', pct((r[0]+s[0])/2)); }
+  }
+  ids.forEach(function(id){ document.getElementById(id).addEventListener('input',upd); });
+  upd();
+})();
+</script>
+</body>
+</html>

@@ -87,6 +87,7 @@
   @media(max-width:680px){.page{padding:18px}}
   @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
   @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+  .ai-note{font-size:.92rem;margin:0 0 14px}
 </style>
 </head>
 <body>
@@ -100,6 +101,7 @@
 
 <p class="lead"><b>In one paragraph.</b> Boosting builds a strong model by adding weak models one at a time, each one trained to fix what the current ensemble gets wrong. AdaBoost (1997) does this by re-weighting the training samples and voting; XGBoost (2016) does it by fitting each new tree to the gradient of a loss, with explicit regularisation. Both are the same additive recipe, \(F_T(x)=\sum_t \alpha_t h_t(x)\), with a different loss and a different way of taking the step. Tab 3 works AdaBoost by hand on ten points in one dimension, tab 4 on ten points in two dimensions (where the stump must also choose a feature), and tab 5 works two rounds of an XGBoost regression tree with every gain and leaf weight computed. <em>Use the tabs to move between sections. Source slide numbers are shown on the right of each block.</em> <a href="index.html">&#8592; Back to course material</a></p>
 
+<div class="note ai-note"><b>A note on how these notes were made.</b> This page was prepared with the help of a generative AI assistant (Claude, by Anthropic) working from the lecture slides, under the instructor's direction. Every number on the page was recomputed independently in code before publication, but AI-assisted material can still contain mistakes, and no page replaces the lecture or the textbook. If anything here is unclear, looks wrong, or disagrees with what was said in class, please email <a href="mailto:raihan.islam@ewubd.edu">raihan.islam@ewubd.edu</a> or raise it in class. Reported errors are fixed on the page and the reporter is credited.</div>
 <div class="tabbar" role="tablist" id="tabbar">
   <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Boosting &amp; the papers</button>
   <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>AdaBoost: algorithm</button>

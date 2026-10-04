@@ -41,6 +41,7 @@
   .empty{border:1px dashed var(--line);border-radius:5px;padding:12px 14px;color:var(--gray);font-size:.9rem}
   .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
   @media(max-width:680px){.page{padding:18px}}
+  .ai-note{font-size:.92rem;border-left-color:var(--blue)}
 </style>
 </head>
 <body>
@@ -53,6 +54,7 @@
 
 <p class="lead"><b>What is here.</b> This page collects the worked lecture notes and the mini project brief for CSE475. Lecture pages are self-contained and open in the browser; nothing to install. New material is added as the term goes on, so check back after each lecture.</p>
 
+<p class="lead ai-note" style="margin-top:0"><b>Generative AI disclosure.</b> The lecture pages on this site were prepared with the help of a generative AI assistant (Claude, by Anthropic) from the course slides, with every number recomputed independently. Errors are still possible. If something is unclear or looks wrong, email <a href="mailto:raihan.islam@ewubd.edu">raihan.islam@ewubd.edu</a> or raise it in class.</p>
 <nav class="tabbar" aria-label="Sections">
   <a class="tab-btn" href="#lectures"><span class="n">1</span>Lectures</a>
   <a class="tab-btn" href="#miniproject"><span class="n">2</span>Mini Project</a>
@@ -81,6 +83,11 @@
       <span class="tt"><a href="ml-03-adaboost-xgboost.html">Lecture 4 — Ensemble Learning: AdaBoost &amp; XGBoost</a></span>
       <span class="desc">Boosting as additive modelling, then AdaBoost worked by hand twice: ten points in one dimension (three rounds, plus what rounds 4–6 actually do) and ten points in two dimensions (stump search over feature, threshold and polarity, reaching 10/10). XGBoost's regularised objective, second-order step, leaf weights and split gain, with two rounds of a house-price regression tree computed in full. Eight tabs; equations rendered with KaTeX; slide values that failed recomputation carry a correction box.</span>
       <span class="meta"><span class="tag">Slides</span><span class="tag">ML-03</span> <a href="ml-03-adaboost-xgboost.html">Open lecture</a></span>
+    </div>
+    <div class="item">
+      <span class="tt"><a href="ml-04-performance-evaluation.html">Lecture 5 — Performance Evaluation</a></span>
+      <span class="desc">The confusion matrix and the four metrics computed from it on a disease-screening example, with an interactive calculator; the accuracy paradox on a 1%-fraud dataset; precision vs recall, the limits of F1, F-beta, macro vs micro averaging; then K-fold and stratified K-fold cross-validation, including how often a random split leaves a fold with no minority samples. Seven tabs; slide values that failed recomputation carry a correction box.</span>
+      <span class="meta"><span class="tag">Slides</span><span class="tag">ML-04</span> <a href="ml-04-performance-evaluation.html">Open lecture</a></span>
     </div>
     <div class="item">
       <span class="tt"><a href="cnn-backprop-end-to-end-cceV2.html">CNN Forward and Backprop, End to End</a></span>
