@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 4 — Ensemble Learning: AdaBoost &amp; XGBoost — CSE475 Machine Learning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html{font-size:15px}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  h4{color:var(--navy);margin:14px 0 4px;font-size:1rem}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  code{font-family:Consolas,"Courier New",monospace;font-size:.93em;background:#f3efeb;padding:0 3px;border-radius:3px}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide .body{padding:10px 16px 8px;overflow-x:auto}
+  .lead,.note,.fix,.warn,.card{overflow-x:auto}
+  .slide .body>ul:first-child{margin-top:.2em}
+  .fix{background:#fdecea;border-left:4px solid #b3261e;padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .note{background:#eef3f8;border-left:4px solid var(--blue);padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .warn{background:#fff7e6;border-left:4px solid var(--orange);padding:6px 10px;margin:8px 0;border-radius:3px}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin:8px 0}
+  .two.wide{grid-template-columns:1fr 2fr}
+  .two>div,.three>div{min-width:0;overflow-x:auto}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin:8px 0}
+  @media(max-width:760px){.two,.three{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:6px;padding:4px 12px 8px;background:#fff}
+  .card.good{border-color:var(--green);background:#edf5ef}
+  .card.bad{border-color:#b3261e;background:#fdecea}
+  .formula{background:var(--card);border-left:4px solid var(--rust);padding:8px 14px;margin:8px 0;overflow-x:auto;font-size:1.02rem;line-height:1.7}
+  .cap{font-size:.9rem;color:#3d4955;margin:4px 0}
+  figure{margin:8px 0}
+  figcaption{font-size:.88rem;color:var(--gray);text-align:center;margin-top:4px}
+  svg.fig{display:block;width:100%;max-width:820px;height:auto;margin:6px auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+  table.dt{font-size:.92rem;width:auto;margin:6px 0}
+  table.dt.compact td,table.dt.compact th{padding:3px 8px;white-space:nowrap}
+  table.dt tr.hl td{background:var(--peach)!important;font-weight:bold}
+  tr.ex-sep td{border-top:2px solid var(--rust)}
+  b.y{color:var(--green)} b.n{color:#b3261e}
+  .katex{font-size:1.04em}
+  .katex-display{margin:.5em 0;overflow-x:auto;overflow-y:hidden}
+  pre{background:#1e2933;color:#f2efe9;padding:12px 16px;border-radius:6px;overflow-x:auto;font-size:.92rem;line-height:1.45;margin:6px 0}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:6px 0}
+  .kv b{color:var(--navy)}
+  @media(max-width:680px){.page{padding:18px}}
+  @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 4 — Ensemble Learning: AdaBoost &amp; XGBoost</h1>
+  <div class="sub">ML-03: boosting as additive modelling, AdaBoost worked twice (1-D and 2-D), XGBoost objective and a hand-worked regression tree</div>
+  <div class="attr">Rewritten as web notes from the CSE475 slide deck, with every number recomputed; red boxes record values that were corrected.</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> Boosting builds a strong model by adding weak models one at a time, each one trained to fix what the current ensemble gets wrong. AdaBoost (1997) does this by re-weighting the training samples and voting; XGBoost (2016) does it by fitting each new tree to the gradient of a loss, with explicit regularisation. Both are the same additive recipe, \(F_T(x)=\sum_t \alpha_t h_t(x)\), with a different loss and a different way of taking the step. Tab 3 works AdaBoost by hand on ten points in one dimension, tab 4 on ten points in two dimensions (where the stump must also choose a feature), and tab 5 works two rounds of an XGBoost regression tree with every gain and leaf weight computed. <em>Use the tabs to move between sections. Source slide numbers are shown on the right of each block.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Boosting &amp; the papers</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>AdaBoost: algorithm</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>Example A: 1-D</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>Example B: 2-D</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>XGBoost</button>
+  <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Comparison</button>
+  <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>Python</button>
+  <button class="tab-btn" role="tab" data-tab="t8"><span class="n">8</span>Summary &amp; practice</button>
+</div>
+
+<section class="tab-panel" id="t1">
+<h2>1. Boosting and the two papers</h2>
+
+<div class="slide"><div class="sh"><h3>Lecture agenda</h3><span class="num">Slide 2</span></div><div class="body">
+<ol>
+<li><b>Seminal papers</b> — Freund &amp; Schapire (1997), Chen &amp; Guestrin (2016).</li>
+<li><b>AdaBoost</b> — concept, algorithm, maths, and two step-by-step examples.</li>
+<li><b>XGBoost</b> — regularised objective, second-order step, split gain, worked regression example.</li>
+<li><b>AdaBoost vs XGBoost</b> — what is the same and what differs.</li>
+<li><b>Python</b> — scikit-learn and the <code>xgboost</code> library.</li>
+<li><b>Summary and practice questions.</b></li>
+</ol>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The boosting principle</h3><span class="num">Slides 7, 22</span></div><div class="body">
+<p>A <b>weak learner</b> is a model that is only slightly better than guessing. Boosting trains weak learners <i>in sequence</i>: each new one is trained with extra attention to the samples the current ensemble gets wrong, and the final model is a weighted sum of all of them,</p>
+<div class="formula">\[ F_T(x)=\sum_{t=1}^{T}\alpha_t\,h_t(x), \qquad H(x)=\operatorname{sign}\big(F_T(x)\big)\ \text{(classification)}. \]</div>
+<p>This is <b>forward stagewise additive modelling</b>: at stage \(t\) the earlier terms are frozen and only \((\alpha_t,h_t)\) is chosen, to reduce some loss \(L\) on the training set:</p>
+<div class="formula">\[ (\alpha_t,h_t)=\arg\min_{\alpha,h}\ \sum_{i=1}^{N} L\big(y_i,\ F_{t-1}(x_i)+\alpha\,h(x_i)\big). \]</div>
+<p>The two algorithms in this lecture are two instances of this one recipe, and the comparison in tab 6 is easiest to read through it:</p>
+<table class="dt">
+<thead><tr><th></th><th>AdaBoost</th><th>XGBoost (gradient boosting)</th></tr></thead>
+<tbody>
+<tr><td>Loss \(L\)</td><td>exponential, \(e^{-y F(x)}\) (implicit — the algorithm never writes it down, but minimising it gives exactly the AdaBoost update; see tab 2)</td><td>any differentiable loss (squared, log-loss, …)</td></tr>
+<tr><td>How the step is taken</td><td>re-weight samples, train \(h_t\) on the weighted data, solve for \(\alpha_t\) in closed form</td><td>second-order Taylor expansion of \(L\), fit a tree to the gradients \(g_i\) and hessians \(h_i\), closed-form leaf values</td></tr>
+<tr><td>Step size</td><td>\(\alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}\) per round</td><td>fixed learning rate \(\eta\) times the leaf values</td></tr>
+<tr><td>Regularisation</td><td>number of rounds \(T\); optional shrinkage</td><td>\(\gamma\) per leaf, \(\lambda\) on leaf weights, subsampling, early stopping</td></tr>
+</tbody></table>
+<div class="note"><b>Why this view matters.</b> The slide deck says AdaBoost is "sensitive to outliers" and XGBoost "has regularisation", as if the second explained the first. It does not. AdaBoost's outlier sensitivity comes from the <i>exponential loss</i>: a sample on the wrong side by margin \(m=yF(x)=-3\) costs \(e^{3}=20.1\) under exponential loss but only \(\ln(1+e^{3})=3.05\) under log-loss, so the exponential loss lets one bad point dominate the next round. Gradient boosting with log-loss is less sensitive <i>because of the loss</i>, before any \(\lambda\) is applied.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Seminal paper 1 — AdaBoost (1997)</h3><span class="num">Slide 4</span></div><div class="body">
+<p><b>Freund, Y. &amp; Schapire, R. E. (1997).</b> <i>A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting.</i> Journal of Computer and System Sciences 55(1), 119–139. DOI 10.1006/jcss.1997.1504. Gödel Prize 2003.</p>
+<ul>
+<li>Formalised the weak-learner idea and proved that weak learners can be combined into an arbitrarily strong one.</li>
+<li>First practical boosting algorithm; no need to know the weak learners' accuracies in advance (that is the "adaptive" in AdaBoost).</li>
+<li>Training error bound \( \text{err}_{\text{train}} \le \prod_{t} 2\sqrt{\varepsilon_t(1-\varepsilon_t)} \), which falls exponentially in \(T\) when every \(\varepsilon_t \le \tfrac12-\gamma\). The factor \(2\sqrt{\varepsilon_t(1-\varepsilon_t)}\) is exactly the normaliser \(Z_t\) computed in every round of the examples; we check this in tab 3.</li>
+<li>Connections to game theory and on-line learning.</li>
+</ul>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Seminal paper 2 — XGBoost (2016)</h3><span class="num">Slide 5</span></div><div class="body">
+<p><b>Chen, T. &amp; Guestrin, C. (2016).</b> <i>XGBoost: A Scalable Tree Boosting System.</i> Proc. 22nd ACM SIGKDD, 785–794. DOI 10.1145/2939672.2939785. Builds on Friedman's gradient boosting machine (2001).</p>
+<ul>
+<li>Regularised objective (\(\gamma\) per leaf and \(\lambda\) on leaf weights) with a second-order Taylor step.</li>
+<li>Sparsity-aware split finding: a learned default direction for missing values.</li>
+<li>Weighted quantile sketch for approximate split finding on large data.</li>
+<li>Cache-aware, parallel (across features, within a tree) and distributed implementation.</li>
+<li>Became the default winning tool on tabular Kaggle competitions around 2015–2017.</li>
+</ul>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: AdaBoost algorithm &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t2">
+<h2>2. AdaBoost — concept, algorithm, maths</h2>
+
+<div class="slide"><div class="sh"><h3>Core concept</h3><span class="num">Slide 7</span></div><div class="body">
+<div class="two">
+<div class="card"><h4>Weak learner</h4><p>A model slightly better than random guessing. In this lecture: a <b>decision stump</b> (a depth-1 tree).</p></div>
+<div class="card"><h4>Sample weights \(w_i\)</h4><p>Every training sample carries a weight. Samples the current stump gets wrong have their weight <i>increased</i> for the next round.</p></div>
+<div class="card"><h4>Classifier weight \(\alpha_t\)</h4><p>Each stump gets a vote weight from its weighted error: lower error, larger \(\alpha_t\).</p></div>
+<div class="card"><h4>Final prediction</h4><p>Weighted majority vote \(H(x)=\operatorname{sign}\!\big(\sum_t \alpha_t h_t(x)\big)\).</p></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>What is a decision stump?</h3><span class="num">Slide 8</span></div><div class="body">
+<p>A stump tests <b>one feature</b> \(x_j\) against <b>one threshold</b> \(\tau\) and returns a class on each side. With two classes it has two orientations ("polarities"):</p>
+<div class="formula">\[ h(x)=\begin{cases}+1 & x_j\le\tau\\ -1 & x_j>\tau\end{cases} \qquad\text{or its flip}\qquad h(x)=\begin{cases}-1 & x_j\le\tau\\ +1 & x_j>\tau.\end{cases} \]</div>
+<p>The stump search therefore ranges over <i>feature × threshold × polarity</i>. With \(D\) features and \(N\) distinct values per feature there are at most \(2D(N-1)\) candidate stumps; the thresholds are taken halfway between consecutive sorted values (scikit-learn does the same). A flipped stump has weighted error \(1-\varepsilon\) of the unflipped one, so searching both polarities guarantees \(\varepsilon_t\le\tfrac12\).</p>
+<div class="fix"><b>Correction to the slides.</b> Slide 8 defined only the "+1 if \(x\le\tau\)" orientation and the round-1 and round-2 searches in slide 13–14 only consider that orientation, yet slide 16 silently introduces an "\(x\le 7\) (flip)" candidate. Both orientations are part of the stump family from the start; they just never win in rounds 1 and 2 of Example A (they would need \(\varepsilon<0.1875\) in round 2, and the best flip there is 0.5).</div>
+<p>Alone, a stump is high-bias: it draws one axis-parallel cut. That weakness is what boosting exploits — many cuts, weighted, add up to a complicated boundary (see the final panel of tab 4).</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Algorithm, step by step</h3><span class="num">Slides 9–10</span></div><div class="body">
+<p>Binary labels \(y_i\in\{-1,+1\}\), training set \(\{(x_i,y_i)\}_{i=1}^{N}\), \(T\) rounds.</p>
+<ol>
+<li><b>Initialise</b> \(w_i=1/N\) for all \(i\).</li>
+<li><b>For \(t=1,\dots,T\):</b>
+<ol type="a">
+<li>Train the stump \(h_t\) that minimises the <b>weighted error</b> \(\displaystyle \varepsilon_t=\sum_{i} w_i\,\mathbb{1}[y_i\ne h_t(x_i)]\).</li>
+<li>Compute the <b>classifier weight</b> \(\displaystyle \alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}\).</li>
+<li><b>Update</b> \(w_i\leftarrow w_i\,e^{-\alpha_t y_i h_t(x_i)}\): correct samples are multiplied by \(e^{-\alpha_t}<1\), wrong ones by \(e^{+\alpha_t}>1\).</li>
+<li><b>Normalise</b> \(w_i\leftarrow w_i/Z_t\) with \(Z_t=\sum_j w_j\), so the weights sum to 1 again.</li>
+</ol></li>
+<li><b>Output</b> \(H(x)=\operatorname{sign}\!\big(\sum_{t=1}^{T}\alpha_t h_t(x)\big)\).</li>
+</ol>
+<table class="dt">
+<thead><tr><th>Quantity</th><th>Formula</th><th>Reading</th></tr></thead>
+<tbody>
+<tr><td>Weighted error</td><td>\(\varepsilon_t=\sum_i w_i\,\mathbb{1}[y_i\ne h_t(x_i)]\)</td><td>Sum of the weights of the misclassified samples (not a count).</td></tr>
+<tr><td>Classifier weight</td><td>\(\alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}\)</td><td>\(\varepsilon_t\to0\Rightarrow\alpha_t\to\infty\); \(\varepsilon_t=\tfrac12\Rightarrow\alpha_t=0\) (no vote).</td></tr>
+<tr><td>Weight update</td><td>\(w_i\leftarrow w_i\,e^{-\alpha_t y_i h_t(x_i)}\)</td><td>\(y_ih_t(x_i)=+1\) if correct, \(-1\) if wrong.</td></tr>
+<tr><td>Normaliser</td><td>\(Z_t=\sum_i w_i e^{-\alpha_t y_i h_t(x_i)}\)</td><td>With the optimal \(\alpha_t\), \(Z_t=2\sqrt{\varepsilon_t(1-\varepsilon_t)}\).</td></tr>
+<tr><td>Final classifier</td><td>\(H(x)=\operatorname{sign}\big(\sum_t\alpha_t h_t(x)\big)\)</td><td>Weighted vote of all \(T\) stumps.</td></tr>
+</tbody></table>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Where \(\alpha_t\) comes from (the exponential-loss view)</h3><span class="num">New</span></div><div class="body">
+<p>Take the stagewise objective from tab 1 with the exponential loss and write \(w_i\propto e^{-y_iF_{t-1}(x_i)}\) for the weights left over from earlier rounds. Then</p>
+<div class="formula">\[ \sum_i e^{-y_i\left(F_{t-1}(x_i)+\alpha h(x_i)\right)} \;\propto\; \sum_i w_i\,e^{-\alpha y_i h(x_i)} \;=\; e^{-\alpha}\,(1-\varepsilon)\;+\;e^{+\alpha}\,\varepsilon . \]</div>
+<p>For fixed \(\alpha>0\) this is smallest when \(\varepsilon\) is smallest — so \(h_t\) must minimise the <i>weighted</i> error, step (a). Setting the derivative in \(\alpha\) to zero, \(-e^{-\alpha}(1-\varepsilon)+e^{\alpha}\varepsilon=0\), gives \(e^{2\alpha}=\frac{1-\varepsilon}{\varepsilon}\), i.e. step (b). Substituting back, the minimum value is \(2\sqrt{\varepsilon(1-\varepsilon)}=Z_t\), which is why the normaliser equals the error-bound factor.</p>
+<div class="note"><b>Two consequences you will see in the examples.</b> (1) After the update, the stump just trained has weighted error <i>exactly</i> \(\tfrac12\) on the new weights — its misclassified samples now carry total weight \(\varepsilon_t e^{\alpha_t}/Z_t=\tfrac12\). It cannot be chosen again in the very next round. (2) The same stump <i>can</i> be chosen again two rounds later, once the weights have moved on; Example A does this (rounds 1 and 3 pick the same cut).</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Advantages and disadvantages</h3><span class="num">Slide 20</span></div><div class="body">
+<div class="two">
+<div class="card good"><h4>Advantages</h4><ul>
+<li>Few hyperparameters (\(T\), optionally a shrinkage factor).</li>
+<li>Any weak learner can be the base classifier.</li>
+<li>Training error bound falls exponentially with \(T\) (proven, under the weak-learning condition).</li>
+<li>Strong accuracy from very shallow stumps; no feature engineering needed to pick which feature each stump uses.</li>
+<li>Interpretable: each stump and its \(\alpha_t\) can be read off.</li>
+</ul></div>
+<div class="card bad"><h4>Disadvantages</h4><ul>
+<li>Sensitive to label noise and outliers — a consequence of the exponential loss (tab 1 note).</li>
+<li>Can overfit noisy data as \(T\) grows.</li>
+<li>Rounds are sequential, so wall-clock time grows linearly with \(T\). (Gradient boosting is sequential across trees too; XGBoost parallelises <i>within</i> a tree, see tab 6.)</li>
+<li>Degrades if the base learners are too strong (they stop being "weak" and the vote loses diversity).</li>
+<li>No explicit penalty on model complexity.</li>
+</ul></div>
+</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Example A (1-D) &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t3">
+<h2>3. Example A — AdaBoost on ten points in one dimension</h2>
+
+<div class="slide"><div class="sh"><h3>Dataset (N = 10, one feature)</h3><span class="num">Slide 11</span></div><div class="body">
+<div class="two wide">
+<div><table class="dt compact"><thead><tr><th>Sample</th><th>\(x\)</th><th>\(y\)</th><th>Initial \(w_i\)</th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>+1</td><td>0.10</td></tr>
+<tr><td>2</td><td>2</td><td>+1</td><td>0.10</td></tr>
+<tr><td>3</td><td>3</td><td>+1</td><td>0.10</td></tr>
+<tr><td>4</td><td>4</td><td>−1</td><td>0.10</td></tr>
+<tr><td>5</td><td>5</td><td>+1</td><td>0.10</td></tr>
+<tr><td>6</td><td>6</td><td>−1</td><td>0.10</td></tr>
+<tr><td>7</td><td>7</td><td>−1</td><td>0.10</td></tr>
+<tr><td>8</td><td>8</td><td>+1</td><td>0.10</td></tr>
+<tr><td>9</td><td>9</td><td>−1</td><td>0.10</td></tr>
+<tr><td>10</td><td>10</td><td>−1</td><td>0.10</td></tr>
+</tbody></table></div>
+<div>
+<p><b>Task.</b> Binary classification from a single feature \(x\in\{1,\dots,10\}\). Weak learners are stumps "\(+1\) if \(x\le t\), else \(-1\)" for integer \(t\), plus their flips. Train \(T=3\) rounds, then look at what more rounds do.</p>
+<p><b>Initial weights.</b> \(w_i=1/N=0.10\); total weight 1.0.</p>
+<p><b>Convention used here.</b> If two stumps tie on \(\varepsilon\), the lower threshold wins (any fixed rule is fine; scikit-learn's choice is implementation-dependent).</p>
+<p>Note the labels: \(+1\) at \(x=1,2,3,5,8\) and \(-1\) at \(x=4,6,7,9,10\). Sample 5 is a lone \(+1\) between \(-1\)s on both sides; that single point is what makes this dataset hard for stumps, and it is why three rounds are not enough.</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 1 — threshold search</h3><span class="num">Slide 13</span></div><div class="body">
+<p>For each threshold build the stump, list what it gets wrong, and add up the weights of those samples (all 0.10 in round 1). All ten unflipped candidates:</p>
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>+1 if \(x\le 3\), else −1</td><td>5, 8</td><td>0.1000 + 0.1000</td><td>0.2000 ★</td></tr>
+<tr><td>+1 if \(x\le 5\), else −1</td><td>4, 8</td><td>0.1000 + 0.1000</td><td>0.2000</td></tr>
+<tr><td>+1 if \(x\le 2\), else −1</td><td>3, 5, 8</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x\le 4\), else −1</td><td>4, 5, 8</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x\le 6\), else −1</td><td>4, 6, 8</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x\le 8\), else −1</td><td>4, 6, 7</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x\le 1\), else −1</td><td>2, 3, 5, 8</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.4000</td></tr>
+<tr><td>+1 if \(x\le 7\), else −1</td><td>4, 6, 7, 8</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.4000</td></tr>
+<tr><td>+1 if \(x\le 9\), else −1</td><td>4, 6, 7, 9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.4000</td></tr>
+<tr><td>+1 if \(x\le 10\), else −1</td><td>4, 6, 7, 9, 10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.5000</td></tr>
+</tbody></table>
+<p>\(x\le3\) and \(x\le5\) tie at \(\varepsilon=0.20\) (two mistakes each: {5, 8} vs {4, 8}); the lower threshold is taken. Flipped stumps have error \(1-\varepsilon\), so the best flip is \(0.50\) (from the \(x\le10\) row) and none can win.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 1 — error, \(\alpha_1\), weight update</h3><span class="num">Slide 12</span></div><div class="body">
+<div class="two">
+<div class="card"><h4>Round 1 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_1(x)=\) +1 if \(x\le 3\), else −1</span>
+<b>Misclassified</b><span>samples 5, 8</span>
+<b>\(\varepsilon_1\)</b><span>0.1000 + 0.1000 = <b>0.2000</b></span>
+<b>\(\alpha_1\)</b><span>\(\tfrac12\ln\frac{1-0.2000}{0.2000}=\tfrac12\ln(4.000)=\tfrac12\times1.386=\) <b>0.693</b></span>
+<b>Factors</b><span>correct ×\(e^{-0.693}\) = 0.5000; wrong ×\(e^{+0.693}\) = 2.0000</span>
+<b>\(Z_1\)</b><span>0.8000 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.8000 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>#</th><th>\(x\)</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>2</td><td>2</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>3</td><td>3</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>4</td><td>4</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr class="hl"><td>5</td><td>5</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.1000</td><td>×2.0000</td><td>0.2000</td><td>0.2500</td></tr>
+<tr><td>6</td><td>6</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>7</td><td>7</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr class="hl"><td>8</td><td>8</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.1000</td><td>×2.0000</td><td>0.2000</td><td>0.2500</td></tr>
+<tr><td>9</td><td>9</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>10</td><td>10</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr class="ex-sep"><td colspan="7"><b>Sum</b></td><td><b>Z = 0.8000</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+<p class="cap">After round 1 the two misclassified samples (5 and 8) carry weight 0.25 each — together exactly \(\tfrac12\) of the total — and the eight correct ones 0.0625 each.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 2 — threshold search with the new weights</h3><span class="num">Slide 14</span></div><div class="body">
+<p>The same ten candidates, now scored with weights 0.25 (samples 5, 8) and 0.0625 (all others), sorted by weighted error:</p>
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>+1 if \(x\le 8\), else −1</td><td>4, 6, 7</td><td>0.0625 + 0.0625 + 0.0625</td><td>0.1875 ★</td></tr>
+<tr><td>+1 if \(x\le 9\), else −1</td><td>4, 6, 7, 9</td><td>0.0625 + 0.0625 + 0.0625 + 0.0625</td><td>0.2500</td></tr>
+<tr><td>+1 if \(x\le 5\), else −1</td><td>4, 8</td><td>0.0625 + 0.2500</td><td>0.3125</td></tr>
+<tr><td>+1 if \(x\le 10\), else −1</td><td>4, 6, 7, 9, 10</td><td>0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625</td><td>0.3125</td></tr>
+<tr><td>+1 if \(x\le 6\), else −1</td><td>4, 6, 8</td><td>0.0625 + 0.0625 + 0.2500</td><td>0.3750</td></tr>
+<tr><td>+1 if \(x\le 7\), else −1</td><td>4, 6, 7, 8</td><td>0.0625 + 0.0625 + 0.0625 + 0.2500</td><td>0.4375</td></tr>
+<tr><td>+1 if \(x\le 3\), else −1</td><td>5, 8</td><td>0.2500 + 0.2500</td><td>0.5000</td></tr>
+<tr><td>+1 if \(x\le 2\), else −1</td><td>3, 5, 8</td><td>0.0625 + 0.2500 + 0.2500</td><td>0.5625</td></tr>
+<tr><td>+1 if \(x\le 4\), else −1</td><td>4, 5, 8</td><td>0.0625 + 0.2500 + 0.2500</td><td>0.5625</td></tr>
+<tr><td>+1 if \(x\le 1\), else −1</td><td>2, 3, 5, 8</td><td>0.0625 + 0.0625 + 0.2500 + 0.2500</td><td>0.6250</td></tr>
+</tbody></table>
+<p>\(x\le8\) wins: it predicts \(+1\) for \(x=1\ldots8\), so it gets the two heavy samples right and only misses 4, 6, 7, which are cheap (0.0625 each). The round-1 stump \(x\le3\) now sits at \(\varepsilon=0.50\): useless, exactly as the exponential-loss view in tab 2 predicts. The best flip is again 0.50.</p>
+<div class="fix"><b>Correction to the slides.</b> Slide 14 is headed "All Threshold Candidates" but lists only four of the ten. The table above is complete.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 2 — error, \(\alpha_2\), weight update</h3><span class="num">Slide 15</span></div><div class="body">
+<div class="two">
+<div class="card"><h4>Round 2 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_2(x)=\) +1 if \(x\le 8\), else −1</span>
+<b>Misclassified</b><span>samples 4, 6, 7</span>
+<b>\(\varepsilon_2\)</b><span>0.0625 + 0.0625 + 0.0625 = <b>0.1875</b></span>
+<b>\(\alpha_2\)</b><span>\(\tfrac12\ln\frac{1-0.1875}{0.1875}=\tfrac12\ln(4.333)=\tfrac12\times1.466=\) <b>0.733</b></span>
+<b>Factors</b><span>correct ×\(e^{-0.733}\) = 0.4804; wrong ×\(e^{+0.733}\) = 2.0817</span>
+<b>\(Z_2\)</b><span>0.7806 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.7806 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>#</th><th>\(x\)</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>2</td><td>2</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>3</td><td>3</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr class="hl"><td>4</td><td>4</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr><td>5</td><td>5</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.2500</td><td>×0.4804</td><td>0.1201</td><td>0.1538</td></tr>
+<tr class="hl"><td>6</td><td>6</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr class="hl"><td>7</td><td>7</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr><td>8</td><td>8</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.2500</td><td>×0.4804</td><td>0.1201</td><td>0.1538</td></tr>
+<tr><td>9</td><td>9</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>10</td><td>10</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr class="ex-sep"><td colspan="7"><b>Sum</b></td><td><b>Z = 0.7806</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+<p class="cap">Key shift: samples 4, 6, 7 now have the highest weights (0.1667 each, again summing to \(\tfrac12\)); samples 5 and 8 drop to 0.1538; the five easy samples sink to 0.0385.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 3 — search, \(\alpha_3\), weight update</h3><span class="num">Slide 16</span></div><div class="body">
+<p>Weights entering round 3: 4, 6, 7 = 0.1667; 5, 8 = 0.1538; 1, 2, 3, 9, 10 = 0.0385. The six best candidates, flips included:</p>
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>+1 if \(x\le 3\), else −1</td><td>5, 8</td><td>0.1538 + 0.1538</td><td>0.3077 ★</td></tr>
+<tr><td>+1 if \(x\le 5\), else −1</td><td>4, 8</td><td>0.1667 + 0.1538</td><td>0.3205</td></tr>
+<tr><td>+1 if \(x\le 2\), else −1</td><td>3, 5, 8</td><td>0.0385 + 0.1538 + 0.1538</td><td>0.3462</td></tr>
+<tr><td>−1 if \(x\le 7\), else +1 (flip)</td><td>1, 2, 3, 5, 9, 10</td><td>0.0385 + 0.0385 + 0.0385 + 0.1538 + 0.0385 + 0.0385</td><td>0.3462</td></tr>
+<tr><td>+1 if \(x\le 1\), else −1</td><td>2, 3, 5, 8</td><td>0.0385 + 0.0385 + 0.1538 + 0.1538</td><td>0.3846</td></tr>
+<tr><td>−1 if \(x\le 10\), else +1 (flip)</td><td>1, 2, 3, 5, 8</td><td>0.0385 + 0.0385 + 0.0385 + 0.1538 + 0.1538</td><td>0.4231</td></tr>
+</tbody></table>
+<p><b>The same cut as round 1 wins again</b>, \(x\le3\), but with a different weighted error (0.3077 instead of 0.20) and so a smaller vote. The stump family is identical in every round; only the weights move.</p>
+<div class="two">
+<div class="card"><h4>Round 3 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_3(x)=\) +1 if \(x\le 3\), else −1</span>
+<b>Misclassified</b><span>samples 5, 8</span>
+<b>\(\varepsilon_3\)</b><span>0.1538 + 0.1538 = <b>0.3077</b></span>
+<b>\(\alpha_3\)</b><span>\(\tfrac12\ln\frac{1-0.3077}{0.3077}=\tfrac12\ln(2.250)=\tfrac12\times0.811=\) <b>0.405</b></span>
+<b>Factors</b><span>correct ×\(e^{-0.405}\) = 0.6667; wrong ×\(e^{+0.405}\) = 1.5000</span>
+<b>\(Z_3\)</b><span>0.9231 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.9231 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>#</th><th>\(x\)</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0385</td><td>×0.6667</td><td>0.0256</td><td>0.0278</td></tr>
+<tr><td>2</td><td>2</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0385</td><td>×0.6667</td><td>0.0256</td><td>0.0278</td></tr>
+<tr><td>3</td><td>3</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0385</td><td>×0.6667</td><td>0.0256</td><td>0.0278</td></tr>
+<tr><td>4</td><td>4</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.6667</td><td>0.1111</td><td>0.1204</td></tr>
+<tr class="hl"><td>5</td><td>5</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.1538</td><td>×1.5000</td><td>0.2308</td><td>0.2500</td></tr>
+<tr><td>6</td><td>6</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.6667</td><td>0.1111</td><td>0.1204</td></tr>
+<tr><td>7</td><td>7</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.6667</td><td>0.1111</td><td>0.1204</td></tr>
+<tr class="hl"><td>8</td><td>8</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.1538</td><td>×1.5000</td><td>0.2308</td><td>0.2500</td></tr>
+<tr><td>9</td><td>9</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.0385</td><td>×0.6667</td><td>0.0256</td><td>0.0278</td></tr>
+<tr><td>10</td><td>10</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.0385</td><td>×0.6667</td><td>0.0256</td><td>0.0278</td></tr>
+<tr class="ex-sep"><td colspan="7"><b>Sum</b></td><td><b>Z = 0.9231</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Final classifier after three rounds</h3><span class="num">Slides 17–18</span></div><div class="body">
+<div class="formula">\[ H(x)=\operatorname{sign}\big(0.693\,h_1(x)+0.733\,h_2(x)+0.405\,h_3(x)\big),\qquad h_1=h_3:\ x\le3,\quad h_2:\ x\le8 . \]</div>
+<table class="dt compact"><thead><tr><th>#</th><th>\(x\)</th><th>\(y\)</th>
+<th>\(h_1\)</th>
+<th>\(h_2\)</th>
+<th>\(h_3\)</th>
+<th>\(F(x)=\sum_t\alpha_t h_t(x)\)</th><th>\(H(x)\)</th><th></th></tr></thead><tbody>
+<tr><td>1</td><td>1</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td>0.693 + 0.733 + 0.405 = +1.831</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>2</td><td>2</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td>0.693 + 0.733 + 0.405 = +1.831</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>3</td><td>3</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td>0.693 + 0.733 + 0.405 = +1.831</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>4</td><td>4</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.405 = −0.365</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr class="hl"><td>5</td><td>5</td><td>+1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.405 = −0.365</td><td>−1</td><td><b class="n">✗</b></td></tr>
+<tr><td>6</td><td>6</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.405 = −0.365</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>7</td><td>7</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.405 = −0.365</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr class="hl"><td>8</td><td>8</td><td>+1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.405 = −0.365</td><td>−1</td><td><b class="n">✗</b></td></tr>
+<tr><td>9</td><td>9</td><td>−1</td><td>−1</td><td>−1</td><td>−1</td><td>− 0.693 − 0.733 − 0.405 = −1.831</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>10</td><td>10</td><td>−1</td><td>−1</td><td>−1</td><td>−1</td><td>− 0.693 − 0.733 − 0.405 = −1.831</td><td>−1</td><td><b class="y">✓</b></td></tr>
+</tbody></table>
+<p><b>8/10 correct (80%).</b> Samples 5 and 8 (true \(+1\)) are lost: the two negative votes \(0.693+0.405=1.098\) outweigh the one positive vote \(0.733\). The figure shows the weighted vote \(F(x)\) as a staircase; the two misclassified points sit just below zero.</p>
+<figure><svg class="fig" viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Weighted vote of the 1-D AdaBoost ensemble">
+<rect x="52" y="22" width="652" height="117.0" fill="#edf5ef"/><rect x="52" y="139.0" width="652" height="117.0" fill="#fdecea"/>
+<line x1="52" y1="240.7" x2="704" y2="240.7" stroke="#ddd" stroke-dasharray="none"/><text x="46" y="244.7" text-anchor="end" font-size="11" fill="#555">-2</text>
+<line x1="52" y1="189.9" x2="704" y2="189.9" stroke="#ddd" stroke-dasharray="none"/><text x="46" y="193.9" text-anchor="end" font-size="11" fill="#555">-1</text>
+<line x1="52" y1="139.0" x2="704" y2="139.0" stroke="#888" stroke-dasharray="4 3"/><text x="46" y="143.0" text-anchor="end" font-size="11" fill="#555">0</text>
+<line x1="52" y1="88.1" x2="704" y2="88.1" stroke="#ddd" stroke-dasharray="none"/><text x="46" y="92.1" text-anchor="end" font-size="11" fill="#555">1</text>
+<line x1="52" y1="37.3" x2="704" y2="37.3" stroke="#ddd" stroke-dasharray="none"/><text x="46" y="41.3" text-anchor="end" font-size="11" fill="#555">2</text>
+<text x="84.6" y="272" text-anchor="middle" font-size="11" fill="#555">1</text>
+<text x="149.8" y="272" text-anchor="middle" font-size="11" fill="#555">2</text>
+<text x="215.0" y="272" text-anchor="middle" font-size="11" fill="#555">3</text>
+<text x="280.2" y="272" text-anchor="middle" font-size="11" fill="#555">4</text>
+<text x="345.4" y="272" text-anchor="middle" font-size="11" fill="#555">5</text>
+<text x="410.6" y="272" text-anchor="middle" font-size="11" fill="#555">6</text>
+<text x="475.8" y="272" text-anchor="middle" font-size="11" fill="#555">7</text>
+<text x="541.0" y="272" text-anchor="middle" font-size="11" fill="#555">8</text>
+<text x="606.2" y="272" text-anchor="middle" font-size="11" fill="#555">9</text>
+<text x="671.4" y="272" text-anchor="middle" font-size="11" fill="#555">10</text>
+<text x="378.0" y="294" text-anchor="middle" font-size="12" fill="#233343">feature value x</text>
+<text transform="translate(14 139) rotate(-90)" text-anchor="middle" font-size="12" fill="#233343">weighted vote F(x)</text>
+<text x="58" y="36" font-size="11" fill="#3C7A5A">vote &gt; 0 : predict +1</text><text x="58" y="250" font-size="11" fill="#b3261e">vote &lt; 0 : predict −1</text>
+<path d="M52.0 52.3 L117.2 52.3 L117.2 52.3 L182.4 52.3 L182.4 52.3 L247.6 52.3 L247.6 164.1 L312.8 164.1 L312.8 164.1 L378.0 164.1 L378.0 164.1 L443.2 164.1 L443.2 164.1 L508.4 164.1 L508.4 122.1 L573.6 122.1 L573.6 225.7 L638.8 225.7 L638.8 225.7 L704.0 225.7 " fill="none" stroke="#E78439" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>
+<path d="M52.0 45.9 L117.2 45.9 L117.2 45.9 L182.4 45.9 L182.4 45.9 L247.6 45.9 L247.6 157.6 L312.8 157.6 L312.8 157.6 L378.0 157.6 L378.0 157.6 L443.2 157.6 L443.2 157.6 L508.4 157.6 L508.4 157.6 L573.6 157.6 L573.6 232.1 L638.8 232.1 L638.8 232.1 L704.0 232.1 " fill="none" stroke="#233343" stroke-width="2.6" stroke-dasharray="none" stroke-linejoin="round"/>
+<circle cx="84.6" cy="45.9" r="5" fill="#3C7A5A" stroke="#fff" stroke-width="1.2"/>
+<circle cx="149.8" cy="45.9" r="5" fill="#3C7A5A" stroke="#fff" stroke-width="1.2"/>
+<circle cx="215.0" cy="45.9" r="5" fill="#3C7A5A" stroke="#fff" stroke-width="1.2"/>
+<circle cx="280.2" cy="157.6" r="5" fill="#b3261e" stroke="#fff" stroke-width="1.2"/>
+<circle cx="345.4" cy="157.6" r="10" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="345.4" cy="157.6" r="5" fill="#3C7A5A" stroke="#fff" stroke-width="1.2"/>
+<circle cx="410.6" cy="157.6" r="5" fill="#b3261e" stroke="#fff" stroke-width="1.2"/>
+<circle cx="475.8" cy="157.6" r="5" fill="#b3261e" stroke="#fff" stroke-width="1.2"/>
+<circle cx="541.0" cy="157.6" r="10" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="541.0" cy="157.6" r="5" fill="#3C7A5A" stroke="#fff" stroke-width="1.2"/>
+<circle cx="606.2" cy="232.1" r="5" fill="#b3261e" stroke="#fff" stroke-width="1.2"/>
+<circle cx="671.4" cy="232.1" r="5" fill="#b3261e" stroke="#fff" stroke-width="1.2"/>
+<rect x="446" y="30" width="258" height="58" fill="#fff" stroke="#e3d8cf" rx="4"/>
+<line x1="454" y1="44" x2="482" y2="44" stroke="#233343" stroke-width="2.6"/><text x="488" y="48" font-size="11" fill="#333">after 3 rounds (8/10 correct)</text>
+<line x1="454" y1="62" x2="482" y2="62" stroke="#E78439" stroke-width="2" stroke-dasharray="6 4"/><text x="488" y="66" font-size="11" fill="#333">after 5 rounds (9/10 correct)</text>
+<circle cx="460" cy="80" r="5" fill="#3C7A5A"/><text x="470" y="84" font-size="11" fill="#333">y = +1</text><circle cx="530" cy="80" r="5" fill="#b3261e"/><text x="540" y="84" font-size="11" fill="#333">y = −1</text><circle cx="600" cy="80" r="7" fill="none" stroke="#b3261e" stroke-width="2"/><text x="612" y="84" font-size="11" fill="#333">wrong (3 rounds)</text>
+</svg><figcaption>Weighted vote \(F(x)=\sum_t\alpha_t h_t(x)\) after three rounds (solid) and after five rounds (dashed). Sample 8 is recovered by round 5; sample 5 is not.</figcaption></figure>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Why samples 5 and 8 are hard — and what more rounds actually do</h3><span class="num">Slide 19</span></div><div class="body">
+<div class="two">
+<div class="card"><h4>\(x=5\), \(y=+1\)</h4><div class="kv"><b>\(h_1\)</b><span>\(5>3\Rightarrow-1\), weight 0.693, wrong</span><b>\(h_2\)</b><span>\(5\le8\Rightarrow+1\), weight 0.733, right</span><b>\(h_3\)</b><span>\(5>3\Rightarrow-1\), weight 0.405, wrong</span><b>Total</b><span>\(-0.693+0.733-0.405=-0.365<0\Rightarrow H=-1\)</span></div></div>
+<div class="card"><h4>\(x=8\), \(y=+1\)</h4><div class="kv"><b>\(h_1\)</b><span>\(8>3\Rightarrow-1\), wrong</span><b>\(h_2\)</b><span>\(8\le8\Rightarrow+1\), right</span><b>\(h_3\)</b><span>\(8>3\Rightarrow-1\), wrong</span><b>Total</b><span>\(-0.365<0\Rightarrow H=-1\)</span></div></div>
+</div>
+<div class="fix"><b>Correction to the slides.</b> Slide 19 claims that "a stump like \(h_4(x)=+1\) if \(4&lt;x\le8\)" would fix both points and that "after Round 4, \(\alpha_4\) would finally overpower the negative votes". Neither statement holds. A stump has one threshold, so \(4&lt;x\le8\) is not a stump. And running the algorithm on, with the round-3 weights, gives:</div>
+<table class="dt compact"><thead><tr><th>Round</th><th>Stump chosen</th><th>\(\varepsilon_t\)</th><th>\(\alpha_t\)</th><th>\(Z_t\)</th><th>\(\prod Z\) (bound)</th><th>\(F(5)\)</th><th>\(F(8)\)</th><th>Wrong after round</th><th>Train acc</th></tr></thead><tbody>
+<tr><td>1</td><td>+1 if \(x\le3\), else −1</td><td>0.2000</td><td>0.693</td><td>0.8000</td><td>0.800</td><td>−0.693</td><td>−0.693</td><td>5, 8</td><td>80%</td></tr>
+<tr><td>2</td><td>+1 if \(x\le8\), else −1</td><td>0.1875</td><td>0.733</td><td>0.7806</td><td>0.624</td><td>+0.040</td><td>+0.040</td><td>4, 6, 7</td><td>70%</td></tr>
+<tr><td>3</td><td>+1 if \(x\le3\), else −1</td><td>0.3077</td><td>0.405</td><td>0.9231</td><td>0.576</td><td>−0.365</td><td>−0.365</td><td>5, 8</td><td>80%</td></tr>
+<tr class="hl"><td>4</td><td>+1 if \(x\le8\), else −1</td><td>0.3611</td><td>0.285</td><td>0.9606</td><td>0.554</td><td>−0.080</td><td>−0.080</td><td>5, 8</td><td>80%</td></tr>
+<tr class="hl"><td>5</td><td>−1 if \(x\le7\), else +1</td><td>0.3043</td><td>0.413</td><td>0.9203</td><td>0.510</td><td>−0.494</td><td>+0.333</td><td>5</td><td>90%</td></tr>
+<tr class="hl"><td>6</td><td>+1 if \(x\le5\), else −1</td><td>0.2604</td><td>0.522</td><td>0.8777</td><td>0.447</td><td>+0.028</td><td>−0.189</td><td>4, 8</td><td>80%</td></tr>
+</tbody></table>
+<ul>
+<li><b>Round 4</b> picks \(x\le8\) again (\(\varepsilon_4=0.3611\), \(\alpha_4=0.285\)). Samples 5 and 8 move from \(-0.365\) to \(-0.080\): still negative, still wrong. Accuracy stays 80%.</li>
+<li><b>Round 5</b> picks the <i>flipped</i> stump "\(-1\) if \(x\le7\), else \(+1\)" (\(\varepsilon_5=0.3043\), \(\alpha_5=0.413\)). This lifts sample 8 to \(+0.333\) (fixed) but pushes sample 5 to \(-0.494\) (further wrong). Accuracy 90%.</li>
+<li><b>Round 6</b> picks \(x\le5\) (\(\alpha_6=0.522\)): sample 5 becomes correct (\(+0.028\)), but samples 4 (\(+0.028\)) and 8 (\(-0.189\)) are now wrong. Accuracy back to 80%.</li>
+</ul>
+<p>Two lessons. First, the <i>bound</i> \(\prod_t Z_t\) on training error always decreases (0.80 → 0.62 → 0.58 → 0.55 → 0.51 → 0.45 over six rounds), but the <i>actual</i> training error is not monotone: it went 0.2, 0.3, 0.2, 0.2, 0.1, 0.2. Second, sample 5 is a \(+1\) with \(-1\) neighbours on both sides; to make \(F(5)>0\) the stumps bounding the interval \(4&lt;x\le5\) (an "\(x\le5\)" cut and a flipped "\(x\le4\)" cut) must together outweigh \(h_1\) and \(h_3\) there, and whether the algorithm gets there depends on how the weights of 4, 6, 7 and 8 keep moving — we did not run it to convergence. In practice you would stop at the \(T\) that minimises <i>validation</i> error, not training error.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Example B (2-D) &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t4">
+<h2>4. Example B — AdaBoost on ten points in two dimensions</h2>
+<p class="lead" style="margin-top:0"><b>What changes with a second feature.</b> The stump must now choose a <i>feature</i> as well as a threshold and a polarity, so each round searches \(2\times4\times2=16\) candidates. Three rounds reach 100% training accuracy here, and the final boundary is not a single line but an L-shaped region that no single stump could draw. Rounds 1 and 2 happen to reproduce the same \(\varepsilon\), \(\alpha\) and weights as Example A (two then three misclassified points at equal weight), so you can check the arithmetic against the previous tab.</p>
+
+<div class="slide"><div class="sh"><h3>Dataset (N = 10, two features)</h3><span class="num">New</span></div><div class="body">
+<div class="two wide">
+<div><table class="dt compact"><thead><tr><th>Point</th><th>\(x_1\)</th><th>\(x_2\)</th><th>\(y\)</th><th>Initial \(w_i\)</th></tr></thead><tbody>
+<tr><td>P1</td><td>1</td><td>3</td><td>+1</td><td>0.10</td></tr>
+<tr><td>P2</td><td>1</td><td>5</td><td>−1</td><td>0.10</td></tr>
+<tr><td>P3</td><td>2</td><td>2</td><td>−1</td><td>0.10</td></tr>
+<tr><td>P4</td><td>2</td><td>3</td><td>−1</td><td>0.10</td></tr>
+<tr><td>P5</td><td>3</td><td>2</td><td>−1</td><td>0.10</td></tr>
+<tr><td>P6</td><td>4</td><td>1</td><td>+1</td><td>0.10</td></tr>
+<tr><td>P7</td><td>4</td><td>3</td><td>+1</td><td>0.10</td></tr>
+<tr><td>P8</td><td>5</td><td>1</td><td>+1</td><td>0.10</td></tr>
+<tr><td>P9</td><td>5</td><td>3</td><td>+1</td><td>0.10</td></tr>
+<tr><td>P10</td><td>5</td><td>4</td><td>−1</td><td>0.10</td></tr>
+</tbody></table></div>
+<div>
+<p>Features \(x_1,x_2\in\{1,\dots,5\}\). Thresholds are midpoints between consecutive values: \(\tau\in\{1.5,2.5,3.5,4.5\}\) for each feature. Candidate stumps: feature \(\times\) threshold \(\times\) polarity \(=2\times4\times2=16\).</p>
+<p>Geometry: the \(+1\) points sit at the lower right (P6–P9) plus one at the left (P1); the \(-1\) points sit in the middle (P3–P5) and in the top-left and right corners (P2, P10). No single axis-parallel cut separates them; the best single stump gets two points wrong.</p>
+<p>Initial weights \(w_i=0.10\).</p>
+</div></div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 1 — search over all 16 stumps</h3><span class="num">New</span></div><div class="body">
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>−1 if \(x_1\le 3.5\), else +1</td><td>P1, P10</td><td>0.1000 + 0.1000</td><td>0.2000 ★</td></tr>
+<tr><td>−1 if \(x_1\le 2.5\), else +1</td><td>P1, P5, P10</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x_2\le 1.5\), else −1</td><td>P1, P7, P9</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>+1 if \(x_2\le 3.5\), else −1</td><td>P3, P4, P5</td><td>0.1000 + 0.1000 + 0.1000</td><td>0.3000</td></tr>
+<tr><td>−1 if \(x_1\le 4.5\), else +1</td><td>P1, P6, P7, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.4000</td></tr>
+<tr><td>+1 if \(x_2\le 4.5\), else −1</td><td>P3, P4, P5, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.4000</td></tr>
+<tr><td>+1 if \(x_1\le 1.5\), else −1</td><td>P2, P6, P7, P8, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.5000</td></tr>
+<tr><td>−1 if \(x_1\le 1.5\), else +1</td><td>P1, P3, P4, P5, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.5000</td></tr>
+<tr><td>+1 if \(x_2\le 2.5\), else −1</td><td>P1, P3, P5, P7, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.5000</td></tr>
+<tr><td>−1 if \(x_2\le 2.5\), else +1</td><td>P2, P4, P6, P8, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.5000</td></tr>
+<tr><td>+1 if \(x_1\le 4.5\), else −1</td><td>P2, P3, P4, P5, P8, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.6000</td></tr>
+<tr><td>−1 if \(x_2\le 4.5\), else +1</td><td>P1, P2, P6, P7, P8, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.6000</td></tr>
+<tr><td>+1 if \(x_1\le 2.5\), else −1</td><td>P2, P3, P4, P6, P7, P8, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.7000</td></tr>
+<tr><td>−1 if \(x_2\le 1.5\), else +1</td><td>P2, P3, P4, P5, P6, P8, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.7000</td></tr>
+<tr><td>−1 if \(x_2\le 3.5\), else +1</td><td>P1, P2, P6, P7, P8, P9, P10</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.7000</td></tr>
+<tr><td>+1 if \(x_1\le 3.5\), else −1</td><td>P2, P3, P4, P5, P6, P7, P8, P9</td><td>0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000 + 0.1000</td><td>0.8000</td></tr>
+</tbody></table>
+<p>Winner: "\(-1\) if \(x_1\le3.5\), else \(+1\)" — a <i>flipped</i> stump, chosen in round 1 because it is the best candidate; it mislabels only P1 and P10. Three stumps tie at \(0.30\) and four at \(0.50\); the pairs of rows at \(0.50\) are each stump and its flip.</p>
+<div class="two">
+<div class="card"><h4>Round 1 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_1(x)=\) −1 if \(x_1\le 3.5\), else +1</span>
+<b>Misclassified</b><span>P1, P10</span>
+<b>\(\varepsilon_1\)</b><span>0.1000 + 0.1000 = <b>0.2000</b></span>
+<b>\(\alpha_1\)</b><span>\(\tfrac12\ln\frac{1-0.2000}{0.2000}=\tfrac12\ln(4.000)=\tfrac12\times1.386=\) <b>0.693</b></span>
+<b>Factors</b><span>correct ×0.5000; wrong ×2.0000</span>
+<b>\(Z_1\)</b><span>0.8000 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.8000 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>Point</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr class="hl"><td>P1</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.1000</td><td>×2.0000</td><td>0.2000</td><td>0.2500</td></tr>
+<tr><td>P2</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P3</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P4</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P5</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P6</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P7</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P8</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr><td>P9</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1000</td><td>×0.5000</td><td>0.0500</td><td>0.0625</td></tr>
+<tr class="hl"><td>P10</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.1000</td><td>×2.0000</td><td>0.2000</td><td>0.2500</td></tr>
+<tr class="ex-sep"><td colspan="6"><b>Sum</b></td><td><b>Z = 0.8000</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 2 — the heavy points pull the cut to the other feature</h3><span class="num">New</span></div><div class="body">
+<p>P1 and P10 now weigh 0.25 each. The six best candidates (the full ranking is in the same order as the round-1 table, re-scored):</p>
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>+1 if \(x_2\le 3.5\), else −1</td><td>P3, P4, P5</td><td>0.0625 + 0.0625 + 0.0625</td><td>0.1875 ★</td></tr>
+<tr><td>+1 if \(x_1\le 1.5\), else −1</td><td>P2, P6, P7, P8, P9</td><td>0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625</td><td>0.3125</td></tr>
+<tr><td>+1 if \(x_1\le 4.5\), else −1</td><td>P2, P3, P4, P5, P8, P9</td><td>0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625</td><td>0.3750</td></tr>
+<tr><td>+1 if \(x_2\le 1.5\), else −1</td><td>P1, P7, P9</td><td>0.2500 + 0.0625 + 0.0625</td><td>0.3750</td></tr>
+<tr><td>+1 if \(x_1\le 2.5\), else −1</td><td>P2, P3, P4, P6, P7, P8, P9</td><td>0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625 + 0.0625</td><td>0.4375</td></tr>
+<tr><td>+1 if \(x_2\le 4.5\), else −1</td><td>P3, P4, P5, P10</td><td>0.0625 + 0.0625 + 0.0625 + 0.2500</td><td>0.4375</td></tr>
+</tbody></table>
+<p>The round-1 stump is at exactly \(0.50\) (it misses P1 and P10, \(0.25+0.25\)). The winner switches to feature \(x_2\): "\(+1\) if \(x_2\le3.5\)" gets both heavy points right and misses only the three cheap middle points P3, P4, P5.</p>
+<div class="two">
+<div class="card"><h4>Round 2 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_2(x)=\) +1 if \(x_2\le 3.5\), else −1</span>
+<b>Misclassified</b><span>P3, P4, P5</span>
+<b>\(\varepsilon_2\)</b><span>0.0625 + 0.0625 + 0.0625 = <b>0.1875</b></span>
+<b>\(\alpha_2\)</b><span>\(\tfrac12\ln\frac{1-0.1875}{0.1875}=\tfrac12\ln(4.333)=\tfrac12\times1.466=\) <b>0.733</b></span>
+<b>Factors</b><span>correct ×0.4804; wrong ×2.0817</span>
+<b>\(Z_2\)</b><span>0.7806 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.7806 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>Point</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr><td>P1</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.2500</td><td>×0.4804</td><td>0.1201</td><td>0.1538</td></tr>
+<tr><td>P2</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr class="hl"><td>P3</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr class="hl"><td>P4</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr class="hl"><td>P5</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0625</td><td>×2.0817</td><td>0.1301</td><td>0.1667</td></tr>
+<tr><td>P6</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>P7</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>P8</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>P9</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.0625</td><td>×0.4804</td><td>0.0300</td><td>0.0385</td></tr>
+<tr><td>P10</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.2500</td><td>×0.4804</td><td>0.1201</td><td>0.1538</td></tr>
+<tr class="ex-sep"><td colspan="6"><b>Sum</b></td><td><b>Z = 0.7806</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+<p class="cap">After round 2 the vote is \(F(x)=0.693h_1+0.733h_2\). P3, P4, P5 are at \(+0.040\) (wrong), P1 at \(+0.040\) (right, barely), P10 at \(-0.040\) (right, barely). Training accuracy 70%: the second round made the ensemble <i>worse</i> by count while reducing the exponential loss.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 3 — a stump that is wrong on five points still wins</h3><span class="num">New</span></div><div class="body">
+<p>Weights entering round 3: P3, P4, P5 = 0.1667; P1, P10 = 0.1538; the other five = 0.0385. The six best candidates:</p>
+<table class="dt compact"><thead><tr><th>Stump</th><th>Misclassified</th><th>Weighted error</th><th>\(\varepsilon\)</th></tr></thead><tbody>
+<tr class="hl"><td>+1 if \(x_1\le 1.5\), else −1</td><td>P2, P6, P7, P8, P9</td><td>0.0385 + 0.0385 + 0.0385 + 0.0385 + 0.0385</td><td>0.1923 ★</td></tr>
+<tr><td>+1 if \(x_2\le 1.5\), else −1</td><td>P1, P7, P9</td><td>0.1538 + 0.0385 + 0.0385</td><td>0.2308</td></tr>
+<tr><td>−1 if \(x_1\le 3.5\), else +1</td><td>P1, P10</td><td>0.1538 + 0.1538</td><td>0.3077</td></tr>
+<tr><td>−1 if \(x_2\le 4.5\), else +1</td><td>P1, P2, P6, P7, P8, P9</td><td>0.1538 + 0.0385 + 0.0385 + 0.0385 + 0.0385 + 0.0385</td><td>0.3462</td></tr>
+<tr><td>−1 if \(x_1\le 4.5\), else +1</td><td>P1, P6, P7, P10</td><td>0.1538 + 0.0385 + 0.0385 + 0.1538</td><td>0.3846</td></tr>
+<tr><td>−1 if \(x_2\le 2.5\), else +1</td><td>P2, P4, P6, P8, P10</td><td>0.0385 + 0.1667 + 0.0385 + 0.0385 + 0.1538</td><td>0.4359</td></tr>
+</tbody></table>
+<p>"\(+1\) if \(x_1\le1.5\), else \(-1\)" misclassifies <b>five of the ten points</b> (P2, P6, P7, P8, P9) and still has the lowest weighted error, \(5\times0.0385=0.1923\), because those five are the ones the ensemble already handles with a large margin. This is the clearest illustration of what "weighted error" means: AdaBoost does not ask the new stump to be good on the data, it asks it to be good on the <i>currently hard</i> data.</p>
+<div class="two">
+<div class="card"><h4>Round 3 calculations</h4>
+<div class="kv">
+<b>Stump</b><span>\(h_3(x)=\) +1 if \(x_1\le 1.5\), else −1</span>
+<b>Misclassified</b><span>P2, P6, P7, P8, P9</span>
+<b>\(\varepsilon_3\)</b><span>0.0385 + 0.0385 + 0.0385 + 0.0385 + 0.0385 = <b>0.1923</b></span>
+<b>\(\alpha_3\)</b><span>\(\tfrac12\ln\frac{1-0.1923}{0.1923}=\tfrac12\ln(4.200)=\tfrac12\times1.435=\) <b>0.718</b></span>
+<b>Factors</b><span>correct ×0.4880; wrong ×2.0494</span>
+<b>\(Z_3\)</b><span>0.7882 &nbsp;(= \(2\sqrt{\varepsilon(1-\varepsilon)}\) = 0.7882 ✓)</span>
+</div></div>
+<div><table class="dt compact"><thead><tr><th>Point</th><th>\(y\)</th><th>\(h(x)\)</th><th>Correct?</th><th>\(w_{\text{prev}}\)</th><th>factor</th><th>raw</th><th>\(w_{\text{new}}\)</th></tr></thead><tbody>
+<tr><td>P1</td><td>+1</td><td>+1</td><td><b class="y">✓</b></td><td>0.1538</td><td>×0.4880</td><td>0.0751</td><td>0.0952</td></tr>
+<tr class="hl"><td>P2</td><td>−1</td><td>+1</td><td><b class="n">✗</b></td><td>0.0385</td><td>×2.0494</td><td>0.0788</td><td>0.1000</td></tr>
+<tr><td>P3</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.4880</td><td>0.0813</td><td>0.1032</td></tr>
+<tr><td>P4</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.4880</td><td>0.0813</td><td>0.1032</td></tr>
+<tr><td>P5</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1667</td><td>×0.4880</td><td>0.0813</td><td>0.1032</td></tr>
+<tr class="hl"><td>P6</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.0385</td><td>×2.0494</td><td>0.0788</td><td>0.1000</td></tr>
+<tr class="hl"><td>P7</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.0385</td><td>×2.0494</td><td>0.0788</td><td>0.1000</td></tr>
+<tr class="hl"><td>P8</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.0385</td><td>×2.0494</td><td>0.0788</td><td>0.1000</td></tr>
+<tr class="hl"><td>P9</td><td>+1</td><td>−1</td><td><b class="n">✗</b></td><td>0.0385</td><td>×2.0494</td><td>0.0788</td><td>0.1000</td></tr>
+<tr><td>P10</td><td>−1</td><td>−1</td><td><b class="y">✓</b></td><td>0.1538</td><td>×0.4880</td><td>0.0751</td><td>0.0952</td></tr>
+<tr class="ex-sep"><td colspan="6"><b>Sum</b></td><td><b>Z = 0.7882</b></td><td><b>1.0000</b></td></tr></tbody></table></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Final classifier: 10/10</h3><span class="num">New</span></div><div class="body">
+<div class="formula">\[ H(x)=\operatorname{sign}\big(0.693\,h_1(x)+0.733\,h_2(x)+0.718\,h_3(x)\big) \]</div>
+<table class="dt compact"><thead><tr><th>Point</th><th>(\(x_1,x_2\))</th><th>\(y\)</th><th>\(h_1\)</th><th>\(h_2\)</th><th>\(h_3\)</th><th>\(F(x)=\sum_t\alpha_t h_t(x)\)</th><th>\(H(x)\)</th><th></th></tr></thead><tbody>
+<tr><td>P1</td><td>(1, 3)</td><td>+1</td><td>−1</td><td>+1</td><td>+1</td><td>− 0.693 + 0.733 + 0.718 = +0.758</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P2</td><td>(1, 5)</td><td>−1</td><td>−1</td><td>−1</td><td>+1</td><td>− 0.693 − 0.733 + 0.718 = −0.708</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P3</td><td>(2, 2)</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.718 = −0.678</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P4</td><td>(2, 3)</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.718 = −0.678</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P5</td><td>(3, 2)</td><td>−1</td><td>−1</td><td>+1</td><td>−1</td><td>− 0.693 + 0.733 − 0.718 = −0.678</td><td>−1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P6</td><td>(4, 1)</td><td>+1</td><td>+1</td><td>+1</td><td>−1</td><td>0.693 + 0.733 − 0.718 = +0.708</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P7</td><td>(4, 3)</td><td>+1</td><td>+1</td><td>+1</td><td>−1</td><td>0.693 + 0.733 − 0.718 = +0.708</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P8</td><td>(5, 1)</td><td>+1</td><td>+1</td><td>+1</td><td>−1</td><td>0.693 + 0.733 − 0.718 = +0.708</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P9</td><td>(5, 3)</td><td>+1</td><td>+1</td><td>+1</td><td>−1</td><td>0.693 + 0.733 − 0.718 = +0.708</td><td>+1</td><td><b class="y">✓</b></td></tr>
+<tr><td>P10</td><td>(5, 4)</td><td>−1</td><td>+1</td><td>−1</td><td>−1</td><td>0.693 − 0.733 − 0.718 = −0.758</td><td>−1</td><td><b class="y">✓</b></td></tr>
+</tbody></table>
+<p>Every point is on the correct side, with margin at least 0.678. Reading the three stumps together: \(h_1\) and \(h_3\) nearly cancel for \(x_1\le1.5\) and for \(x_1>3.5\) (\(\mp0.693\pm0.718\)), so there \(h_2\) decides and the class is \(+1\) below \(x_2=3.5\); for \(1.5&lt;x_1\le3.5\) both vote \(-1\) (\(-1.411\)) and \(h_2\) cannot overturn them. Hence the region in the last panel: \(+1\) iff \(x_2\le3.5\) and (\(x_1\le1.5\) or \(x_1>3.5\)).</p>
+<figure><svg class="fig" viewBox="0 0 604 634" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2-D AdaBoost example, three rounds and final regions">
+<text x="48" y="28" font-size="12.5" font-weight="bold" fill="#233343">Round 1:  h₁ = −1 if x₁ ≤ 3.5, else +1</text>
+<text x="48" y="42" font-size="11" fill="#BD582C">ε₁ = 0.2000,  α₁ = 0.693,  misclassified: P1, P10</text>
+<rect x="48" y="48" width="230" height="230" fill="none" stroke="#999"/>
+<line x1="71.0" y1="48" x2="71.0" y2="278" stroke="#eee"/><line x1="48" y1="255.0" x2="278" y2="255.0" stroke="#eee"/>
+<text x="71.0" y="291" text-anchor="middle" font-size="10" fill="#555">1</text><text x="43" y="258.5" text-anchor="end" font-size="10" fill="#555">1</text>
+<line x1="117.0" y1="48" x2="117.0" y2="278" stroke="#eee"/><line x1="48" y1="209.0" x2="278" y2="209.0" stroke="#eee"/>
+<text x="117.0" y="291" text-anchor="middle" font-size="10" fill="#555">2</text><text x="43" y="212.5" text-anchor="end" font-size="10" fill="#555">2</text>
+<line x1="163.0" y1="48" x2="163.0" y2="278" stroke="#eee"/><line x1="48" y1="163.0" x2="278" y2="163.0" stroke="#eee"/>
+<text x="163.0" y="291" text-anchor="middle" font-size="10" fill="#555">3</text><text x="43" y="166.5" text-anchor="end" font-size="10" fill="#555">3</text>
+<line x1="209.0" y1="48" x2="209.0" y2="278" stroke="#eee"/><line x1="48" y1="117.0" x2="278" y2="117.0" stroke="#eee"/>
+<text x="209.0" y="291" text-anchor="middle" font-size="10" fill="#555">4</text><text x="43" y="120.5" text-anchor="end" font-size="10" fill="#555">4</text>
+<line x1="255.0" y1="48" x2="255.0" y2="278" stroke="#eee"/><line x1="48" y1="71.0" x2="278" y2="71.0" stroke="#eee"/>
+<text x="255.0" y="291" text-anchor="middle" font-size="10" fill="#555">5</text><text x="43" y="74.5" text-anchor="end" font-size="10" fill="#555">5</text>
+<text x="163.0" y="304" text-anchor="middle" font-size="11" fill="#233343">x₁</text><text x="24" y="163.0" text-anchor="middle" font-size="11" fill="#233343">x₂</text>
+<line x1="186.0" y1="48" x2="186.0" y2="278" stroke="#E78439" stroke-width="2.4" stroke-dasharray="7 4"/>
+<text x="180.0" y="272" text-anchor="end" font-size="11" font-weight="bold" fill="#E78439">−1</text><text x="192.0" y="272" font-size="11" font-weight="bold" fill="#E78439">+1</text>
+<circle cx="71.0" cy="163.0" r="16.0" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="71.0" cy="163.0" r="11.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="85.0" y="151.0" font-size="9.5" fill="#444">P1</text>
+<circle cx="71.0" cy="71.0" r="11.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="85.0" y="59.0" font-size="9.5" fill="#444">P2</text>
+<circle cx="117.0" cy="209.0" r="11.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="131.0" y="197.0" font-size="9.5" fill="#444">P3</text>
+<circle cx="117.0" cy="163.0" r="11.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="131.0" y="151.0" font-size="9.5" fill="#444">P4</text>
+<circle cx="163.0" cy="209.0" r="11.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="177.0" y="197.0" font-size="9.5" fill="#444">P5</text>
+<circle cx="209.0" cy="255.0" r="11.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="223.0" y="243.0" font-size="9.5" fill="#444">P6</text>
+<circle cx="209.0" cy="163.0" r="11.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="223.0" y="151.0" font-size="9.5" fill="#444">P7</text>
+<circle cx="255.0" cy="255.0" r="11.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="269.0" y="243.0" font-size="9.5" fill="#444">P8</text>
+<circle cx="255.0" cy="163.0" r="11.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="269.0" y="151.0" font-size="9.5" fill="#444">P9</text>
+<circle cx="255.0" cy="117.0" r="16.0" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="255.0" cy="117.0" r="11.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="269.0" y="105.0" font-size="9.5" fill="#444">P10</text>
+<text x="326" y="28" font-size="12.5" font-weight="bold" fill="#233343">Round 2:  h₂ = +1 if x₂ ≤ 3.5, else −1</text>
+<text x="326" y="42" font-size="11" fill="#BD582C">ε₂ = 0.1875,  α₂ = 0.733,  misclassified: P3, P4, P5</text>
+<rect x="326" y="48" width="230" height="230" fill="none" stroke="#999"/>
+<line x1="349.0" y1="48" x2="349.0" y2="278" stroke="#eee"/><line x1="326" y1="255.0" x2="556" y2="255.0" stroke="#eee"/>
+<text x="349.0" y="291" text-anchor="middle" font-size="10" fill="#555">1</text><text x="321" y="258.5" text-anchor="end" font-size="10" fill="#555">1</text>
+<line x1="395.0" y1="48" x2="395.0" y2="278" stroke="#eee"/><line x1="326" y1="209.0" x2="556" y2="209.0" stroke="#eee"/>
+<text x="395.0" y="291" text-anchor="middle" font-size="10" fill="#555">2</text><text x="321" y="212.5" text-anchor="end" font-size="10" fill="#555">2</text>
+<line x1="441.0" y1="48" x2="441.0" y2="278" stroke="#eee"/><line x1="326" y1="163.0" x2="556" y2="163.0" stroke="#eee"/>
+<text x="441.0" y="291" text-anchor="middle" font-size="10" fill="#555">3</text><text x="321" y="166.5" text-anchor="end" font-size="10" fill="#555">3</text>
+<line x1="487.0" y1="48" x2="487.0" y2="278" stroke="#eee"/><line x1="326" y1="117.0" x2="556" y2="117.0" stroke="#eee"/>
+<text x="487.0" y="291" text-anchor="middle" font-size="10" fill="#555">4</text><text x="321" y="120.5" text-anchor="end" font-size="10" fill="#555">4</text>
+<line x1="533.0" y1="48" x2="533.0" y2="278" stroke="#eee"/><line x1="326" y1="71.0" x2="556" y2="71.0" stroke="#eee"/>
+<text x="533.0" y="291" text-anchor="middle" font-size="10" fill="#555">5</text><text x="321" y="74.5" text-anchor="end" font-size="10" fill="#555">5</text>
+<text x="441.0" y="304" text-anchor="middle" font-size="11" fill="#233343">x₁</text><text x="302" y="163.0" text-anchor="middle" font-size="11" fill="#233343">x₂</text>
+<line x1="326" y1="140.0" x2="556" y2="140.0" stroke="#E78439" stroke-width="2.4" stroke-dasharray="7 4"/>
+<text x="330" y="135.0" font-size="11" font-weight="bold" fill="#E78439">−1</text><text x="330" y="153.0" font-size="11" font-weight="bold" fill="#E78439">+1</text>
+<circle cx="349.0" cy="163.0" r="15.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="367.0" y="147.0" font-size="9.5" fill="#444">P1</text>
+<circle cx="349.0" cy="71.0" r="9.5" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="361.5" y="60.5" font-size="9.5" fill="#444">P2</text>
+<circle cx="395.0" cy="209.0" r="14.5" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="395.0" cy="209.0" r="9.5" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="407.5" y="198.5" font-size="9.5" fill="#444">P3</text>
+<circle cx="395.0" cy="163.0" r="14.5" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="395.0" cy="163.0" r="9.5" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="407.5" y="152.5" font-size="9.5" fill="#444">P4</text>
+<circle cx="441.0" cy="209.0" r="14.5" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="441.0" cy="209.0" r="9.5" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="453.5" y="198.5" font-size="9.5" fill="#444">P5</text>
+<circle cx="487.0" cy="255.0" r="9.5" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="499.5" y="244.5" font-size="9.5" fill="#444">P6</text>
+<circle cx="487.0" cy="163.0" r="9.5" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="499.5" y="152.5" font-size="9.5" fill="#444">P7</text>
+<circle cx="533.0" cy="255.0" r="9.5" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="545.5" y="244.5" font-size="9.5" fill="#444">P8</text>
+<circle cx="533.0" cy="163.0" r="9.5" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="545.5" y="152.5" font-size="9.5" fill="#444">P9</text>
+<circle cx="533.0" cy="117.0" r="15.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="551.0" y="101.0" font-size="9.5" fill="#444">P10</text>
+<text x="48" y="326" font-size="12.5" font-weight="bold" fill="#233343">Round 3:  h₃ = +1 if x₁ ≤ 1.5, else −1</text>
+<text x="48" y="340" font-size="11" fill="#BD582C">ε₃ = 0.1923,  α₃ = 0.718,  misclassified: P2, P6, P7, P8, P9</text>
+<rect x="48" y="346" width="230" height="230" fill="none" stroke="#999"/>
+<line x1="71.0" y1="346" x2="71.0" y2="576" stroke="#eee"/><line x1="48" y1="553.0" x2="278" y2="553.0" stroke="#eee"/>
+<text x="71.0" y="589" text-anchor="middle" font-size="10" fill="#555">1</text><text x="43" y="556.5" text-anchor="end" font-size="10" fill="#555">1</text>
+<line x1="117.0" y1="346" x2="117.0" y2="576" stroke="#eee"/><line x1="48" y1="507.0" x2="278" y2="507.0" stroke="#eee"/>
+<text x="117.0" y="589" text-anchor="middle" font-size="10" fill="#555">2</text><text x="43" y="510.5" text-anchor="end" font-size="10" fill="#555">2</text>
+<line x1="163.0" y1="346" x2="163.0" y2="576" stroke="#eee"/><line x1="48" y1="461.0" x2="278" y2="461.0" stroke="#eee"/>
+<text x="163.0" y="589" text-anchor="middle" font-size="10" fill="#555">3</text><text x="43" y="464.5" text-anchor="end" font-size="10" fill="#555">3</text>
+<line x1="209.0" y1="346" x2="209.0" y2="576" stroke="#eee"/><line x1="48" y1="415.0" x2="278" y2="415.0" stroke="#eee"/>
+<text x="209.0" y="589" text-anchor="middle" font-size="10" fill="#555">4</text><text x="43" y="418.5" text-anchor="end" font-size="10" fill="#555">4</text>
+<line x1="255.0" y1="346" x2="255.0" y2="576" stroke="#eee"/><line x1="48" y1="369.0" x2="278" y2="369.0" stroke="#eee"/>
+<text x="255.0" y="589" text-anchor="middle" font-size="10" fill="#555">5</text><text x="43" y="372.5" text-anchor="end" font-size="10" fill="#555">5</text>
+<text x="163.0" y="602" text-anchor="middle" font-size="11" fill="#233343">x₁</text><text x="24" y="461.0" text-anchor="middle" font-size="11" fill="#233343">x₂</text>
+<line x1="94.0" y1="346" x2="94.0" y2="576" stroke="#E78439" stroke-width="2.4" stroke-dasharray="7 4"/>
+<text x="88.0" y="570" text-anchor="end" font-size="11" font-weight="bold" fill="#E78439">+1</text><text x="100.0" y="570" font-size="11" font-weight="bold" fill="#E78439">−1</text>
+<circle cx="71.0" cy="461.0" r="12.6" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="86.6" y="447.4" font-size="9.5" fill="#444">P1</text>
+<circle cx="71.0" cy="369.0" r="13.3" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="71.0" cy="369.0" r="8.3" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="82.3" y="359.7" font-size="9.5" fill="#444">P2</text>
+<circle cx="117.0" cy="507.0" r="13.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="133.0" y="493.0" font-size="9.5" fill="#444">P3</text>
+<circle cx="117.0" cy="461.0" r="13.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="133.0" y="447.0" font-size="9.5" fill="#444">P4</text>
+<circle cx="163.0" cy="507.0" r="13.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="179.0" y="493.0" font-size="9.5" fill="#444">P5</text>
+<circle cx="209.0" cy="553.0" r="13.3" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="209.0" cy="553.0" r="8.3" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="220.3" y="543.7" font-size="9.5" fill="#444">P6</text>
+<circle cx="209.0" cy="461.0" r="13.3" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="209.0" cy="461.0" r="8.3" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="220.3" y="451.7" font-size="9.5" fill="#444">P7</text>
+<circle cx="255.0" cy="553.0" r="13.3" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="255.0" cy="553.0" r="8.3" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="266.3" y="543.7" font-size="9.5" fill="#444">P8</text>
+<circle cx="255.0" cy="461.0" r="13.3" fill="none" stroke="#b3261e" stroke-width="2"/>
+<circle cx="255.0" cy="461.0" r="8.3" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="266.3" y="451.7" font-size="9.5" fill="#444">P9</text>
+<circle cx="255.0" cy="415.0" r="12.6" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="270.6" y="401.4" font-size="9.5" fill="#444">P10</text>
+<text x="326" y="326" font-size="12.5" font-weight="bold" fill="#233343">Final:  H(x) = sign(0.693 h₁ + 0.733 h₂ + 0.718 h₃)</text>
+<text x="326" y="340" font-size="11" fill="#BD582C">10/10 correct — green region predicts +1, red predicts −1</text>
+<rect x="326.0" y="346.0" width="230" height="230" fill="#fdecea"/>
+<rect x="326.0" y="438.0" width="46.0" height="138.0" fill="#edf5ef"/>
+<rect x="464.0" y="438.0" width="92.0" height="138.0" fill="#edf5ef"/>
+<rect x="326" y="346" width="230" height="230" fill="none" stroke="#999"/>
+<line x1="349.0" y1="346" x2="349.0" y2="576" stroke="#eee"/><line x1="326" y1="553.0" x2="556" y2="553.0" stroke="#eee"/>
+<text x="349.0" y="589" text-anchor="middle" font-size="10" fill="#555">1</text><text x="321" y="556.5" text-anchor="end" font-size="10" fill="#555">1</text>
+<line x1="395.0" y1="346" x2="395.0" y2="576" stroke="#eee"/><line x1="326" y1="507.0" x2="556" y2="507.0" stroke="#eee"/>
+<text x="395.0" y="589" text-anchor="middle" font-size="10" fill="#555">2</text><text x="321" y="510.5" text-anchor="end" font-size="10" fill="#555">2</text>
+<line x1="441.0" y1="346" x2="441.0" y2="576" stroke="#eee"/><line x1="326" y1="461.0" x2="556" y2="461.0" stroke="#eee"/>
+<text x="441.0" y="589" text-anchor="middle" font-size="10" fill="#555">3</text><text x="321" y="464.5" text-anchor="end" font-size="10" fill="#555">3</text>
+<line x1="487.0" y1="346" x2="487.0" y2="576" stroke="#eee"/><line x1="326" y1="415.0" x2="556" y2="415.0" stroke="#eee"/>
+<text x="487.0" y="589" text-anchor="middle" font-size="10" fill="#555">4</text><text x="321" y="418.5" text-anchor="end" font-size="10" fill="#555">4</text>
+<line x1="533.0" y1="346" x2="533.0" y2="576" stroke="#eee"/><line x1="326" y1="369.0" x2="556" y2="369.0" stroke="#eee"/>
+<text x="533.0" y="589" text-anchor="middle" font-size="10" fill="#555">5</text><text x="321" y="372.5" text-anchor="end" font-size="10" fill="#555">5</text>
+<text x="441.0" y="602" text-anchor="middle" font-size="11" fill="#233343">x₁</text><text x="302" y="461.0" text-anchor="middle" font-size="11" fill="#233343">x₂</text>
+<circle cx="349.0" cy="461.0" r="6.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="358.0" y="454.0" font-size="9.5" fill="#444">P1</text>
+<circle cx="349.0" cy="369.0" r="6.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="358.0" y="362.0" font-size="9.5" fill="#444">P2</text>
+<circle cx="395.0" cy="507.0" r="6.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="404.0" y="500.0" font-size="9.5" fill="#444">P3</text>
+<circle cx="395.0" cy="461.0" r="6.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="404.0" y="454.0" font-size="9.5" fill="#444">P4</text>
+<circle cx="441.0" cy="507.0" r="6.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="450.0" y="500.0" font-size="9.5" fill="#444">P5</text>
+<circle cx="487.0" cy="553.0" r="6.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="496.0" y="546.0" font-size="9.5" fill="#444">P6</text>
+<circle cx="487.0" cy="461.0" r="6.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="496.0" y="454.0" font-size="9.5" fill="#444">P7</text>
+<circle cx="533.0" cy="553.0" r="6.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="542.0" y="546.0" font-size="9.5" fill="#444">P8</text>
+<circle cx="533.0" cy="461.0" r="6.0" fill="#3C7A5A" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="542.0" y="454.0" font-size="9.5" fill="#444">P9</text>
+<circle cx="533.0" cy="415.0" r="6.0" fill="#b3261e" fill-opacity=".85" stroke="#fff" stroke-width="1.2"/>
+<text x="542.0" y="408.0" font-size="9.5" fill="#444">P10</text>
+<text x="48" y="630" font-size="10.5" fill="#555">Circle area ∝ sample weight entering that round; red ring = misclassified by that round&#39;s stump.</text>
+</svg><figcaption>Rounds 1–3 with sample weights as circle area and the chosen stump as the dashed line; final panel shows the decision regions of the three-stump vote.</figcaption></figure>
+<div class="note"><b>What Example B adds to Example A.</b> (1) Feature selection is free: no one told the algorithm which feature matters at which stage. (2) The combined boundary is non-linear even though each piece is a single axis-parallel cut. (3) Weighted error ≠ error count — round 3's winner is wrong on half the points. (4) A flipped stump can win in round 1, so both polarities must always be searched.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: XGBoost &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t5">
+<h2>5. XGBoost — objective, second-order step, worked regression</h2>
+
+<div class="slide"><div class="sh"><h3>Overview</h3><span class="num">Slide 22</span></div><div class="body">
+<p>XGBoost is an optimised, regularised implementation of <b>gradient tree boosting</b>. Instead of re-weighting samples, each new tree \(f_t\) is fitted to the <i>gradient</i> of the loss at the current prediction (for squared loss: the residuals). The model after \(T\) rounds is</p>
+<div class="formula">\[ F_T(x)=F_0(x)+\eta f_1(x)+\eta f_2(x)+\cdots+\eta f_T(x), \]</div>
+<p>where \(\eta\in(0,1]\) is the learning rate (shrinkage) and each \(f_t\) is a regression tree that maps \(x\) to the weight \(w_j\) of the leaf \(x\) lands in. Compare AdaBoost: there the "trees" are stumps returning \(\pm1\), the step size \(\alpha_t\) is solved per round, and the loss is exponential.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Regularised objective</h3><span class="num">Slide 23</span></div><div class="body">
+<div class="formula">\[ \text{Obj}=\sum_{i=1}^{N} L(y_i,\hat y_i)\;+\;\sum_{k=1}^{T}\Omega(f_k),\qquad \Omega(f)=\gamma\,T_{\text{leaves}}+\tfrac12\lambda\sum_{j=1}^{T_{\text{leaves}}} w_j^{2}. \]</div>
+<div class="kv">
+<b>\(L(y_i,\hat y_i)\)</b><span>any differentiable loss: squared error for regression, log-loss for classification.</span>
+<b>\(T_{\text{leaves}}\)</b><span>number of leaves in the tree; \(\gamma\) charges a fixed price per leaf, so a split must earn more than \(\gamma\) to be kept.</span>
+<b>\(w_j\)</b><span>the value predicted by leaf \(j\); \(\lambda\) is an L2 penalty that shrinks leaf values towards zero.</span>
+</div>
+<p>The library also offers an L1 term \(\alpha\sum_j|w_j|\) (<code>reg_alpha</code>); it is omitted from the derivation below.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Second-order Taylor step, leaf weights and split gain</h3><span class="num">Slide 24</span></div><div class="body">
+<p>At round \(t\) the prediction is \(\hat y_i^{(t)}=\hat y_i^{(t-1)}+f_t(x_i)\). Expanding \(L\) to second order around \(\hat y_i^{(t-1)}\) and dropping terms that do not depend on \(f_t\):</p>
+<div class="formula">\[ \text{Obj}^{(t)}\approx\sum_{i=1}^{N}\Big[g_i\,f_t(x_i)+\tfrac12 h_i\,f_t(x_i)^2\Big]+\Omega(f_t),\qquad g_i=\frac{\partial L}{\partial\hat y_i},\quad h_i=\frac{\partial^2L}{\partial\hat y_i^2}, \]</div>
+<p>both derivatives evaluated at the previous prediction \(\hat y_i^{(t-1)}\). Because every sample in leaf \(j\) receives the same value \(w_j\), group the sum by leaf with \(G_j=\sum_{i\in I_j}g_i\) and \(H_j=\sum_{i\in I_j}h_i\):</p>
+<div class="formula">\[ \text{Obj}^{(t)}\approx\sum_{j=1}^{T_{\text{leaves}}}\Big[G_j w_j+\tfrac12(H_j+\lambda)w_j^2\Big]+\gamma T_{\text{leaves}} . \]</div>
+<p>Each bracket is a parabola in \(w_j\). Setting its derivative to zero gives the <b>optimal leaf weight</b> and, substituting back, the <b>objective value</b> of a tree structure:</p>
+<div class="formula">\[ w_j^{*}=-\frac{G_j}{H_j+\lambda},\qquad \text{Obj}^{*}=-\tfrac12\sum_{j}\frac{G_j^{2}}{H_j+\lambda}+\gamma T_{\text{leaves}} . \]</div>
+<p>Splitting a leaf with totals \((G,H)\) into left \((G_L,H_L)\) and right \((G_R,H_R)\) changes the objective by the <b>split gain</b>; the split is kept only if it is positive:</p>
+<div class="formula">\[ \text{Gain}=\tfrac12\left[\frac{G_L^{2}}{H_L+\lambda}+\frac{G_R^{2}}{H_R+\lambda}-\frac{(G_L+G_R)^{2}}{H_L+H_R+\lambda}\right]-\gamma . \]</div>
+<div class="fix"><b>Correction to the slides.</b> Slide 24 announces "Split Gain (should be &gt; 0 to accept split):" and then the formula is missing — it overflowed the slide and was cut off, so students meet the gain formula for the first time inside the numerical slide 26. It is restored above.</div>
+<table class="dt">
+<thead><tr><th>Loss</th><th>\(L(y,\hat y)\)</th><th>\(g=\partial L/\partial\hat y\)</th><th>\(h=\partial^2L/\partial\hat y^2\)</th></tr></thead>
+<tbody>
+<tr><td>Squared (regression)</td><td>\(\tfrac12(y-\hat y)^2\)</td><td>\(\hat y-y\) (the signed residual, prediction minus truth)</td><td>\(1\)</td></tr>
+<tr><td>Log-loss (binary classification), \(p=\sigma(\hat y)\)</td><td>\(-y\ln p-(1-y)\ln(1-p)\)</td><td>\(p-y\)</td><td>\(p(1-p)\)</td></tr>
+</tbody></table>
+<p class="cap">The factor \(\tfrac12\) in the squared loss is what makes \(h_i=1\); with \((y-\hat y)^2\) you would get \(g_i=2(\hat y_i-y_i)\) and \(h_i=2\), and the leaf weights would change accordingly.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Worked example — house price regression, setup</h3><span class="num">Slide 25</span></div><div class="body">
+<p>Predict price (lakh Tk) from floor area. Squared loss, \(\lambda=1\), \(\gamma=0\), \(\eta=0.3\). The starting prediction is the mean, \(F_0=\frac{50+70+90+110+130}{5}=90\).</p>
+<table class="dt compact">
+<thead><tr><th>House</th><th>Area (sq ft)</th><th>Actual \(y\)</th><th>\(F_0\)</th><th>\(g_i=F_0-y_i\)</th><th>\(h_i\)</th></tr></thead>
+<tbody>
+<tr><td>H1</td><td>600</td><td>50</td><td>90</td><td>+40</td><td>1</td></tr>
+<tr><td>H2</td><td>800</td><td>70</td><td>90</td><td>+20</td><td>1</td></tr>
+<tr><td>H3</td><td>1000</td><td>90</td><td>90</td><td>0</td><td>1</td></tr>
+<tr><td>H4</td><td>1200</td><td>110</td><td>90</td><td>−20</td><td>1</td></tr>
+<tr><td>H5</td><td>1400</td><td>130</td><td>90</td><td>−40</td><td>1</td></tr>
+</tbody></table>
+<p class="cap">Sign convention throughout: \(g_i=\) prediction − actual. A positive gradient means the model is <i>over</i>-predicting, so the leaf weight (which is \(-G/(H+\lambda)\)) will be negative there.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 1 — try every split, then compute the leaves</h3><span class="num">Slide 26</span></div><div class="body">
+<p>With five sorted areas there are four candidate cut points. Score all of them with the gain formula (\(\lambda=1\), \(\gamma=0\)):</p>
+<table class="dt compact">
+<thead><tr><th>Split</th><th>Left \(\{G_L,H_L\}\)</th><th>Right \(\{G_R,H_R\}\)</th><th>\(\tfrac{G_L^2}{H_L+1}\)</th><th>\(\tfrac{G_R^2}{H_R+1}\)</th><th>\(\tfrac{(G_L+G_R)^2}{H+1}\)</th><th>Gain</th></tr></thead>
+<tbody>
+<tr><td>Area ≤ 600</td><td>{40, 1}</td><td>{−40, 4}</td><td>800</td><td>320</td><td>0</td><td>560</td></tr>
+<tr class="hl"><td>Area ≤ 800</td><td>{60, 2}</td><td>{−60, 3}</td><td>1200</td><td>900</td><td>0</td><td>1050 ★</td></tr>
+<tr class="hl"><td>Area ≤ 1000</td><td>{60, 3}</td><td>{−60, 2}</td><td>900</td><td>1200</td><td>0</td><td>1050 ★</td></tr>
+<tr><td>Area ≤ 1200</td><td>{40, 4}</td><td>{−40, 1}</td><td>320</td><td>800</td><td>0</td><td>560</td></tr>
+</tbody></table>
+<div class="fix"><b>Correction to the slides.</b> Slide 26 presents Area ≤ 800 as <i>the</i> split without showing the alternatives. Scored properly, Area ≤ 800 and Area ≤ 1000 tie at gain 1050 — the data are symmetric about H3, whose gradient is 0, so it can go to either side. We keep Area ≤ 800 (the first encountered; the library breaks such ties by scan order) and note that the other choice would give leaves \(-15\) and \(+20\) with the same objective.</div>
+<div class="two">
+<div class="card"><h4>Left leaf {H1, H2}, Area ≤ 800</h4><div class="kv">
+<b>\(G_L\)</b><span>\(40+20=+60\)</span><b>\(H_L\)</b><span>\(1+1=2\)</span>
+<b>\(w_L^*\)</b><span>\(-G_L/(H_L+\lambda)=-60/3=\) <b>−20</b></span></div></div>
+<div class="card"><h4>Right leaf {H3, H4, H5}, Area &gt; 800</h4><div class="kv">
+<b>\(G_R\)</b><span>\(0-20-40=-60\)</span><b>\(H_R\)</b><span>\(1+1+1=3\)</span>
+<b>\(w_R^*\)</b><span>\(-G_R/(H_R+\lambda)=+60/4=\) <b>+15</b></span></div></div>
+</div>
+<div class="formula">\[ \text{Gain}=\tfrac12\Big[\tfrac{60^2}{2+1}+\tfrac{(-60)^2}{3+1}-\tfrac{0^2}{5+1}\Big]-0=\tfrac12[1200+900-0]=1050>0\ \checkmark \]</div>
+<p class="cap">Without \(\lambda\) the leaves would be the plain residual means, \(-60/2=-30\) and \(+60/3=+20\). The L2 term pulls them to \(-20\) and \(+15\); that shrinkage is the regularisation at work, and it is strongest on small leaves.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Updated predictions after round 1</h3><span class="num">Slide 27</span></div><div class="body">
+<p>\(F_1(x)=F_0+\eta\,f_1(x)\) with \(\eta=0.3\):</p>
+<table class="dt compact">
+<thead><tr><th>House</th><th>\(F_0\)</th><th>Leaf \(w^*\)</th><th>\(\eta\,w^*\)</th><th>\(F_1=F_0+\eta w^*\)</th><th>Actual \(y\)</th><th>New \(g_i=F_1-y_i\)</th></tr></thead>
+<tbody>
+<tr><td>H1</td><td>90</td><td>−20</td><td>−6.0</td><td>84.0</td><td>50</td><td>+34.0</td></tr>
+<tr><td>H2</td><td>90</td><td>−20</td><td>−6.0</td><td>84.0</td><td>70</td><td>+14.0</td></tr>
+<tr><td>H3</td><td>90</td><td>+15</td><td>+4.5</td><td>94.5</td><td>90</td><td>+4.5</td></tr>
+<tr><td>H4</td><td>90</td><td>+15</td><td>+4.5</td><td>94.5</td><td>110</td><td>−15.5</td></tr>
+<tr><td>H5</td><td>90</td><td>+15</td><td>+4.5</td><td>94.5</td><td>130</td><td>−35.5</td></tr>
+</tbody></table>
+<div class="fix"><b>Correction to the slides.</b> Slide 27 lists the new residuals of H1 and H2 as −34.0 and −14.0. Under the convention used everywhere else on the slide (\(g=\) prediction − actual, which gives H3's +4.5) they are <b>+34.0</b> and <b>+14.0</b>: 84 − 50 and 84 − 70. The slide mixed two sign conventions in one column.</div>
+<p>The sum of absolute residuals fell from 120 to 103.5. The learning rate deliberately leaves most of the error in place — each tree takes 30% of its full step — so that many small trees share the work instead of the first tree dominating.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Round 2 — a different split wins</h3><span class="num">New</span></div><div class="body">
+<p>Fit \(f_2\) to the new gradients \(g=(+34,+14,+4.5,-15.5,-35.5)\), still with \(h_i=1\):</p>
+<table class="dt compact">
+<thead><tr><th>Split</th><th>\(G_L,H_L\)</th><th>\(G_R,H_R\)</th><th>\(w_L^*\)</th><th>\(w_R^*\)</th><th>Gain</th></tr></thead>
+<tbody>
+<tr><td>Area ≤ 600</td><td>34, 1</td><td>−32.5, 4</td><td>−17.00</td><td>+6.50</td><td>394.44</td></tr>
+<tr><td>Area ≤ 800</td><td>48, 2</td><td>−46.5, 3</td><td>−16.00</td><td>+11.63</td><td>654.09</td></tr>
+<tr class="hl"><td>Area ≤ 1000</td><td>52.5, 3</td><td>−51, 2</td><td>−13.13</td><td>+17.00</td><td>777.84 ★</td></tr>
+<tr><td>Area ≤ 1200</td><td>37, 4</td><td>−35.5, 1</td><td>−7.40</td><td>+17.75</td><td>451.77</td></tr>
+</tbody></table>
+<p>The round-1 tie is broken by the new gradients: H3 is now over-predicted (+4.5), so it belongs with the over-predicted left group, and Area ≤ 1000 wins outright. Check the winner's gain: \(\tfrac12\big[\tfrac{52.5^2}{4}+\tfrac{51^2}{3}-\tfrac{1.5^2}{6}\big]=\tfrac12[689.06+867-0.375]=777.84\).</p>
+<table class="dt compact">
+<thead><tr><th>House</th><th>\(F_1\)</th><th>Leaf \(w^*\)</th><th>\(\eta\,w^*\)</th><th>\(F_2\)</th><th>Actual</th><th>\(g_i=F_2-y_i\)</th></tr></thead>
+<tbody>
+<tr><td>H1</td><td>84.0</td><td>−13.125</td><td>−3.94</td><td>80.06</td><td>50</td><td>+30.06</td></tr>
+<tr><td>H2</td><td>84.0</td><td>−13.125</td><td>−3.94</td><td>80.06</td><td>70</td><td>+10.06</td></tr>
+<tr><td>H3</td><td>94.5</td><td>−13.125</td><td>−3.94</td><td>90.56</td><td>90</td><td>+0.56</td></tr>
+<tr><td>H4</td><td>94.5</td><td>+17</td><td>+5.10</td><td>99.60</td><td>110</td><td>−10.40</td></tr>
+<tr><td>H5</td><td>94.5</td><td>+17</td><td>+5.10</td><td>99.60</td><td>130</td><td>−30.40</td></tr>
+</tbody></table>
+<p>Sum of absolute residuals: 120 → 103.5 → 81.5. Rounds continue until \(T\) trees are built or validation error stops improving (early stopping). Each tree here has depth 1; real XGBoost trees go deeper (<code>max_depth</code> 3–8), applying the same gain formula recursively inside each leaf.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Key engineering features</h3><span class="num">Slide 28</span></div><div class="body">
+<div class="three">
+<div class="card"><h4>Regularisation</h4><p>\(\gamma\) per leaf, \(\lambda\) (L2) and \(\alpha\) (L1) on leaf weights, plus row and column subsampling.</p></div>
+<div class="card"><h4>Missing values</h4><p>Sparsity-aware split finding learns a default direction for missing values at every node; no imputation needed.</p></div>
+<div class="card"><h4>Pruning</h4><p>A split with Gain ≤ 0 (after subtracting \(\gamma\)) is removed, bottom-up.</p></div>
+<div class="card"><h4>Parallel split finding</h4><p>Candidate splits for different features are evaluated in parallel <i>within</i> one tree. The trees themselves are still built one after another.</p></div>
+<div class="card"><h4>Column subsampling</h4><p>A random subset of features per tree (and optionally per level), as in random forests — decorrelates the trees.</p></div>
+<div class="card"><h4>Early stopping</h4><p>Training stops when a validation metric has not improved for a set number of rounds.</p></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Key hyperparameters</h3><span class="num">Slide 29</span></div><div class="body">
+<table class="dt">
+<thead><tr><th>Parameter</th><th>Meaning</th><th>Typical range</th></tr></thead>
+<tbody>
+<tr><td><code>n_estimators</code> (\(T\))</td><td>Number of boosting rounds / trees</td><td>100 – 1000</td></tr>
+<tr><td><code>learning_rate</code> (\(\eta\))</td><td>Shrinkage applied to each tree's leaf values</td><td>0.01 – 0.3</td></tr>
+<tr><td><code>max_depth</code></td><td>Maximum depth of each tree</td><td>3 – 8</td></tr>
+<tr><td><code>min_child_weight</code></td><td>Minimum \(H_j\) (sum of hessians) a leaf may have</td><td>1 – 10</td></tr>
+<tr><td><code>subsample</code></td><td>Fraction of rows used per tree</td><td>0.5 – 1.0</td></tr>
+<tr><td><code>colsample_bytree</code></td><td>Fraction of features used per tree</td><td>0.5 – 1.0</td></tr>
+<tr><td><code>reg_lambda</code> (\(\lambda\))</td><td>L2 penalty on leaf weights</td><td>0 – 10</td></tr>
+<tr><td><code>gamma</code> / <code>min_split_loss</code> (\(\gamma\))</td><td>Minimum gain to keep a split</td><td>0 – 5</td></tr>
+</tbody></table>
+<p class="cap">A reasonable start: <code>n_estimators=300, learning_rate=0.05, max_depth=5</code>, with early stopping on a validation set to find \(T\). Smaller \(\eta\) needs more trees but usually generalises better.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Comparison &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t6">
+<h2>6. AdaBoost vs XGBoost</h2>
+
+<div class="slide"><div class="sh"><h3>Head-to-head</h3><span class="num">Slide 31</span></div><div class="body">
+<table class="dt">
+<thead><tr><th>Aspect</th><th>AdaBoost</th><th>XGBoost</th></tr></thead>
+<tbody>
+<tr><td>Year</td><td>1997 (Freund &amp; Schapire)</td><td>2016 (Chen &amp; Guestrin), on Friedman's 2001 gradient boosting</td></tr>
+<tr><td>Framework</td><td colspan="2">Both are forward stagewise additive models \(F_T=\sum_t\alpha_t h_t\) (tab 1)</td></tr>
+<tr><td>Base learner</td><td>Any weak learner; stumps are the common default (scikit-learn uses depth-1 trees)</td><td>Regression trees, usually depth 3–8</td></tr>
+<tr><td>What the new learner is fitted to</td><td>Re-weighted copies of the labels</td><td>Gradients and hessians of the loss (residuals, for squared loss)</td></tr>
+<tr><td>Loss</td><td>Exponential (implicit)</td><td>Any differentiable loss (squared, log-loss, Poisson, …)</td></tr>
+<tr><td>Step size</td><td>\(\alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}\), solved per round</td><td>Learning rate \(\eta\) times closed-form leaf values</td></tr>
+<tr><td>Regularisation</td><td>Number of rounds \(T\); optional shrinkage</td><td>\(\gamma\), \(\lambda\), \(\alpha\), row/column subsampling, early stopping, <code>min_child_weight</code></td></tr>
+<tr><td>Missing values</td><td>Needs imputation (depends on the base learner)</td><td>Handled natively by learned default directions</td></tr>
+<tr><td>Parallelism</td><td>None in the standard algorithm; rounds are sequential</td><td>Rounds are also sequential; split finding is parallel across features within a tree, and histogram/distributed modes scale to large data</td></tr>
+<tr><td>Outlier sensitivity</td><td>High — exponential loss grows as \(e^{-m}\) in the margin</td><td>Lower with log-loss or Huber-type losses; \(\lambda\) and \(\gamma\) limit how far one leaf can chase a point</td></tr>
+<tr><td>Best use</td><td>Clean, small-to-medium data; teaching; quick interpretable baseline</td><td>Large tabular data with mixed types and missing values; when accuracy matters most</td></tr>
+</tbody></table>
+<div class="fix"><b>Corrections to the slides.</b> (1) Slide 31 lists AdaBoost's base learner as "decision stumps" and slide 20 says it "can use ANY weak learner"; the second is the algorithm, the first is a library default. (2) "Speed: slower — sequential only" vs "fast — parallel" implies XGBoost builds trees concurrently. It does not; boosting is sequential across trees in both. XGBoost's speed comes from parallel split evaluation inside each tree, histogram binning and cache-aware data layout. (3) The slide's "AdaBoost has no regularisation, a key reason XGBoost generalises better" puts the cause in the wrong place for the outlier question; see the loss comparison below.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Why the loss matters more than \(\lambda\) for outliers</h3><span class="num">New</span></div><div class="body">
+<p>Write the margin of a sample as \(m=yF(x)\): positive when correct, negative when wrong, larger in magnitude when the ensemble is more confident. The per-sample loss as a function of \(m\):</p>
+<table class="dt compact">
+<thead><tr><th>Margin \(m\)</th><th>Exponential \(e^{-m}\)</th><th>Log-loss \(\ln(1+e^{-m})\)</th><th>Hinge \(\max(0,1-m)\)</th></tr></thead>
+<tbody>
+<tr><td>+3 (confidently right)</td><td>0.050</td><td>0.049</td><td>0</td></tr>
+<tr><td>0 (on the boundary)</td><td>1</td><td>0.693</td><td>1</td></tr>
+<tr><td>−1</td><td>2.718</td><td>1.313</td><td>2</td></tr>
+<tr><td>−3 (confidently wrong, e.g. a mislabelled point)</td><td><b>20.09</b></td><td><b>3.05</b></td><td>4</td></tr>
+</tbody></table>
+<p>A mislabelled point that the ensemble is (correctly, by the true pattern) confident about costs the exponential loss 20 — roughly the weight of 400 well-classified points — so the next AdaBoost round is driven by it. Log-loss grows only linearly in \(-m\), so a gradient-boosted log-loss model keeps paying attention to the bulk. That is the mechanism behind "AdaBoost is sensitive to noise"; \(\lambda\) on leaf weights is a second, smaller effect that caps how far any one leaf moves per tree.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Python &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t7">
+<h2>7. Python implementation</h2>
+
+<div class="slide"><div class="sh"><h3>AdaBoost with decision stumps (scikit-learn)</h3><span class="num">Slide 33</span></div><div class="body">
+<pre><code>from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# Decision stumps as weak learners (max_depth=1)
+stump = DecisionTreeClassifier(max_depth=1)
+
+# AdaBoost with 50 stumps; learning_rate scales every alpha_t (1.0 = the textbook algorithm)
+ada = AdaBoostClassifier(estimator=stump, n_estimators=50,
+                         learning_rate=1.0, random_state=42)
+ada.fit(X_train, y_train)
+
+y_pred = ada.predict(X_test)
+print('Accuracy:', accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# inspect the ensemble: one alpha_t and one weighted error per round
+print(ada.estimator_weights_[:5])   # alpha_t
+print(ada.estimator_errors_[:5])    # epsilon_t</code></pre>
+<div class="note"><b>Tips.</b> Increase <code>n_estimators</code> if the model underfits; reduce it (or set <code>learning_rate=0.5</code>) if it overfits noisy data. The keyword is <code>estimator=</code> in scikit-learn ≥ 1.2 (it was <code>base_estimator=</code> before). From scikit-learn 1.4 the only algorithm is SAMME, which for two classes is exactly the AdaBoost of tab 2. Thresholds are placed at midpoints between sorted values, as in Example B.</div>
+<div class="fix"><b>Correction to the slides.</b> The tip line on slide 33 overflowed into the footer and lost its underscores ("nestimators", "learningrate=05"); the text above is what it was meant to say.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>XGBoost classifier with early stopping</h3><span class="num">Slide 34</span></div><div class="body">
+<pre><code>import xgboost as xgb
+from sklearn.metrics import accuracy_score
+
+model = xgb.XGBClassifier(
+    n_estimators     = 300,
+    learning_rate    = 0.05,   # eta: small value, more trees needed
+    max_depth        = 5,
+    subsample        = 0.8,    # 80% of rows per tree
+    colsample_bytree = 0.8,    # 80% of features per tree
+    reg_lambda       = 1.0,    # L2 on leaf weights (lambda)
+    gamma            = 0.1,    # minimum gain to keep a split
+    eval_metric      = 'logloss',
+    early_stopping_rounds = 20 # constructor argument in xgboost >= 2.0
+)
+model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=50)
+
+print('best iteration:', model.best_iteration)
+y_pred = model.predict(X_test)
+print('Accuracy:', accuracy_score(y_test, y_pred))
+
+xgb.plot_importance(model)          # which features drive the splits</code></pre>
+<div class="note"><b>Tips.</b> Always pass a validation set with early stopping; the number of trees is then chosen for you. <code>plot_importance</code> shows which features are split on most (or, with <code>importance_type='gain'</code>, which contribute most gain). In xgboost 1.x, <code>early_stopping_rounds</code> goes into <code>fit()</code>, not the constructor.</div>
+<div class="fix"><b>Correction to the slides.</b> The tip on slide 34 was truncated mid-sentence by the same overflow; it is completed above.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>AdaBoost from scratch (practice question 6, reference solution)</h3><span class="num">New</span></div><div class="body">
+<pre><code>import numpy as np
+
+def best_stump(X, y, w):
+    """Search feature x threshold x polarity; return (j, tau, pol, eps)."""
+    best = None
+    for j in range(X.shape[1]):
+        v = np.unique(X[:, j])
+        for tau in (v[:-1] + v[1:]) / 2:          # midpoints
+            for pol in (+1, -1):
+                h = np.where(X[:, j] &lt;= tau, pol, -pol)
+                eps = w[h != y].sum()
+                if best is None or eps &lt; best[3]:
+                    best = (j, tau, pol, eps)
+    return best
+
+def adaboost(X, y, T):
+    N = len(y); w = np.full(N, 1.0 / N); model = []
+    for t in range(T):
+        j, tau, pol, eps = best_stump(X, y, w)
+        alpha = 0.5 * np.log((1 - eps) / eps)
+        h = np.where(X[:, j] &lt;= tau, pol, -pol)
+        w = w * np.exp(-alpha * y * h); w /= w.sum()
+        model.append((alpha, j, tau, pol))
+    return model
+
+def predict(model, X):
+    F = sum(a * np.where(X[:, j] &lt;= tau, pol, -pol) for a, j, tau, pol in model)
+    return np.sign(F)
+
+# Example B from tab 4
+X = np.array([[1,3],[1,5],[2,2],[2,3],[3,2],[4,1],[4,3],[5,1],[5,3],[5,4]], float)
+y = np.array([1,-1,-1,-1,-1,1,1,1,1,-1])
+m = adaboost(X, y, 3)
+for a, j, tau, pol in m: print(f"alpha={a:.3f}  x{j+1} &lt;= {tau}  pol={pol:+d}")
+print((predict(m, X) == y).mean())   # 1.0</code></pre>
+<p class="cap">Running this reproduces tab 4 exactly: \(\alpha=0.693, 0.733, 0.718\) on \(x_1\le3.5\) (flipped), \(x_2\le3.5\), \(x_1\le1.5\). Ties are broken by scan order (first feature, lowest threshold, polarity +1 first), which matters only when two stumps have identical weighted error.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Summary &amp; practice &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t8">
+<h2>8. Summary, practice questions, references</h2>
+
+<div class="slide"><div class="sh"><h3>Key takeaways</h3><span class="num">Slide 36</span></div><div class="body">
+<div class="kv">
+<b>Boosting principle</b><span>Sequential, additive: \(F_T=\sum_t\alpha_t h_t\); each new learner targets what the current ensemble gets wrong.</span>
+<b>AdaBoost (1997)</b><span>Re-weights samples; \(\alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}\); the stump just trained has weighted error \(\tfrac12\) on the new weights; the normaliser \(Z_t=2\sqrt{\varepsilon_t(1-\varepsilon_t)}\) is the training-error-bound factor. All of this is forward stagewise fitting of the exponential loss.</span>
+<b>XGBoost (2016)</b><span>Fits trees to gradients \(g_i\) and hessians \(h_i\); \(w_j^*=-G_j/(H_j+\lambda)\); split gain \(\tfrac12[\,G_L^2/(H_L+\lambda)+G_R^2/(H_R+\lambda)-G^2/(H+\lambda)\,]-\gamma\); learning rate \(\eta\) shrinks each tree.</span>
+<b>From the examples</b><span>Weighted error is not an error count (tab 4, round 3). Training accuracy is not monotone in \(T\) even though its bound is (tab 3, rounds 4–6). Split ties happen on symmetric data (tab 5, round 1).</span>
+<b>Choose AdaBoost when</b><span>data are clean, interpretability matters, or you want a quick baseline on small data.</span>
+<b>Choose XGBoost when</b><span>data are large or messy, have missing values, or you need the best tabular accuracy.</span>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Practice questions</h3><span class="num">Slide 37</span></div><div class="body">
+<ol>
+<li>Why is AdaBoost sensitive to outliers? Use the loss table in tab 6 to compare the cost of a sample with margin \(m=-3\) under exponential loss and under log-loss, and explain which part of the AdaBoost update that difference feeds into.</li>
+<li>In AdaBoost, what happens to \(\alpha_t\) as \(\varepsilon_t\to0\)? As \(\varepsilon_t\to\tfrac12\)? What does each limit say about that stump's vote?</li>
+<li>Show that after the weight update of round \(t\), the stump \(h_t\) has weighted error exactly \(\tfrac12\). (Hint: compute the total new weight of the misclassified samples, \(\varepsilon_t e^{\alpha_t}/Z_t\).)</li>
+<li>Explain the role of the learning rate \(\eta\) in XGBoost. What is the trade-off of choosing a very small \(\eta\)?</li>
+<li>Derive \(w_j^*=-G_j/(H_j+\lambda)\) from the Taylor-expanded objective. What happens to \(w_j^*\) as \(\lambda\to\infty\), and why is the shrinkage stronger on leaves with few samples?</li>
+<li>Compare the training cost of AdaBoost with stumps and of XGBoost with depth-\(d\) trees, for \(T\) rounds, \(N\) samples and \(D\) features. (Stump search is \(O(DN\log N)\) per round with sorting, or \(O(DN)\) with pre-sorted features; a depth-\(d\) tree repeats the split search at up to \(2^d-1\) nodes.)</li>
+<li>Implement AdaBoost from scratch with NumPy, using decision stumps, and reproduce the three \(\alpha_t\) of Example B. A reference solution is in tab 7.</li>
+<li>Continue Example A for a fourth round by hand, starting from the round-3 weights, and check your \(\varepsilon_4\), \(\alpha_4\) and the new vote \(F(5)\) against tab 3.</li>
+<li>In Example B, Round 1's winning stump was a flipped one. If the search had considered only the "\(+1\) if \(x_j\le\tau\)" orientation, which stump would have won, with what \(\varepsilon_1\)?</li>
+<li>A dataset contains many missing values. Which algorithm handles this natively, and how?</li>
+</ol>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>References</h3><span class="num">Slide 38</span></div><div class="body">
+<ol>
+<li>Freund, Y. &amp; Schapire, R. E. (1997). A Decision-Theoretic Generalization of On-Line Learning and an Application to Boosting. <i>Journal of Computer and System Sciences</i>, 55(1), 119–139. DOI 10.1006/jcss.1997.1504</li>
+<li>Chen, T. &amp; Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. <i>Proc. 22nd ACM SIGKDD</i>, 785–794. DOI 10.1145/2939672.2939785</li>
+<li>Friedman, J. H. (2001). Greedy Function Approximation: A Gradient Boosting Machine. <i>Annals of Statistics</i>, 29(5), 1189–1232.</li>
+<li>Friedman, J., Hastie, T. &amp; Tibshirani, R. (2000). Additive Logistic Regression: A Statistical View of Boosting. <i>Annals of Statistics</i>, 28(2), 337–407. (AdaBoost as stagewise fitting of the exponential loss, used in tabs 1–2.)</li>
+<li>Hastie, T., Tibshirani, R. &amp; Friedman, J. (2009). <i>The Elements of Statistical Learning</i> (2nd ed.), ch. 10. Springer.</li>
+<li>Viola, P. &amp; Jones, M. (2001). Rapid Object Detection using a Boosted Cascade of Simple Features. <i>CVPR 2001</i>. (The classic AdaBoost application: face detection.)</li>
+</ol>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next" disabled>Next &rarr;</button></div>
+</section>
+
+<div class="footer">
+  <span>CSE475 · Fall 2026</span>
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University.</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+</body>
+</html>
