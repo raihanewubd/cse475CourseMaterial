@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="a5dba42d-5bd3-49d3-bbee-08763fa6c551"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 5 (supplement) — ROC Curves and AUC — CSE475 Machine Learning</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<style>
+  :root{
+    --navy:#233343; --rust:#BD582C; --orange:#E78439; --blue:#2D5B8A;
+    --card:#FDF4EF; --peach:#FBE8DA; --green:#3C7A5A; --line:#e3d8cf; --gray:#666;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html{font-size:15px}
+  body{font-family:"Carlito","Calibri","Segoe UI",system-ui,Arial,sans-serif;color:#1c2530;line-height:1.5;margin:0;background:#fff}
+  .page{max-width:1100px;margin:0 auto;background:#fff;padding:30px clamp(18px,5vw,72px) 60px}
+  h1,h2,h3,h4{font-family:"Caladea","Cambria","Georgia",serif}
+  header.brief{text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px}
+  header.brief h1{color:var(--navy);margin:0 0 2px;font-size:1.8rem}
+  header.brief .sub{color:var(--rust);font-size:1.12rem;font-weight:bold}
+  header.brief .attr{font-style:italic;font-size:.85rem;color:var(--gray);margin-top:4px}
+  h2{color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:6px;font-size:1.4rem}
+  h3{color:var(--rust);font-size:1.06rem;margin:18px 0 6px}
+  h4{color:var(--navy);margin:14px 0 4px;font-size:1rem}
+  p{margin:.5em 0}
+  a{color:var(--blue)}
+  code{font-family:Consolas,"Courier New",monospace;font-size:.93em;background:#f3efeb;padding:0 3px;border-radius:3px}
+  ul,ol{margin:.4em 0 .6em;padding-left:1.3em}
+  li{margin:2px 0}
+  .lead{background:var(--card);border-left:4px solid var(--rust);padding:12px 16px;border-radius:4px;margin:0 0 16px}
+  .tabbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:4px;background:#fff;padding:8px 0;border-bottom:2px solid var(--rust);margin-bottom:18px}
+  .tab-btn{font:inherit;font-size:.86rem;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--navy);padding:6px 11px;border-radius:6px 6px 0 0;border-bottom:none;line-height:1.1}
+  .tab-btn:hover{background:var(--card)}
+  .tab-btn .n{color:var(--rust);font-weight:bold;margin-right:4px}
+  .tab-btn[aria-selected="true"]{background:var(--navy);color:#fff}
+  .tab-btn[aria-selected="true"] .n{color:var(--orange)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+  th{background:var(--rust);color:#fff;font-weight:bold}
+  tbody tr:nth-child(even){background:var(--card)}
+  .slide{border:1px solid var(--line);border-radius:6px;margin:0 0 18px;overflow:hidden;background:#fff}
+  .slide .sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--navy);color:#fff;padding:6px 12px}
+  .slide .sh h3{color:#fff;margin:0;font-size:1.02rem}
+  .slide .sh .num{color:var(--orange);font-size:.8rem;white-space:nowrap}
+  .slide .body{padding:10px 16px 8px;overflow-x:auto}
+  .lead,.note,.fix,.warn,.card{overflow-x:auto}
+  .slide .body>ul:first-child{margin-top:.2em}
+  .fix{background:#fdecea;border-left:4px solid #b3261e;padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .note{background:#eef3f8;border-left:4px solid var(--blue);padding:6px 10px;margin:6px 0 4px;border-radius:3px}
+  .warn{background:#fff7e6;border-left:4px solid var(--orange);padding:6px 10px;margin:8px 0;border-radius:3px}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin:18px 0 0}
+  .navrow button{font:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--rust);background:#fff;color:var(--rust);padding:6px 14px;border-radius:5px}
+  .navrow button:hover{background:var(--peach)}
+  .navrow button:disabled{opacity:.35;cursor:default}
+  .footer{margin-top:40px;border-top:2px solid var(--rust);padding-top:8px;font-size:.8rem;color:var(--navy);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .tabbed .tab-panel{display:none}
+  .tabbed .tab-panel.active{display:block}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin:8px 0}
+  .two.wide{grid-template-columns:1fr 2fr}
+  .two>div,.three>div{min-width:0;overflow-x:auto}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin:8px 0}
+  @media(max-width:760px){.two,.three{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:6px;padding:4px 12px 8px;background:#fff}
+  .card.good{border-color:var(--green);background:#edf5ef}
+  .card.bad{border-color:#b3261e;background:#fdecea}
+  .formula{background:var(--card);border-left:4px solid var(--rust);padding:8px 14px;margin:8px 0;overflow-x:auto;font-size:1.02rem;line-height:1.7}
+  .cap{font-size:.9rem;color:#3d4955;margin:4px 0}
+  figure{margin:8px 0}
+  figcaption{font-size:.88rem;color:var(--gray);text-align:center;margin-top:4px}
+  svg.fig{display:block;width:100%;max-width:820px;height:auto;margin:6px auto;border:1px solid var(--line);border-radius:4px;background:#fff}
+  table.dt{font-size:.92rem;width:auto;margin:6px 0}
+  table.dt.compact td,table.dt.compact th{padding:3px 8px;white-space:nowrap}
+  table.dt tr.hl td{background:var(--peach)!important;font-weight:bold}
+  tr.ex-sep td{border-top:2px solid var(--rust)}
+  b.y{color:var(--green)} b.n{color:#b3261e}
+  .katex{font-size:1.04em}
+  .katex-display{margin:.5em 0;overflow-x:auto;overflow-y:hidden}
+  pre{background:#1e2933;color:#f2efe9;padding:12px 16px;border-radius:6px;overflow-x:auto;font-size:.92rem;line-height:1.45;margin:6px 0}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  .kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:6px 0}
+  .kv b{color:var(--navy)}
+  @media(max-width:680px){.page{padding:18px}}
+  @media(max-width:680px){.tabbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;gap:4px}.tab-btn{white-space:nowrap;flex:0 0 auto}}
+  @media print{.tabbar,.navrow{display:none}.tab-panel{display:block!important}.slide{break-inside:avoid}}
+
+  svg.cm{display:block;width:100%;max-width:300px;height:auto;margin:4px auto}
+  .big{font-family:"Caladea","Cambria","Georgia",serif;font-size:2.2rem;font-weight:bold;color:var(--rust);line-height:1.1;margin:4px 0}
+  .big small{display:block;font-family:"Carlito","Calibri",sans-serif;font-size:.85rem;color:var(--gray);font-weight:normal}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,max-content);gap:8px 14px;align-items:center;margin:8px 0}
+  .calc-grid label{font-weight:bold;color:var(--navy)}
+  .calc-grid input{width:80px;font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:4px}
+  .pill{display:inline-block;background:var(--navy);color:#fff;font-size:.78rem;padding:1px 8px;border-radius:10px;margin-left:6px}
+  .err{color:#b3261e;font-weight:bold}
+  .ai-note{font-size:.92rem;margin:0 0 14px}
+
+  .ruler{display:grid;grid-template-columns:1fr 2fr 2fr 2fr 2fr;gap:3px;margin:8px 0;font-size:.86rem;text-align:center}
+  .ruler div{padding:6px 4px;border-radius:4px;color:#fff}
+  .ruler small{display:block;font-size:.78rem;opacity:.9}
+  .rank{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .rank span{display:inline-block;min-width:54px;text-align:center;padding:4px 6px;border-radius:5px;border:2px solid transparent;font-size:.9rem}
+  .rank span.pos{background:#fbe8da;color:#8a3b17}
+  .rank span.neg{background:#e3ecf5;color:#1f4367}
+  .rank span.on{border-color:var(--navy)}
+  .rank span.cut{border-color:var(--green);box-shadow:0 0 0 2px #edf5ef}
+  .rank span b{display:block;font-size:1rem}
+  .slider{display:flex;align-items:center;gap:12px;margin:8px 0;flex-wrap:wrap}
+  .slider input[type=range]{flex:1;min-width:200px}
+  .cm{border-collapse:collapse;font-size:.95rem;width:auto;margin:6px 0}
+  .cm th,.cm td{border:1px solid var(--line);padding:5px 12px;text-align:center}
+  .cm th{background:var(--navy)}
+  .cm td.tp{background:#edf5ef;font-weight:bold}.cm td.tn{background:#edf5ef;font-weight:bold}.cm td.fp,.cm td.fn{background:#fdecea;font-weight:bold}
+  .timeline-list{margin:8px 0}
+  .timeline-list dt{font-weight:bold;color:var(--navy);margin-top:8px}
+  .timeline-list dd{margin:2px 0 0 0}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="brief">
+  <h1>Lecture 5 (supplement) — ROC Curves and AUC</h1>
+  <div class="sub">ML-04b: the threshold sweep, the ROC curve, three ways to compute AUC, how to read one, imbalance and the precision–recall curve, the multi-class case, and where it all came from</div>
+  <div class="attr">Web notes written for CSE475, continuing Lecture 5 (Performance Evaluation). Every number was recomputed in code; blue boxes add what is usually left implicit.</div>
+</header>
+
+<p class="lead"><b>In one paragraph.</b> Lecture 5 judged a classifier from a confusion matrix, which needs hard labels. But most classifiers output a <i>score</i> — a probability, a logit, a distance — and the labels only appear once you pick a threshold. Pick a different threshold and you get a different confusion matrix, so a single precision or recall is a statement about one threshold, not about the model. The ROC curve removes the threshold: it sweeps every cut-off and plots the true positive rate against the false positive rate at each one. The AUC is the area under that curve, and it has an exact meaning — the probability that a randomly chosen positive is scored above a randomly chosen negative. Tab 2 builds the curve by hand from ten scores, tab 3 computes the AUC three ways and gets 0.76 each time, tab 4 is about what 0.76 does and does not tell you, tab 5 is why the ROC flatters imbalanced data, tab 6 extends it to three classes, tab 7 traces it back to WWII radar, and tab 8 has the code. <em>Use the tabs to move between sections.</em> <a href="index.html">&#8592; Back to course material</a></p>
+
+<div class="note ai-note"><b>A note on how these notes were made.</b> This page was prepared with the help of a generative AI assistant (Claude, by Anthropic) under the instructor's direction. Every number on the page was recomputed independently in code before publication, but AI-assisted material can still contain mistakes, and no page replaces the lecture or the textbook. If anything here is unclear, looks wrong, or disagrees with what was said in class, please email <a href="mailto:raihan.islam@ewubd.edu">raihan.islam@ewubd.edu</a> or raise it in class. Reported errors are fixed on the page and the reporter is credited.</div>
+
+<div class="tabbar" role="tablist" id="tabbar">
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Scores, not labels</button>
+  <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Building the ROC curve</button>
+  <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>AUC three ways</button>
+  <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>Reading an AUC</button>
+  <button class="tab-btn" role="tab" data-tab="t5"><span class="n">5</span>Imbalance &amp; PR curves</button>
+  <button class="tab-btn" role="tab" data-tab="t6"><span class="n">6</span>Multi-class</button>
+  <button class="tab-btn" role="tab" data-tab="t7"><span class="n">7</span>History &amp; papers</button>
+  <button class="tab-btn" role="tab" data-tab="t8"><span class="n">8</span>Python, summary, practice</button>
+</div>
+
+<section class="tab-panel" id="t1">
+<h2>1. The problem the ROC curve solves</h2>
+
+<div class="slide"><div class="sh"><h3>A confusion matrix is one threshold's opinion</h3><span class="num">Continues Lecture 5</span></div><div class="body">
+<p>Logistic regression, a neural network, a random forest, a boosted ensemble: all of them produce a number for each input before they produce a class. Call it the <b>score</b> \(s(x)\). The hard label is a second step,</p>
+<div class="formula">\[ \hat y(x)=\begin{cases}1 & s(x)\ge\tau\\ 0 & s(x)<\tau\end{cases} \]</div>
+<p>and everything in Lecture 5 — TP, FP, FN, TN, and therefore accuracy, precision, recall, F1 — is a function of \(\tau\). Software hides this by defaulting to \(\tau=0.5\). There is nothing special about 0.5. It is the right threshold only if a false positive and a false negative cost the same and the training data had the same class balance as the deployment data, and both of those are usually false.</p>
+<div class="two">
+<div class="card"><h4>What goes wrong</h4><ul>
+<li>Two models are compared at \(\tau=0.5\). Model A has higher F1. At \(\tau=0.3\) model B would have had higher F1. Which is better?</li>
+<li>A screening test is tuned so that recall is 0.95. A reader cannot tell whether that required accepting a 10% or a 60% false positive rate.</li>
+<li>A paper reports accuracy 0.97 on data that is 97% negative (the accuracy paradox from Lecture 5, tab 3).</li>
+</ul></div>
+<div class="card"><h4>What the ROC curve does</h4><ul>
+<li>Evaluates the <i>ranking</i> the scores induce, over every threshold at once.</li>
+<li>Shows the whole trade-off between catching positives and admitting false alarms, so the reader can choose the operating point, not the author.</li>
+<li>Is unchanged by class balance (tab 5 shows exactly why, and why that is also its weakness).</li>
+</ul></div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The two rates</h3><span class="num">Definitions</span></div><div class="body">
+<p>Two of the four rates that can be formed from a confusion matrix are the axes of the ROC plot:</p>
+<div class="formula">\[ \text{TPR}=\frac{TP}{TP+FN}=\frac{TP}{P}\ (\text{recall, sensitivity, hit rate}),\qquad \text{FPR}=\frac{FP}{FP+TN}=\frac{FP}{N}\ (=1-\text{specificity, false-alarm rate}). \]</div>
+<p>\(P\) and \(N\) are the numbers of actual positives and actual negatives. Each rate is normalised by its <i>own</i> class: TPR by the positives only, FPR by the negatives only. That is the whole reason the curve is insensitive to how many of each there are. Precision, by contrast, mixes the classes in its denominator (\(TP+FP\)), which is why it reacts to imbalance and the ROC does not.</p>
+<div class="note"><b>Reading a point.</b> A point at (FPR, TPR) = (0.2, 0.8) says: at this threshold the model catches 80% of the positives and wrongly flags 20% of the negatives. The top-left corner (0, 1) is a perfect classifier. The diagonal from (0, 0) to (1, 1) is what random guessing achieves — flag a random fraction \(q\) of everything and both rates equal \(q\). Below the diagonal the model is ranking backwards; invert its scores and it is above.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>What you need before you can draw one</h3><span class="num">Prerequisites</span></div><div class="body">
+<ul>
+<li><b>Scores, not labels.</b> A confusion matrix cannot be turned into an ROC curve: it has already thrown the ranking away. In scikit-learn use <code>predict_proba</code> or <code>decision_function</code>, not <code>predict</code>. In PyTorch keep the logits or softmax outputs.</li>
+<li><b>A binary question.</b> ROC is defined for positive-vs-negative. With \(K\) classes you ask \(K\) binary questions and average (tab 6).</li>
+<li><b>A test set the model has not seen.</b> Same rule as every metric in Lecture 5.</li>
+</ul>
+<p>The scores do not need to be probabilities, and they do not need to be calibrated. Any monotone transformation — logit to probability, probability to percentile — leaves the ranking alone and so leaves the curve and the AUC alone. That is a strength (you can compare an SVM margin with a logistic probability) and a blind spot (a model that says 0.99 for everything positive and 0.98 for everything negative gets AUC = 1 and would be useless as a probability estimate).</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Building the ROC curve &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t2">
+<h2>2. Building the ROC curve by hand</h2>
+
+<div class="slide"><div class="sh"><h3>Ten scored instances</h3><span class="num">Worked example</span></div><div class="body">
+<div class="two wide">
+<div><table class="dt compact"><thead><tr><th>Instance</th><th>Score \(s\)</th><th>True class</th></tr></thead><tbody>
+<tr><td>A</td><td>0.95</td><td><b class="n" style="color:#8a3b17">+</b> positive</td></tr>
+<tr><td>B</td><td>0.90</td><td><b class="n" style="color:#8a3b17">+</b> positive</td></tr>
+<tr><td>C</td><td>0.85</td><td><span style="color:#1f4367">−</span> negative</td></tr>
+<tr><td>D</td><td>0.80</td><td><b class="n" style="color:#8a3b17">+</b> positive</td></tr>
+<tr><td>E</td><td>0.70</td><td><span style="color:#1f4367">−</span> negative</td></tr>
+<tr><td>F</td><td>0.65</td><td><b class="n" style="color:#8a3b17">+</b> positive</td></tr>
+<tr><td>G</td><td>0.55</td><td><span style="color:#1f4367">−</span> negative</td></tr>
+<tr><td>H</td><td>0.45</td><td><b class="n" style="color:#8a3b17">+</b> positive</td></tr>
+<tr><td>I</td><td>0.30</td><td><span style="color:#1f4367">−</span> negative</td></tr>
+<tr><td>J</td><td>0.20</td><td><span style="color:#1f4367">−</span> negative</td></tr>
+</tbody></table></div>
+<div>
+<p>A binary classifier has scored ten test instances; five are truly positive and five truly negative. The scores are already sorted from highest to lowest, which is the first step of every ROC construction.</p>
+<p>The ranking is good but not perfect: C (a negative) is scored above D, F and H (positives), E is above F and H, and G is above H. Those are the mistakes the curve will record.</p>
+<p>Throughout, "predict positive" means \(s\ge\tau\).</p>
+</div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The threshold sweep</h3><span class="num">Step by step</span></div><div class="body">
+<p>Start with \(\tau\) above every score, so nothing is predicted positive: TP = FP = 0, the point (0, 0). Then lower \(\tau\) to each score in turn. Each step admits one more instance into the "positive" set: if it is a true positive, TP rises by one and the point moves <b>up</b> by \(1/P=0.2\); if it is a negative, FP rises by one and the point moves <b>right</b> by \(1/N=0.2\).</p>
+<table class="dt compact"><thead><tr><th>Threshold \(\tau\)</th><th>Predicted +</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>TPR = TP/5</th><th>FPR = FP/5</th><th>Point</th></tr></thead><tbody>
+<tr><td>&gt; 0.95 (nothing)</td><td>—</td><td>0</td><td>0</td><td>5</td><td>5</td><td>0.0</td><td>0.0</td><td>(0.0, 0.0)</td></tr>
+<tr class="hl"><td>≥ 0.95</td><td>A</td><td>1</td><td>0</td><td>4</td><td>5</td><td>0.2</td><td>0.0</td><td>(0.0, 0.2)</td></tr>
+<tr class="hl"><td>≥ 0.90</td><td>A, B</td><td>2</td><td>0</td><td>3</td><td>5</td><td>0.4</td><td>0.0</td><td>(0.0, 0.4)</td></tr>
+<tr><td>≥ 0.85</td><td>A, B, C</td><td>2</td><td>1</td><td>3</td><td>4</td><td>0.4</td><td>0.2</td><td>(0.2, 0.4)</td></tr>
+<tr class="hl"><td>≥ 0.80</td><td>A, B, C, D</td><td>3</td><td>1</td><td>2</td><td>4</td><td>0.6</td><td>0.2</td><td>(0.2, 0.6)</td></tr>
+<tr><td>≥ 0.70</td><td>A, B, C, D, E</td><td>3</td><td>2</td><td>2</td><td>3</td><td>0.6</td><td>0.4</td><td>(0.4, 0.6)</td></tr>
+<tr class="hl"><td>≥ 0.65</td><td>A, B, C, D, E, F</td><td>4</td><td>2</td><td>1</td><td>3</td><td>0.8</td><td>0.4</td><td>(0.4, 0.8)</td></tr>
+<tr><td>≥ 0.55</td><td>A, B, C, D, E, F, G</td><td>4</td><td>3</td><td>1</td><td>2</td><td>0.8</td><td>0.6</td><td>(0.6, 0.8)</td></tr>
+<tr class="hl"><td>≥ 0.45</td><td>A, B, C, D, E, F, G, H</td><td>5</td><td>3</td><td>0</td><td>2</td><td>1.0</td><td>0.6</td><td>(0.6, 1.0)</td></tr>
+<tr><td>≥ 0.30</td><td>A, B, C, D, E, F, G, H, I</td><td>5</td><td>4</td><td>0</td><td>1</td><td>1.0</td><td>0.8</td><td>(0.8, 1.0)</td></tr>
+<tr><td>≥ 0.20</td><td>A, B, C, D, E, F, G, H, I, J</td><td>5</td><td>5</td><td>0</td><td>0</td><td>1.0</td><td>1.0</td><td>(1.0, 1.0)</td></tr>
+</tbody></table>
+<p class="cap">Shaded rows are the steps where a positive is admitted (the curve goes up). The eleven points, joined in order, are the ROC curve. With no tied scores the curve is a staircase of ten unit steps; a tie between a positive and a negative would produce one diagonal step instead of an up-then-right pair.</p>
+<figure><svg class="fig" viewBox="0 0 420 394" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ROC curve of the ten-instance example, AUC 0.76">
+<rect x="50" y="22" width="330" height="330" fill="#fff" stroke="#999"/>
+<line x1="50.0" y1="22" x2="50.0" y2="352" stroke="#eee"/><line x1="50" y1="352.0" x2="380" y2="352.0" stroke="#eee"/>
+<text x="50.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="45" y="355.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="116.0" y1="22" x2="116.0" y2="352" stroke="#eee"/><line x1="50" y1="286.0" x2="380" y2="286.0" stroke="#eee"/>
+<text x="116.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="45" y="289.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="182.0" y1="22" x2="182.0" y2="352" stroke="#eee"/><line x1="50" y1="220.0" x2="380" y2="220.0" stroke="#eee"/>
+<text x="182.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="45" y="223.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="248.0" y1="22" x2="248.0" y2="352" stroke="#eee"/><line x1="50" y1="154.0" x2="380" y2="154.0" stroke="#eee"/>
+<text x="248.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="45" y="157.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="314.0" y1="22" x2="314.0" y2="352" stroke="#eee"/><line x1="50" y1="88.0" x2="380" y2="88.0" stroke="#eee"/>
+<text x="314.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="45" y="91.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="380.0" y1="22" x2="380.0" y2="352" stroke="#eee"/><line x1="50" y1="22.0" x2="380" y2="22.0" stroke="#eee"/>
+<text x="380.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="45" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<line x1="50" y1="352" x2="380" y2="22" stroke="#888" stroke-dasharray="5 4"/>
+<text x="215.0" y="382" text-anchor="middle" font-size="11.5" fill="#233343">False positive rate (FPR)</text>
+<text transform="translate(20 187) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">True positive rate (TPR)</text>
+<polygon points="50.0,352.0 50.0,286.0 50.0,220.0 116.0,220.0 116.0,154.0 182.0,154.0 182.0,88.0 248.0,88.0 248.0,22.0 314.0,22.0 380.0,22.0 380.0,352.0" fill="#E78439" fill-opacity=".22"/>
+<path d="M50.0 352.0 L50.0 286.0 L50.0 220.0 L116.0 220.0 L116.0 154.0 L182.0 154.0 L182.0 88.0 L248.0 88.0 L248.0 22.0 L314.0 22.0 L380.0 22.0" fill="none" stroke="#233343" stroke-width="2.4"/>
+<circle id="rocpt0" cx="50.0" cy="352.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<circle id="rocpt1" cx="50.0" cy="286.0" r="4.5" fill="#BD582C" stroke="#fff" stroke-width="1.2"/>
+<text x="41.0" y="280.0" font-size="10.5" font-weight="bold" fill="#BD582C">A</text>
+<circle id="rocpt2" cx="50.0" cy="220.0" r="4.5" fill="#BD582C" stroke="#fff" stroke-width="1.2"/>
+<text x="41.0" y="214.0" font-size="10.5" font-weight="bold" fill="#BD582C">B</text>
+<circle id="rocpt3" cx="116.0" cy="220.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<text x="122.0" y="233.0" font-size="10.5" font-weight="bold" fill="#2D5B8A">C</text>
+<circle id="rocpt4" cx="116.0" cy="154.0" r="4.5" fill="#BD582C" stroke="#fff" stroke-width="1.2"/>
+<text x="107.0" y="148.0" font-size="10.5" font-weight="bold" fill="#BD582C">D</text>
+<circle id="rocpt5" cx="182.0" cy="154.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<text x="188.0" y="167.0" font-size="10.5" font-weight="bold" fill="#2D5B8A">E</text>
+<circle id="rocpt6" cx="182.0" cy="88.0" r="4.5" fill="#BD582C" stroke="#fff" stroke-width="1.2"/>
+<text x="173.0" y="82.0" font-size="10.5" font-weight="bold" fill="#BD582C">F</text>
+<circle id="rocpt7" cx="248.0" cy="88.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<text x="254.0" y="101.0" font-size="10.5" font-weight="bold" fill="#2D5B8A">G</text>
+<circle id="rocpt8" cx="248.0" cy="22.0" r="4.5" fill="#BD582C" stroke="#fff" stroke-width="1.2"/>
+<text x="239.0" y="16.0" font-size="10.5" font-weight="bold" fill="#BD582C">H</text>
+<circle id="rocpt9" cx="314.0" cy="22.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<text x="320.0" y="35.0" font-size="10.5" font-weight="bold" fill="#2D5B8A">I</text>
+<circle id="rocpt10" cx="380.0" cy="22.0" r="4.5" fill="#2D5B8A" stroke="#fff" stroke-width="1.2"/>
+<text x="386.0" y="35.0" font-size="10.5" font-weight="bold" fill="#2D5B8A">J</text>
+<circle id="rocmarker" cx="50.0" cy="352.0" r="8" fill="none" stroke="#3C7A5A" stroke-width="2.5" style="display:none"/>
+<text x="254.6" y="259.6" font-size="12" fill="#233343">AUC = 0.76</text>
+<text x="231.5" y="193.6" font-size="10" fill="#888" transform="rotate(-45 231.5 193.6)">chance (AUC 0.5)</text>
+</svg><figcaption>ROC curve of the ten instances. Rust points are steps where a positive was admitted, blue points where a negative was. The shaded area is the AUC, computed in tab 3.</figcaption></figure>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Try it: move the threshold</h3><span class="num">Interactive</span></div><div class="body">
+<p>Drag the slider. Instances at or above the threshold are predicted positive (boxed). The confusion matrix, the two rates and the highlighted point on the curve above all update.</p>
+<div class="slider"><label for="thr"><b>Threshold \(\tau\)</b></label><input type="range" id="thr" min="0" max="10" value="4" step="1"><span id="thrlab" class="pill">τ = 0.80</span></div>
+<div class="rank" id="rankstrip"><span class="pos" data-i="0"><b>A</b>0.95</span><span class="pos" data-i="1"><b>B</b>0.90</span><span class="neg" data-i="2"><b>C</b>0.85</span><span class="pos" data-i="3"><b>D</b>0.80</span><span class="neg" data-i="4"><b>E</b>0.70</span><span class="pos" data-i="5"><b>F</b>0.65</span><span class="neg" data-i="6"><b>G</b>0.55</span><span class="pos" data-i="7"><b>H</b>0.45</span><span class="neg" data-i="8"><b>I</b>0.30</span><span class="neg" data-i="9"><b>J</b>0.20</span></div>
+<div class="two">
+<div>
+<table class="cm"><thead><tr><th></th><th>Actual +</th><th>Actual −</th></tr></thead><tbody>
+<tr><th>Predicted +</th><td class="tp" id="w_tp">3</td><td class="fp" id="w_fp">1</td></tr>
+<tr><th>Predicted −</th><td class="fn" id="w_fn">2</td><td class="tn" id="w_tn">4</td></tr>
+</tbody></table>
+</div>
+<div class="kv">
+<b>TPR</b><span id="w_tpr">3 / 5 = 0.60</span>
+<b>FPR</b><span id="w_fpr">1 / 5 = 0.20</span>
+<b>Precision</b><span id="w_prec">3 / 4 = 0.75</span>
+<b>Accuracy</b><span id="w_acc">7 / 10 = 0.70</span>
+<b>Point on curve</b><span id="w_pt">(0.20, 0.60)</span>
+</div>
+</div>
+<div class="note"><b>Notice.</b> Accuracy and precision jump around as you move the threshold; TPR and FPR only ever move in one direction each, because each is a count divided by a fixed class size. That monotonicity is what makes the curve a curve.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: AUC three ways &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t3">
+<h2>3. The area under the curve, computed three ways</h2>
+
+<div class="slide"><div class="sh"><h3>Way 1 — geometry: add up the rectangles</h3><span class="num">Definition</span></div><div class="body">
+<p>With no tied scores the curve is a staircase, so the area under it is a sum of rectangles. Each <b>horizontal</b> step (a negative admitted) has width \(1/N=0.2\) and height equal to the TPR reached so far. Reading the horizontal steps off the sweep table in tab 2:</p>
+<table class="dt compact"><thead><tr><th>Negative admitted</th><th>TPR at that moment</th><th>Width</th><th>Rectangle</th></tr></thead><tbody>
+<tr><td>C</td><td>0.4</td><td>0.2</td><td>0.08</td></tr>
+<tr><td>E</td><td>0.6</td><td>0.2</td><td>0.12</td></tr>
+<tr><td>G</td><td>0.8</td><td>0.2</td><td>0.16</td></tr>
+<tr><td>I</td><td>1.0</td><td>0.2</td><td>0.20</td></tr>
+<tr><td>J</td><td>1.0</td><td>0.2</td><td>0.20</td></tr>
+<tr class="ex-sep"><td colspan="3"><b>AUC</b></td><td><b>0.76</b></td></tr>
+</tbody></table>
+<p>For real-valued scores with ties, software uses the trapezoidal rule between consecutive points, \(\sum_k (x_{k+1}-x_k)\,\tfrac{y_k+y_{k+1}}{2}\), which reduces to the rectangles above when every step is purely horizontal or purely vertical. <code>sklearn.metrics.auc(fpr, tpr)</code> is exactly that sum.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Way 2 — probability: count the correctly ordered pairs</h3><span class="num">Hanley &amp; McNeil (1982)</span></div><div class="body">
+<p>Take every (positive, negative) pair — there are \(P\times N=25\) of them — and ask whether the positive is scored higher. The AUC is the fraction of pairs where it is:</p>
+<div class="formula">\[ \text{AUC}=\frac{1}{PN}\sum_{i\in\text{pos}}\ \sum_{j\in\text{neg}} \mathbb{1}\!\left[s_i>s_j\right]+\tfrac12\,\mathbb{1}\!\left[s_i=s_j\right]. \]</div>
+<table class="dt compact"><thead><tr><th>Positive</th><th>Score</th><th>Negatives scored below it</th><th>Count</th></tr></thead><tbody>
+<tr><td>A</td><td>0.95</td><td>C, E, G, I, J</td><td>5</td></tr>
+<tr><td>B</td><td>0.90</td><td>C, E, G, I, J</td><td>5</td></tr>
+<tr><td>D</td><td>0.80</td><td>E, G, I, J (loses to C)</td><td>4</td></tr>
+<tr><td>F</td><td>0.65</td><td>G, I, J (loses to C, E)</td><td>3</td></tr>
+<tr><td>H</td><td>0.45</td><td>I, J (loses to C, E, G)</td><td>2</td></tr>
+<tr class="ex-sep"><td colspan="3"><b>Correctly ordered pairs</b></td><td><b>19 of 25</b></td></tr>
+</tbody></table>
+<div class="formula">\[ \text{AUC}=\frac{19}{25}=0.76 . \]</div>
+<p>This is the interpretation to remember. <b>AUC is the probability that a randomly chosen positive is scored above a randomly chosen negative.</b> It says nothing about any particular threshold, and nothing about the numerical values of the scores — only their order. The six mis-ordered pairs (C above D, F, H; E above F, H; G above H) are exactly the six "missing" cells in the staircase, each worth \(1/25=0.04\): \(1-6\times0.04=0.76\).</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Way 3 — ranks: the Wilcoxon–Mann–Whitney statistic</h3><span class="num">Statistics link</span></div><div class="body">
+<p>Counting pairs is \(O(PN)\). Sorting is faster and gives the same number. Rank all \(P+N\) scores from 1 (lowest) to \(P+N\) (highest), with tied scores sharing the average rank, and let \(R_+\) be the sum of the ranks of the positives. Then</p>
+<div class="formula">\[ \text{AUC}=\frac{R_+-\tfrac12P(P+1)}{PN}=\frac{U}{PN}, \]</div>
+<p>where \(U\) is the Mann–Whitney U statistic of the two-sample test. Here the ranks are J=1, I=2, H=3, G=4, F=5, E=6, D=7, C=8, B=9, A=10, so \(R_+=3+5+7+9+10=34\) and</p>
+<div class="formula">\[ \text{AUC}=\frac{34-\tfrac12\cdot5\cdot6}{25}=\frac{34-15}{25}=\frac{19}{25}=0.76 . \]</div>
+<p>The subtraction \(\tfrac12P(P+1)\) removes the ranks the positives would have earned by being compared with <i>each other</i>; what is left counts positives-above-negatives only. This identity is why "AUC" and "Mann–Whitney U" are the same test in disguise, and why a statistical package can give you a \(p\)-value for AUC = 0.5 for free (tab 4).</p>
+<div class="note"><b>Why the three agree.</b> In the staircase, each horizontal step belongs to one negative \(j\) and its height is (number of positives already admitted)/\(P\) — which is exactly the number of positives scored above \(j\). Summing \(\tfrac1N\times\tfrac{\#\{i:\,s_i>s_j\}}{P}\) over the negatives is the pair count divided by \(PN\). Way 3 is way 2 computed through a sort.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Properties that follow</h3><span class="num">Summary</span></div><div class="body">
+<table class="dt"><thead><tr><th>Property</th><th>Why</th><th>Consequence</th></tr></thead><tbody>
+<tr><td>Threshold-free</td><td>Every threshold is swept</td><td>One number per model, no need to agree on \(\tau\) first</td></tr>
+<tr><td>Prevalence-free</td><td>TPR and FPR each normalise by their own class</td><td>Same AUC at 50:50 and at 1:99 — see tab 5 for the cost of this</td></tr>
+<tr><td>Rank-based</td><td>Only \(s_i>s_j\) matters</td><td>Unchanged by any monotone rescaling; says nothing about calibration</td></tr>
+<tr><td>Chance = 0.5</td><td>Random scores order each pair correctly with probability ½</td><td>0.5 is the floor to beat, not 0</td></tr>
+<tr><td>Below 0.5 is informative</td><td>The model ranks backwards</td><td>Flip the sign of the score: AUC becomes \(1-\text{AUC}\)</td></tr>
+<tr><td>Ties count ½</td><td>A tied pair is ordered correctly with probability ½</td><td>A model that outputs a constant gets exactly 0.5</td></tr>
+</tbody></table>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Reading an AUC &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t4">
+<h2>4. Reading an AUC — what 0.76 does and does not tell you</h2>
+
+<div class="slide"><div class="sh"><h3>Against the baseline, then against a rule of thumb</h3><span class="num">Interpretation</span></div><div class="body">
+<p>The first comparison is with 0.5, not with 0. An AUC of 0.76 means the model orders 76% of positive–negative pairs correctly where coin-flipping would order 50%. The widely quoted bands below come from Hosmer and Lemeshow's logistic-regression textbook; they are a convention from clinical risk modelling, and what counts as "good" is domain-specific — an AUC of 0.75 is strong for predicting hospital readmission and weak for reading a digit.</p>
+<div class="ruler">
+<div style="background:#888">0.50<small>chance</small></div>
+<div style="background:#b3261e">0.5 – 0.7<small>poor</small></div>
+<div style="background:#E78439">0.7 – 0.8<small>acceptable</small></div>
+<div style="background:#2D5B8A">0.8 – 0.9<small>excellent</small></div>
+<div style="background:#3C7A5A">0.9 – 1.0<small>outstanding</small></div>
+</div>
+<p class="cap">Hosmer &amp; Lemeshow (2000, ch. 5). Our example, 0.76, sits in "acceptable". Treat the labels as vocabulary, not as a verdict.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Same AUC, different model</h3><span class="num">What the number hides</span></div><div class="body">
+<p>Two models can have identical AUC and be useful in opposite situations. Model P ranks three positives at the very top but puts one positive dead last. Model Q puts one negative at the very top and then ranks everything else well. Both score 19 of 25 pairs correctly.</p>
+<div class="two">
+<div><figure><svg class="fig" viewBox="0 0 390 364" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two ROC curves with the same AUC 0.76 but different shapes">
+<rect x="50" y="22" width="300" height="300" fill="#fff" stroke="#999"/>
+<line x1="50.0" y1="22" x2="50.0" y2="322" stroke="#eee"/><line x1="50" y1="322.0" x2="350" y2="322.0" stroke="#eee"/>
+<text x="50.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="45" y="325.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="110.0" y1="22" x2="110.0" y2="322" stroke="#eee"/><line x1="50" y1="262.0" x2="350" y2="262.0" stroke="#eee"/>
+<text x="110.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="45" y="265.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="170.0" y1="22" x2="170.0" y2="322" stroke="#eee"/><line x1="50" y1="202.0" x2="350" y2="202.0" stroke="#eee"/>
+<text x="170.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="45" y="205.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="230.0" y1="22" x2="230.0" y2="322" stroke="#eee"/><line x1="50" y1="142.0" x2="350" y2="142.0" stroke="#eee"/>
+<text x="230.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="45" y="145.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="290.0" y1="22" x2="290.0" y2="322" stroke="#eee"/><line x1="50" y1="82.0" x2="350" y2="82.0" stroke="#eee"/>
+<text x="290.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="45" y="85.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="350.0" y1="22" x2="350.0" y2="322" stroke="#eee"/><line x1="50" y1="22.0" x2="350" y2="22.0" stroke="#eee"/>
+<text x="350.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="45" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<line x1="50" y1="322" x2="350" y2="22" stroke="#888" stroke-dasharray="5 4"/>
+<text x="200.0" y="352" text-anchor="middle" font-size="11.5" fill="#233343">False positive rate (FPR)</text>
+<text transform="translate(20 172) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">True positive rate (TPR)</text>
+<path d="M50.0 322.0 L50.0 262.0 L50.0 202.0 L50.0 142.0 L110.0 142.0 L110.0 82.0 L170.0 82.0 L230.0 82.0 L290.0 82.0 L350.0 82.0 L350.0 22.0" fill="none" stroke="#233343" stroke-width="2.4" stroke-dasharray="none"/>
+<path d="M50.0 322.0 L110.0 322.0 L110.0 262.0 L110.0 202.0 L110.0 142.0 L110.0 82.0 L170.0 82.0 L170.0 22.0 L230.0 22.0 L290.0 22.0 L350.0 22.0" fill="none" stroke="#BD582C" stroke-width="2.4" stroke-dasharray="6 4"/>
+<rect x="206.0" y="244.0" width="140" height="44" fill="#fff" stroke="#e3d8cf" rx="4"/>
+<line x1="215.0" y1="259.0" x2="245.0" y2="259.0" stroke="#233343" stroke-width="2.4"/><text x="254.00000000000003" y="263.0" font-size="11" fill="#333">Model P, AUC 0.76</text>
+<line x1="215.0" y1="280.0" x2="245.0" y2="280.0" stroke="#BD582C" stroke-width="2.4" stroke-dasharray="6 4"/><text x="254.00000000000003" y="284.0" font-size="11" fill="#333">Model Q, AUC 0.76</text>
+</svg><figcaption>Rankings from the top: P = + + + − + − − − − +, Q = − + + + + − + − − −. Both AUC = 0.76; the curves cross.</figcaption></figure></div>
+<div>
+<table class="dt compact"><thead><tr><th>Requirement</th><th>Model P</th><th>Model Q</th></tr></thead><tbody>
+<tr><td>Zero false alarms allowed (FPR = 0)</td><td>catches 60% of positives</td><td>catches 0%</td></tr>
+<tr><td>Must catch every positive (TPR = 1)</td><td>needs FPR = 1.0 (flag everything)</td><td>needs FPR = 0.4</td></tr>
+<tr><td>AUC</td><td>0.76</td><td>0.76</td></tr>
+</tbody></table>
+<p>A fraud team that can investigate only a handful of cases wants P. A cancer screen that must not miss a case wants Q. The AUC averages over the whole FPR range with equal weight, and most applications care about one end of it. When the operating region is known, report the <b>partial AUC</b> over that FPR range, or simply the TPR at the FPR you can afford.</p>
+</div>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Choosing the threshold: the curve shows the options, the costs choose</h3><span class="num">Operating point</span></div><div class="body">
+<p>A common rule is to pick the point farthest above the diagonal, i.e. maximise <b>Youden's J</b> \(=\text{TPR}-\text{FPR}\). On the sweep table of tab 2, J = 0.4 at four different thresholds: \(\tau=0.90\) (0.4 − 0), 0.80 (0.6 − 0.2), 0.65 (0.8 − 0.4) and 0.45 (1.0 − 0.6). The ROC curve cannot break the tie because it does not know what a mistake costs. Attach costs and it can:</p>
+<table class="dt compact"><thead><tr><th>Threshold</th><th>FN</th><th>FP</th><th>Cost if a miss costs 5× a false alarm</th><th>Cost if a false alarm costs 5× a miss</th></tr></thead><tbody>
+<tr><td>≥ 0.90</td><td>3</td><td>0</td><td>15</td><td><b>3</b> ★</td></tr>
+<tr><td>≥ 0.80</td><td>2</td><td>1</td><td>11</td><td>7</td></tr>
+<tr><td>≥ 0.65</td><td>1</td><td>2</td><td>7</td><td>11</td></tr>
+<tr><td>≥ 0.45</td><td>0</td><td>3</td><td><b>3</b> ★</td><td>15</td></tr>
+</tbody></table>
+<p>Cost = \(c_{FN}\cdot FN + c_{FP}\cdot FP\). Fawcett (2006) gives the general rule: the optimal point is where the curve touches a line of slope \(\dfrac{c_{FP}\,N}{c_{FN}\,P}\); the two columns above are slopes 1/5 and 5. Note that the right threshold depends on the <i>deployment</i> class ratio \(N/P\), which is one more reason not to trust the default 0.5.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>How sure is 0.76? Standard error and comparing two AUCs</h3><span class="num">Hanley &amp; McNeil; DeLong</span></div><div class="body">
+<p>An AUC from ten instances is an estimate from a sample of 25 pairs, and it deserves an error bar. Hanley and McNeil (1982) give a closed form:</p>
+<div class="formula">\[ \text{SE}(A)=\sqrt{\frac{A(1-A)+(P-1)(Q_1-A^2)+(N-1)(Q_2-A^2)}{PN}},\qquad Q_1=\frac{A}{2-A},\quad Q_2=\frac{2A^2}{1+A}. \]</div>
+<p>For \(A=0.76,\ P=N=5\): \(Q_1=0.6129\), \(Q_2=0.6564\), and</p>
+<div class="formula">\[ \text{SE}=\sqrt{\frac{0.1824+4(0.6129-0.5776)+4(0.6564-0.5776)}{25}}=\sqrt{\frac{0.1824+0.1413+0.3151}{25}}=0.160 . \]</div>
+<p>A 95% interval of \(0.76\pm1.96\times0.160\) runs from 0.45 to 1.0 (clipped). The example's AUC is <b>not distinguishable from chance</b>: the exact Mann–Whitney test for these ten scores gives \(p=0.22\). The same 0.76 would have SE 0.048 with 50 instances per class and 0.015 with 500. Any AUC quoted to three decimals from a test set of a few dozen cases is noise dressed as precision.</p>
+<div class="note"><b>Two models on the same test set.</b> Their AUCs are correlated (same instances), so a two-sample test on the two SEs is wrong. DeLong, DeLong &amp; Clarke-Pearson (1988) give the correct nonparametric test; it is implemented in R's <code>pROC::roc.test</code> and in several Python packages. For a course project, a bootstrap over test instances — resample, recompute both AUCs, look at the distribution of the difference — is simpler and makes the same point. Report the interval, not just the delta.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Three more things AUC does not measure</h3><span class="num">Limits</span></div><div class="body">
+<ul>
+<li><b>Calibration.</b> Scores of (0.99 positive, 0.98 negative) and (0.99, 0.01) both give AUC = 1. If the probabilities will be <i>used</i> as probabilities — expected cost, risk communication — check a reliability diagram or the Brier score as well.</li>
+<li><b>Precision.</b> AUC never looks at \(TP/(TP+FP)\). On imbalanced data an AUC of 0.9 can coexist with a precision of 0.1 at every useful threshold (tab 5).</li>
+<li><b>A consistent cost model.</b> Hand (2009) showed that AUC implicitly weights FPR–TPR trade-offs with a distribution that depends on the classifier's own score distribution, so comparing two models by AUC uses different cost weightings for each. His proposed replacement (the H-measure) is rarely used, but the criticism is a reason to prefer a stated operating point whenever one is known.</li>
+</ul>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Imbalance &amp; PR curves &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t5">
+<h2>5. Imbalance: why the ROC flatters, and the precision–recall curve</h2>
+
+<div class="slide"><div class="sh"><h3>Multiply the negatives by twenty — nothing happens to the ROC</h3><span class="num">Experiment</span></div><div class="body">
+<p>Take the ten instances of tab 2 and add nineteen more copies of each negative, so the test set is 5 positives against 100 negatives (prevalence 4.8%). At every threshold the FP count is twenty times larger, and so is \(N\); the ratio \(FP/N\) is unchanged. TPR never involved the negatives at all. So every point of the curve stays where it was and the AUC is still 0.76.</p>
+<p>Now look at the threshold \(\tau=0.80\), which in the balanced set gave 3 TP and 1 FP, precision 0.75. In the imbalanced set it gives 3 TP and 20 FP: <b>precision 3/23 = 0.13</b>. Eighty-seven percent of the alarms are false, and the ROC curve has not moved.</p>
+<figure><svg class="fig" viewBox="0 0 670 324" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ROC is unchanged when negatives are multiplied by 20; the precision-recall curve collapses">
+<rect x="50" y="22" width="260" height="260" fill="#fff" stroke="#999"/>
+<line x1="50.0" y1="22" x2="50.0" y2="282" stroke="#eee"/><line x1="50" y1="282.0" x2="310" y2="282.0" stroke="#eee"/>
+<text x="50.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="45" y="285.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="102.0" y1="22" x2="102.0" y2="282" stroke="#eee"/><line x1="50" y1="230.0" x2="310" y2="230.0" stroke="#eee"/>
+<text x="102.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="45" y="233.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="154.0" y1="22" x2="154.0" y2="282" stroke="#eee"/><line x1="50" y1="178.0" x2="310" y2="178.0" stroke="#eee"/>
+<text x="154.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="45" y="181.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="206.0" y1="22" x2="206.0" y2="282" stroke="#eee"/><line x1="50" y1="126.0" x2="310" y2="126.0" stroke="#eee"/>
+<text x="206.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="45" y="129.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="258.0" y1="22" x2="258.0" y2="282" stroke="#eee"/><line x1="50" y1="74.0" x2="310" y2="74.0" stroke="#eee"/>
+<text x="258.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="45" y="77.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="310.0" y1="22" x2="310.0" y2="282" stroke="#eee"/><line x1="50" y1="22.0" x2="310" y2="22.0" stroke="#eee"/>
+<text x="310.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="45" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<line x1="50" y1="282" x2="310" y2="22" stroke="#888" stroke-dasharray="5 4"/>
+<text x="180.0" y="312" text-anchor="middle" font-size="11.5" fill="#233343">False positive rate (FPR)</text>
+<text transform="translate(20 152) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">True positive rate (TPR)</text>
+<path d="M50.0 282.0 L50.0 230.0 L50.0 178.0 L102.0 178.0 L102.0 126.0 L154.0 126.0 L154.0 74.0 L206.0 74.0 L206.0 22.0 L258.0 22.0 L310.0 22.0" fill="none" stroke="#233343" stroke-width="3.2"/>
+<path d="M50.0 282.0 L50.0 230.0 L50.0 178.0 L102.0 178.0 L102.0 126.0 L154.0 126.0 L154.0 74.0 L206.0 74.0 L206.0 22.0 L258.0 22.0 L310.0 22.0" fill="none" stroke="#BD582C" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="180.0" y="14" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">ROC: both datasets, AUC 0.76</text>
+<rect x="380" y="22" width="260" height="260" fill="#fff" stroke="#999"/>
+<line x1="380.0" y1="22" x2="380.0" y2="282" stroke="#eee"/><line x1="380" y1="282.0" x2="640" y2="282.0" stroke="#eee"/>
+<text x="380.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="375" y="285.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="432.0" y1="22" x2="432.0" y2="282" stroke="#eee"/><line x1="380" y1="230.0" x2="640" y2="230.0" stroke="#eee"/>
+<text x="432.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="375" y="233.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="484.0" y1="22" x2="484.0" y2="282" stroke="#eee"/><line x1="380" y1="178.0" x2="640" y2="178.0" stroke="#eee"/>
+<text x="484.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="375" y="181.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="536.0" y1="22" x2="536.0" y2="282" stroke="#eee"/><line x1="380" y1="126.0" x2="640" y2="126.0" stroke="#eee"/>
+<text x="536.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="375" y="129.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="588.0" y1="22" x2="588.0" y2="282" stroke="#eee"/><line x1="380" y1="74.0" x2="640" y2="74.0" stroke="#eee"/>
+<text x="588.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="375" y="77.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="640.0" y1="22" x2="640.0" y2="282" stroke="#eee"/><line x1="380" y1="22.0" x2="640" y2="22.0" stroke="#eee"/>
+<text x="640.0" y="296" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="375" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<text x="510.0" y="312" text-anchor="middle" font-size="11.5" fill="#233343">Recall</text>
+<text transform="translate(350 152) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">Precision</text>
+<path d="M380.0 22.0 L432.0 22.0 L484.0 22.0 L484.0 108.7 L536.0 87.0 L536.0 126.0 L588.0 108.7 L588.0 133.4 L640.0 119.5 L640.0 137.6 L640.0 152.0" fill="none" stroke="#233343" stroke-width="2.6" stroke-dasharray="none"/>
+<path d="M380.0 22.0 L432.0 22.0 L484.0 22.0 L484.0 258.4 L536.0 248.1 L536.0 263.9 L588.0 258.4 L588.0 265.8 L640.0 262.0 L640.0 266.7 L640.0 269.6" fill="none" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6 4"/>
+<line x1="380" y1="152.0" x2="640" y2="152.0" stroke="#233343" stroke-dasharray="2 3" stroke-opacity=".6"/><text x="385.2" y="148.0" font-size="9.5" fill="#233343">random, 5:5 (prec 0.50)</text>
+<line x1="380" y1="269.624" x2="640" y2="269.624" stroke="#BD582C" stroke-dasharray="2 3" stroke-opacity=".7"/><text x="385.2" y="265.624" font-size="9.5" fill="#BD582C">random, 5:100 (prec 0.048)</text>
+<text x="510.0" y="14" text-anchor="middle" font-size="12" font-weight="bold" fill="#233343">Precision-recall: the two datasets differ</text>
+<rect x="473.6" y="167.6" width="160" height="40" fill="#fff" stroke="#e3d8cf" rx="4"/>
+<line x1="481.4" y1="180.6" x2="507.4" y2="180.6" stroke="#233343" stroke-width="2.6"/><text x="515.2" y="184.6" font-size="10.5" fill="#333">5 pos : 5 neg, AP 0.81</text>
+<line x1="481.4" y1="198.8" x2="507.4" y2="198.8" stroke="#BD582C" stroke-width="2.2" stroke-dasharray="6 4"/><text x="515.2" y="202.8" font-size="10.5" fill="#333">5 pos : 100 neg, AP 0.46</text>
+</svg><figcaption>Left: the ROC curve is identical for the 5:5 and the 5:100 datasets. Right: the precision–recall curves of the same two datasets, with the random-classifier baseline for each (precision = prevalence).</figcaption></figure>
+<div class="note"><b>This is not a flaw in the definition.</b> ROC answers "how well does the model separate the two score distributions?", and that question has the same answer whatever the mix. It becomes misleading only when the reader takes a high AUC to mean the alarms can be trusted. On rare-positive problems — fraud, disease screening, defect detection — that is usually the question being asked, so the ROC is answering the wrong one.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The precision–recall curve and average precision</h3><span class="num">Definition and worked example</span></div><div class="body">
+<p>Same sweep, different axes: recall (= TPR) on the x-axis, precision on the y-axis. Because precision is not monotone in the threshold, the curve is a sawtooth, dropping each time a negative is admitted and recovering as positives follow. The usual summary is <b>average precision</b> (AP): the precision at each positive's rank, averaged over the positives, which is the area under the step-wise curve.</p>
+<table class="dt compact"><thead><tr><th>Positive admitted</th><th>TP so far</th><th>FP so far</th><th>Recall</th><th>Precision at that point</th></tr></thead><tbody>
+<tr><td>A</td><td>1</td><td>0</td><td>0.2</td><td>1/1 = 1.000</td></tr>
+<tr><td>B</td><td>2</td><td>0</td><td>0.4</td><td>2/2 = 1.000</td></tr>
+<tr><td>D</td><td>3</td><td>1</td><td>0.6</td><td>3/4 = 0.750</td></tr>
+<tr><td>F</td><td>4</td><td>2</td><td>0.8</td><td>4/6 = 0.667</td></tr>
+<tr><td>H</td><td>5</td><td>3</td><td>1.0</td><td>5/8 = 0.625</td></tr>
+<tr class="ex-sep"><td colspan="4"><b>Average precision</b> = mean of the five</td><td><b>(1 + 1 + 0.75 + 0.667 + 0.625)/5 = 0.808</b></td></tr></tbody></table>
+<p>With the negatives multiplied by twenty the same computation gives AP = 0.46, against an ROC-AUC still at 0.76. The random baseline also moves: a classifier that scores at random has precision equal to the prevalence everywhere, so the PR baseline is 0.5 on the balanced set and 0.048 on the imbalanced one, whereas the ROC baseline is 0.5 in both. A PR-AUC must always be read against its own prevalence.</p>
+<div class="note"><b>Two technical points (Davis &amp; Goadrich, 2006).</b> (1) One curve dominates another in ROC space if and only if it dominates in PR space, so the curves never disagree about a <i>clear</i> winner — they disagree about how big the gap looks and where it is. (2) Straight-line interpolation between PR points is wrong (precision is a ratio whose denominator changes along the curve); <code>sklearn.metrics.average_precision_score</code> uses the step-wise sum above, deliberately, and the older trapezoidal <code>auc(recall, precision)</code> is optimistic.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Which curve, when</h3><span class="num">Decision rule</span></div><div class="body">
+<table class="dt"><thead><tr><th>Situation</th><th>Report</th><th>Because</th></tr></thead><tbody>
+<tr><td>Roughly balanced classes, both error types matter</td><td>ROC-AUC (and the curve)</td><td>Symmetric view of both classes; stable under resampling</td></tr>
+<tr><td>Rare positives, and you care how many alarms are real</td><td>PR-AUC / AP, plus precision and recall at the chosen threshold</td><td>ROC-AUC does not look at FP relative to TP</td></tr>
+<tr><td>Comparing models trained on different class ratios</td><td>ROC-AUC</td><td>Invariant to prevalence, so the comparison is fair</td></tr>
+<tr><td>Deployment class ratio differs from the test set</td><td>ROC curve, then recompute precision at deployment prevalence</td><td>Precision at prevalence \(\pi\): \(\dfrac{\pi\,\text{TPR}}{\pi\,\text{TPR}+(1-\pi)\text{FPR}}\)</td></tr>
+<tr><td>Operating FPR is fixed by policy</td><td>TPR at that FPR, or partial AUC</td><td>The rest of the curve is irrelevant</td></tr>
+</tbody></table>
+<p>The project rubric for this course grades on macro-F1, which is a threshold-dependent, prevalence-sensitive metric. ROC-AUC is a useful <i>additional</i> number there, chiefly to show that a low F1 comes from a bad threshold rather than a bad ranking — or the reverse.</p>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Multi-class &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t6">
+<h2>6. More than two classes</h2>
+
+<div class="slide"><div class="sh"><h3>One-vs-rest: K binary questions</h3><span class="num">Definition</span></div><div class="body">
+<p>ROC needs a positive class and a negative class. With \(K\) classes the standard move is <b>one-vs-rest</b> (OvR): for class \(c\), call the instances of class \(c\) positive, everything else negative, and use the model's score for class \(c\) — the \(c\)-th softmax output — as the binary score. That gives \(K\) ROC curves and \(K\) AUCs, which are then averaged in one of three ways:</p>
+<div class="formula">\[ \text{macro}=\frac1K\sum_c \text{AUC}_c,\qquad \text{weighted}=\sum_c \frac{n_c}{n}\,\text{AUC}_c,\qquad \text{micro}=\text{AUC of the pooled }(nK)\text{ binary decisions}. \]</div>
+<p>The alternative, <b>one-vs-one</b> (OvO), computes an AUC for each of the \(\binom K2\) class pairs using only those two classes' instances and averages them (Hand &amp; Till, 2001). It ignores how the model confuses each pair with the <i>other</i> classes, which makes it less sensitive to imbalance; scikit-learn offers both.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Worked example: twelve instances, three classes</h3><span class="num">Cat 5 · Dog 4 · Fox 3</span></div><div class="body">
+<div class="two">
+<div><table class="dt compact"><thead><tr><th>#</th><th>True class</th><th>\(p(\text{Cat})\)</th><th>\(p(\text{Dog})\)</th><th>\(p(\text{Fox})\)</th><th>argmax</th></tr></thead><tbody>
+<tr><td>1</td><td>Cat</td><td>0.80</td><td>0.15</td><td>0.05</td><td>Cat</td></tr>
+<tr><td>2</td><td>Cat</td><td>0.70</td><td>0.20</td><td>0.10</td><td>Cat</td></tr>
+<tr><td>3</td><td>Cat</td><td>0.55</td><td>0.35</td><td>0.10</td><td>Cat</td></tr>
+<tr><td>4</td><td>Cat</td><td>0.45</td><td>0.40</td><td>0.15</td><td>Cat</td></tr>
+<tr><td>5</td><td>Cat</td><td>0.30</td><td>0.50</td><td>0.20</td><td>Dog ✗</td></tr>
+<tr><td>6</td><td>Dog</td><td>0.20</td><td>0.70</td><td>0.10</td><td>Dog</td></tr>
+<tr><td>7</td><td>Dog</td><td>0.25</td><td>0.60</td><td>0.15</td><td>Dog</td></tr>
+<tr><td>8</td><td>Dog</td><td>0.40</td><td>0.45</td><td>0.15</td><td>Dog</td></tr>
+<tr><td>9</td><td>Dog</td><td>0.34</td><td>0.30</td><td>0.36</td><td>Fox ✗</td></tr>
+<tr><td>10</td><td>Fox</td><td>0.10</td><td>0.28</td><td>0.62</td><td>Fox</td></tr>
+<tr><td>11</td><td>Fox</td><td>0.20</td><td>0.39</td><td>0.41</td><td>Fox</td></tr>
+<tr><td>12</td><td>Fox</td><td>0.32</td><td>0.43</td><td>0.25</td><td>Dog ✗</td></tr>
+</tbody></table></div>
+<div>
+<p>Each row is a softmax output. Argmax gets 9 of 12 right (accuracy 0.75); the mistakes are instances 5, 9 and 12.</p>
+<p>For the Cat question, the positives are instances 1–5 with scores \(p(\text{Cat})\) = 0.80, 0.70, 0.55, 0.45, 0.30, and the negatives are instances 6–12 with \(p(\text{Cat})\) = 0.20, 0.25, 0.40, 0.34, 0.10, 0.20, 0.32. Count, for each positive, how many of the seven negatives it out-scores — exactly the pair count of tab 3.</p>
+</div>
+</div>
+<table class="dt compact"><thead><tr><th>One-vs-rest question</th><th>Positives: score, negatives beaten</th><th>Pairs</th><th>AUC</th></tr></thead><tbody>
+<tr><td>Cat (5 vs 7)</td><td>#1 0.80 → 7; #2 0.70 → 7; #3 0.55 → 7; #4 0.45 → 7; #5 0.30 → 4</td><td>32 / 35</td><td><b>0.9143</b></td></tr>
+<tr><td>Dog (4 vs 8)</td><td>#6 0.70 → 8; #7 0.60 → 8; #8 0.45 → 7; #9 0.30 → 3</td><td>26 / 32</td><td><b>0.8125</b></td></tr>
+<tr><td>Fox (3 vs 9)</td><td>#10 0.62 → 9; #11 0.41 → 9; #12 0.25 → 8</td><td>26 / 27</td><td><b>0.9630</b></td></tr>
+</tbody></table>
+<div class="three">
+<div class="card"><h4>Macro</h4><p>\((0.9143+0.8125+0.9630)/3\) = <b>0.8966</b></p><p class="cap">Each class counts once. The weak Dog class pulls it down by as much as Fox pulls it up.</p></div>
+<div class="card"><h4>Weighted</h4><p>\((5\cdot0.9143+4\cdot0.8125+3\cdot0.9630)/12\) = <b>0.8925</b></p><p class="cap">Follows the support; a bad minority class barely registers.</p></div>
+<div class="card"><h4>Micro</h4><p>12 positive and 24 negative (instance, class) cells, 288 pairs; 255 correctly ordered, 1 tie: \(255.5/288\) = <b>0.8872</b></p><p class="cap">One pooled ROC curve. Dominated by whichever cells are most numerous.</p></div>
+</div>
+<p>OvO macro for the same table is 0.8972. All four are within 0.01 here because the example is small and nearly balanced; on a 60/30/10 split the macro and weighted numbers can differ by several points, and the difference is the whole reason to state which one you report. The course project rubric uses <i>macro</i> for F1 for exactly this reason: it refuses to let the majority class hide the minority.</p>
+<figure><svg class="fig" viewBox="0 0 390 364" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One-vs-rest ROC curves for Cat, Dog and Fox">
+<rect x="50" y="22" width="300" height="300" fill="#fff" stroke="#999"/>
+<line x1="50.0" y1="22" x2="50.0" y2="322" stroke="#eee"/><line x1="50" y1="322.0" x2="350" y2="322.0" stroke="#eee"/>
+<text x="50.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="45" y="325.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="110.0" y1="22" x2="110.0" y2="322" stroke="#eee"/><line x1="50" y1="262.0" x2="350" y2="262.0" stroke="#eee"/>
+<text x="110.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="45" y="265.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="170.0" y1="22" x2="170.0" y2="322" stroke="#eee"/><line x1="50" y1="202.0" x2="350" y2="202.0" stroke="#eee"/>
+<text x="170.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="45" y="205.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="230.0" y1="22" x2="230.0" y2="322" stroke="#eee"/><line x1="50" y1="142.0" x2="350" y2="142.0" stroke="#eee"/>
+<text x="230.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="45" y="145.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="290.0" y1="22" x2="290.0" y2="322" stroke="#eee"/><line x1="50" y1="82.0" x2="350" y2="82.0" stroke="#eee"/>
+<text x="290.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="45" y="85.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="350.0" y1="22" x2="350.0" y2="322" stroke="#eee"/><line x1="50" y1="22.0" x2="350" y2="22.0" stroke="#eee"/>
+<text x="350.0" y="336" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="45" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<line x1="50" y1="322" x2="350" y2="22" stroke="#888" stroke-dasharray="5 4"/>
+<text x="200.0" y="352" text-anchor="middle" font-size="11.5" fill="#233343">False positive rate (FPR)</text>
+<text transform="translate(20 172) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">True positive rate (TPR)</text>
+<path d="M50.0 322.0 L50.0 262.0 L50.0 82.0 L178.6 82.0 L178.6 22.0 L221.4 22.0 L307.1 22.0 L350.0 22.0" fill="none" stroke="#233343" stroke-width="2.4" stroke-dasharray="none"/>
+<path d="M50.0 322.0 L50.0 247.0 L50.0 172.0 L87.5 172.0 L87.5 97.0 L237.5 97.0 L237.5 22.0 L350.0 22.0" fill="none" stroke="#BD582C" stroke-width="2.4" stroke-dasharray="6 4"/>
+<path d="M50.0 322.0 L50.0 222.0 L50.0 122.0 L83.3 122.0 L83.3 22.0 L116.7 22.0 L316.7 22.0 L350.0 22.0" fill="none" stroke="#3C7A5A" stroke-width="2.4" stroke-dasharray="2 3"/>
+<rect x="200.0" y="232.0" width="148" height="62" fill="#fff" stroke="#e3d8cf" rx="4"/>
+<line x1="209.0" y1="247.0" x2="239.0" y2="247.0" stroke="#233343" stroke-width="2.4" stroke-dasharray="none"/><text x="248.0" y="251.0" font-size="11" fill="#333">Cat vs rest, AUC 0.914</text>
+<line x1="209.0" y1="268.0" x2="239.0" y2="268.0" stroke="#BD582C" stroke-width="2.4" stroke-dasharray="6 4"/><text x="248.0" y="272.0" font-size="11" fill="#333">Dog vs rest, AUC 0.813</text>
+<line x1="209.0" y1="289.0" x2="239.0" y2="289.0" stroke="#3C7A5A" stroke-width="2.4" stroke-dasharray="2 3"/><text x="248.0" y="293.0" font-size="11" fill="#333">Fox vs rest, AUC 0.963</text>
+</svg><figcaption>The three one-vs-rest ROC curves. Dog is the hardest class to pick out from the rest.</figcaption></figure>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>What multi-class AUC does not fix</h3><span class="num">Caveats</span></div><div class="body">
+<ul>
+<li>OvR AUC can be high while accuracy is mediocre (0.90 vs 0.75 above). The two measure different things: ranking within each class's score column versus the argmax across columns. Report both.</li>
+<li>Each OvR question is itself imbalanced (one class against \(K-1\)), so every point of tab 5 applies: with ten classes, each binary question is at best 10:90, and a per-class AUC of 0.95 says little about per-class precision.</li>
+<li>Micro-averaged AUC is sometimes used because it is "one number from one curve", but on imbalanced data it reduces to the majority class's AUC and should not be the headline.</li>
+</ul>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: History &amp; papers &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t7">
+<h2>7. Where the ROC curve came from</h2>
+
+<div class="slide"><div class="sh"><h3>Radar, then psychology, then medicine, then machine learning</h3><span class="num">Timeline</span></div><div class="body">
+<figure><svg class="fig" viewBox="0 0 820 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline of ROC and AUC">
+<line x1="40" y1="48" x2="800" y2="48" stroke="#233343" stroke-width="2"/>
+<circle cx="93.6" cy="48" r="5" fill="#233343"/>
+<text x="93.6" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1941</text>
+<text x="93.6" y="13" text-anchor="middle" font-size="10" fill="#444">Radar operators, WWII</text>
+<circle cx="209.9" cy="48" r="5" fill="#BD582C"/>
+<text x="209.9" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1954</text>
+<text x="209.9" y="91" text-anchor="middle" font-size="10" fill="#444">Peterson, Birdsall & Fox</text>
+<circle cx="317.2" cy="48" r="5" fill="#233343"/>
+<text x="317.2" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1966</text>
+<text x="317.2" y="13" text-anchor="middle" font-size="10" fill="#444">Green & Swets</text>
+<circle cx="460.2" cy="48" r="5" fill="#BD582C"/>
+<text x="460.2" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1982</text>
+<text x="460.2" y="91" text-anchor="middle" font-size="10" fill="#444">Hanley & McNeil</text>
+<circle cx="513.9" cy="48" r="5" fill="#233343"/>
+<text x="513.9" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1988</text>
+<text x="513.9" y="13" text-anchor="middle" font-size="10" fill="#444">DeLong et al.</text>
+<circle cx="594.4" cy="48" r="5" fill="#233343"/>
+<text x="594.4" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1997</text>
+<text x="594.4" y="91" text-anchor="middle" font-size="10" fill="#444">Bradley</text>
+<circle cx="674.8" cy="48" r="5" fill="#BD582C"/>
+<text x="674.8" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">2006</text>
+<text x="674.8" y="13" text-anchor="middle" font-size="10" fill="#444">Fawcett</text>
+<circle cx="755.3" cy="48" r="5" fill="#233343"/>
+<text x="755.3" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">2015</text>
+<text x="755.3" y="91" text-anchor="middle" font-size="10" fill="#444">Saito & Rehmsmeier</text>
+</svg></figure>
+<p>The name is the giveaway. A "receiver" is a radio receiver; its "operating characteristic" is how its output behaves as the operator turns the sensitivity knob. During the Second World War, radar operators had to decide whether a blip on the screen was an aircraft or noise. Turn the gain up and you catch more aircraft and more noise; turn it down and you miss both. Engineers plotted the two rates against each other as the gain varied, and the resulting curve described the receiver, independent of the setting chosen on any particular night.</p>
+<dl class="timeline-list">
+<dt>1954 — Peterson, Birdsall &amp; Fox, "The theory of signal detectability"</dt><dd>The curve becomes mathematics: the optimal detector is a likelihood-ratio test, and sweeping its threshold traces an ROC curve that is concave and lies above the chance line. The intuition that a curve <i>characterises</i> a detector and a point <i>characterises</i> a decision dates from here.</dd>
+<dt>1966 — Green &amp; Swets, <i>Signal Detection Theory and Psychophysics</i></dt><dd>The same mathematics applied to people: a subject deciding whether a faint tone was present behaves like a receiver with a threshold. Sensitivity (\(d'\)) and bias are separated, which is the psychological version of "ranking versus threshold".</dd>
+<dt>1982 — Hanley &amp; McNeil, "The meaning and use of the area under a receiver operating characteristic (ROC) curve", <i>Radiology</i></dt><dd>Radiologists were comparing diagnostic tests by AUC without a clear reading of what the area meant. This paper proved AUC equals the probability that a random diseased case is rated higher than a random healthy one, identified it with the Wilcoxon–Mann–Whitney statistic, and gave the standard-error formula in tab 4.</dd>
+<dt>1988 — DeLong, DeLong &amp; Clarke-Pearson, <i>Biometrics</i></dt><dd>The test for comparing two AUCs measured on the same patients, still the default in medical statistics.</dd>
+<dt>1989 — Spackman; 1997 — Bradley, <i>Pattern Recognition</i></dt><dd>ROC analysis crosses into machine learning. Bradley's paper argued for AUC as the standard single-number comparison of classifiers, on the grounds that accuracy depends on the threshold and the class ratio and AUC does not.</dd>
+<dt>2006 — Fawcett, "An introduction to ROC analysis", <i>Pattern Recognition Letters</i></dt><dd>The tutorial most ML papers cite: the efficient one-pass algorithm for the curve, the convex hull, iso-cost lines for choosing an operating point, averaging curves across folds, and the multi-class extension. If you read one paper from this tab, read this one.</dd>
+<dt>2006 — Davis &amp; Goadrich; 2015 — Saito &amp; Rehmsmeier</dt><dd>The pushback: on imbalanced data the ROC gives an optimistic picture, and the precision–recall curve is the honest one. These two are the basis of tab 5.</dd>
+</dl>
+<div class="note"><b>Why the history matters for reading papers.</b> The three communities use different words for the same objects. Medicine says sensitivity and specificity (1 − FPR), psychology says hit rate and false-alarm rate, machine learning says recall and FPR; "AUC" in a medical paper usually means ROC-AUC, while in an information-retrieval paper "AP" or "mAP" is the PR-curve area. Knowing which community a paper comes from tells you which curve its numbers describe.</div>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next">Next: Python, summary, practice &rarr;</button></div>
+</section>
+
+<section class="tab-panel" id="t8">
+<h2>8. Python, summary, practice questions, references</h2>
+
+<div class="slide"><div class="sh"><h3>scikit-learn on the tab-2 example</h3><span class="num">Code</span></div><div class="body">
+<pre><code>import numpy as np
+from sklearn.metrics import roc_curve, roc_auc_score, auc, average_precision_score
+
+score = np.array([0.95, 0.90, 0.85, 0.80, 0.70, 0.65, 0.55, 0.45, 0.30, 0.20])
+y     = np.array([1, 1, 0, 1, 0, 1, 0, 1, 0, 0])
+
+fpr, tpr, thresholds = roc_curve(y, score)   # the sweep of tab 2
+print(np.c_[thresholds, fpr, tpr])
+print(auc(fpr, tpr))                           # 0.76  (trapezoid, way 1)
+print(roc_auc_score(y, score))                 # 0.76  (same thing, one call)
+print(average_precision_score(y, score))       # 0.8083 (tab 5)
+
+# way 2 by hand: fraction of correctly ordered (positive, negative) pairs
+pos, neg = score[y == 1], score[y == 0]
+pairs = (pos[:, None] > neg[None, :]) + 0.5 * (pos[:, None] == neg[None, :])
+print(pairs.mean())                            # 0.76
+
+# way 3 by hand: Mann-Whitney through ranks
+from scipy.stats import rankdata
+r = rankdata(score)                            # average ranks for ties
+P, N = len(pos), len(neg)
+print((r[y == 1].sum() - P * (P + 1) / 2) / (P * N))   # 0.76</code></pre>
+<div class="note"><b>Gotchas.</b> <code>roc_curve</code> prepends a threshold of <code>inf</code> so the curve starts at (0, 0); it also drops collinear points by default (<code>drop_intermediate=True</code>), so the number of points can be smaller than the number of distinct scores. Always pass <i>scores</i>: <code>roc_auc_score(y, clf.predict(X))</code> silently computes the AUC of a hard 0/1 prediction, which is just \(\tfrac12(\text{TPR}+\text{TNR})\) — balanced accuracy — and is not what you meant. Use <code>clf.predict_proba(X)[:, 1]</code> or <code>clf.decision_function(X)</code>.</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Multi-class and PyTorch</h3><span class="num">Code</span></div><div class="body">
+<pre><code># scikit-learn, probabilities of shape (n, K), integer labels 0..K-1
+from sklearn.metrics import roc_auc_score
+roc_auc_score(y_true, proba, multi_class='ovr', average='macro')      # 0.8966 on tab 6
+roc_auc_score(y_true, proba, multi_class='ovr', average='weighted')   # 0.8925
+roc_auc_score(y_true, proba, multi_class='ovo', average='macro')      # 0.8972
+# micro needs the one-hot form
+from sklearn.preprocessing import label_binarize
+Y = label_binarize(y_true, classes=[0, 1, 2])
+roc_auc_score(Y, proba, average='micro')                              # 0.8872
+
+# torchmetrics, on logits or probabilities (tensors)
+from torchmetrics.classification import BinaryAUROC, MulticlassAUROC, BinaryAveragePrecision
+BinaryAUROC()(scores, labels)                                  # binary
+MulticlassAUROC(num_classes=3, average='macro')(logits, labels) # OvR macro; 'weighted', 'none' also allowed
+BinaryAveragePrecision()(scores, labels)                        # PR-AUC</code></pre>
+<p class="cap">The scikit-learn calls were run on the twelve-row table of tab 6 and return the numbers in the comments. The torchmetrics calls follow its documented API and were not executed for this page.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Key takeaways</h3><span class="num">Summary</span></div><div class="body">
+<div class="kv">
+<b>ROC curve</b><span>TPR against FPR as the threshold sweeps from \(+\infty\) down. Built from scores, not labels. A staircase for untied scores: up for each positive admitted, right for each negative.</span>
+<b>AUC</b><span>The area under it, equal to \(\Pr(s_{\text{pos}}>s_{\text{neg}})\), equal to \(U/(PN)\). Chance 0.5, perfect 1. Rank-based, so threshold- and prevalence-free, and blind to calibration and precision.</span>
+<b>Reading one</b><span>Compare with 0.5, then with the domain. Same AUC can mean different curves; state the operating region. Attach a standard error — with ten instances, 0.76 is not distinguishable from 0.5.</span>
+<b>Threshold</b><span>The curve shows the options; the costs \(c_{FN},c_{FP}\) and the deployment class ratio choose. Youden's J is a cost-free default and will tie.</span>
+<b>Imbalance</b><span>ROC does not move when negatives multiply; precision does. For rare positives report PR-AUC / AP against a baseline equal to the prevalence.</span>
+<b>Multi-class</b><span>One-vs-rest curves averaged macro, weighted or micro; say which. Macro protects the minority class.</span>
+</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Practice questions</h3><span class="num">Try these</span></div><div class="body">
+<ol>
+<li>A model scores eight instances; sorted from highest score, the true classes are + + − + − − + −. Draw the ROC curve, compute the AUC by rectangles and by pair counting, and check the two agree.</li>
+<li>Repeat question 1 with the ranks: compute \(R_+\) and verify \((R_+-\tfrac12P(P+1))/(PN)\) gives the same AUC.</li>
+<li>Two instances in question 1 — the third and fourth — are now given the same score. Recompute the AUC. Which step of the staircase became diagonal?</li>
+<li>A classifier has AUC 0.30. Is it useless? What single change makes it a 0.70 classifier, and why does that change not help a classifier with AUC 0.50?</li>
+<li>From the sweep table in tab 2, find every threshold at which Youden's J is maximal. A false negative costs 3 and a false positive costs 1: which of them minimises total cost? What if the deployment data has 20 negatives for every positive?</li>
+<li>Using the Hanley–McNeil formula, compute the standard error of AUC = 0.90 with \(P=N=20\). Does a second model with AUC = 0.85 on the same 40 cases differ "significantly"? Explain why the question as posed cannot be answered with the two SEs alone.</li>
+<li>Explain in two sentences why multiplying the number of negatives by 20 leaves the ROC curve unchanged but moves the PR curve. Which denominator changed?</li>
+<li>A fraud model has ROC-AUC 0.95 and average precision 0.12 on data with 1% fraud. Describe what the alarms look like to the analyst who receives them.</li>
+<li>In the twelve-row table of tab 6, which single instance would you change, and how, to raise the Dog one-vs-rest AUC by the largest amount? Recompute it.</li>
+<li>Write a function that computes AUC from scores and labels in \(O(n\log n)\) time without calling a library, and verify it on the tab-2 data.</li>
+</ol>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>References</h3><span class="num">Cited on this page</span></div><div class="body">
+<ol>
+<li>Peterson, W. W., Birdsall, T. G. &amp; Fox, W. C. (1954). The theory of signal detectability. <i>Transactions of the IRE Professional Group on Information Theory</i>, 4(4), 171–212.</li>
+<li>Green, D. M. &amp; Swets, J. A. (1966). <i>Signal Detection Theory and Psychophysics</i>. Wiley.</li>
+<li>Hanley, J. A. &amp; McNeil, B. J. (1982). The meaning and use of the area under a receiver operating characteristic (ROC) curve. <i>Radiology</i>, 143(1), 29–36.</li>
+<li>DeLong, E. R., DeLong, D. M. &amp; Clarke-Pearson, D. L. (1988). Comparing the areas under two or more correlated receiver operating characteristic curves: a nonparametric approach. <i>Biometrics</i>, 44(3), 837–845.</li>
+<li>Spackman, K. A. (1989). Signal detection theory: valuable tools for evaluating inductive learning. <i>Proc. 6th International Workshop on Machine Learning</i>, 160–163.</li>
+<li>Bradley, A. P. (1997). The use of the area under the ROC curve in the evaluation of machine learning algorithms. <i>Pattern Recognition</i>, 30(7), 1145–1159.</li>
+<li>Hosmer, D. W. &amp; Lemeshow, S. (2000). <i>Applied Logistic Regression</i> (2nd ed.), ch. 5. Wiley.</li>
+<li>Hand, D. J. &amp; Till, R. J. (2001). A simple generalisation of the area under the ROC curve for multiple class classification problems. <i>Machine Learning</i>, 45(2), 171–186.</li>
+<li>Fawcett, T. (2006). An introduction to ROC analysis. <i>Pattern Recognition Letters</i>, 27(8), 861–874.</li>
+<li>Davis, J. &amp; Goadrich, M. (2006). The relationship between precision-recall and ROC curves. <i>Proc. 23rd ICML</i>, 233–240.</li>
+<li>Hand, D. J. (2009). Measuring classifier performance: a coherent alternative to the area under the ROC curve. <i>Machine Learning</i>, 77(1), 103–123.</li>
+<li>Saito, T. &amp; Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. <i>PLOS ONE</i>, 10(3), e0118432.</li>
+</ol>
+</div></div>
+
+<div class="navrow"><button class="prev">&larr; Previous</button><button class="next" disabled>Next &rarr;</button></div>
+</section>
+
+<div class="footer">
+  <span>CSE475 · Fall 2026</span>
+  <span>Raihan Ul Islam, Associate Professor, Dept. of CSE, East West University.</span>
+</div>
+
+</div>
+<script>
+(function(){
+  var wrap = document.querySelector('.page');
+  wrap.classList.add('tabbed');
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.tab-panel'));
+  function show(id){
+    panels.forEach(function(p){ p.classList.toggle('active', p.id===id); });
+    btns.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab===id ? 'true':'false'); });
+    btns.forEach(function(b){ if(b.dataset.tab===id && b.scrollIntoView && window.innerWidth<=680) b.scrollIntoView({block:'nearest',inline:'center'}); });
+    var i = panels.findIndex(function(p){return p.id===id;});
+    document.querySelectorAll('.navrow .prev').forEach(function(b){ b.disabled = i<=0; });
+    document.querySelectorAll('.navrow .next').forEach(function(b){ b.disabled = i>=panels.length-1; });
+  }
+  function go(id){
+    show(id);
+    if(location.hash!=='#'+id){ history.replaceState(null,'','#'+id); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
+  document.querySelectorAll('.navrow button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var cur = panels.findIndex(function(p){return p.classList.contains('active');});
+      var nxt = b.classList.contains('next') ? cur+1 : cur-1;
+      if(panels[nxt]) go(panels[nxt].id);
+    });
+  });
+  var start = (location.hash && document.getElementById(location.hash.slice(1))) ? location.hash.slice(1) : 't1';
+  show(start);
+  window.addEventListener('hashchange', function(){
+    var id = location.hash.slice(1); if(document.getElementById(id)) show(id);
+  });
+})();
+</script>
+<script>
+(function(){
+  var score=[0.95,0.90,0.85,0.80,0.70,0.65,0.55,0.45,0.30,0.20], y=[1,1,0,1,0,1,0,1,0,0];
+  var sl=document.getElementById('thr'); if(!sl) return;
+  var spans=document.querySelectorAll('#rankstrip span');
+  var marker=document.getElementById('rocmarker');
+  function f2(v){ return v.toFixed(2); }
+  function upd(){
+    var k=parseInt(sl.value,10), TP=0, FP=0;
+    for(var i=0;i<10;i++){ var on=i<k; spans[i].classList.toggle('cut',on); if(on){ if(y[i]) TP++; else FP++; } }
+    var FN=5-TP, TN=5-FP;
+    document.getElementById('thrlab').textContent = k===0 ? 'τ > 0.95 (predict nothing positive)' : 'τ = '+f2(score[k-1])+'  (predict positive if s ≥ τ)';
+    document.getElementById('w_tp').textContent=TP; document.getElementById('w_fp').textContent=FP;
+    document.getElementById('w_fn').textContent=FN; document.getElementById('w_tn').textContent=TN;
+    document.getElementById('w_tpr').textContent=TP+' / 5 = '+f2(TP/5);
+    document.getElementById('w_fpr').textContent=FP+' / 5 = '+f2(FP/5);
+    document.getElementById('w_prec').textContent=(TP+FP)===0 ? 'undefined (0 / 0)' : TP+' / '+(TP+FP)+' = '+f2(TP/(TP+FP));
+    document.getElementById('w_acc').textContent=(TP+TN)+' / 10 = '+f2((TP+TN)/10);
+    document.getElementById('w_pt').textContent='('+f2(FP/5)+', '+f2(TP/5)+')';
+    var pt=document.getElementById('rocpt'+k);
+    if(pt&&marker){ marker.setAttribute('cx',pt.getAttribute('cx')); marker.setAttribute('cy',pt.getAttribute('cy')); marker.style.display='block'; }
+  }
+  sl.addEventListener('input',upd); upd();
+})();
+</script>
+</body>
+</html>
