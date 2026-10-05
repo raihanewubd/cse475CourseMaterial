@@ -128,12 +128,12 @@
   <div class="attr">Web notes written for CSE475, continuing Lecture 5 (Performance Evaluation). Every number was recomputed in code; blue boxes add what is usually left implicit.</div>
 </header>
 
-<p class="lead"><b>In one paragraph.</b> Lecture 5 judged a classifier from a confusion matrix, which needs hard labels. But most classifiers output a <i>score</i> — a probability, a logit, a distance — and the labels only appear once you pick a threshold. Pick a different threshold and you get a different confusion matrix, so a single precision or recall is a statement about one threshold, not about the model. The ROC curve removes the threshold: it sweeps every cut-off and plots the true positive rate against the false positive rate at each one. The AUC is the area under that curve, and it has an exact meaning — the probability that a randomly chosen positive is scored above a randomly chosen negative. Tab 2 builds the curve by hand from ten scores, tab 3 computes the AUC three ways and gets 0.76 each time, tab 4 is about what 0.76 does and does not tell you, tab 5 is why the ROC flatters imbalanced data, tab 6 extends it to three classes, tab 7 traces it back to WWII radar, and tab 8 has the code. <em>Use the tabs to move between sections.</em> <a href="index.html">&#8592; Back to course material</a></p>
+<p class="lead"><b>In one paragraph.</b> Tab 1 says what the curve is, where it came from, and what its two axes mean. Lecture 5 judged a classifier from a confusion matrix, which needs hard labels. But most classifiers output a <i>score</i> — a probability, a logit, a distance — and the labels only appear once you pick a threshold. Pick a different threshold and you get a different confusion matrix, so a single precision or recall is a statement about one threshold, not about the model. The ROC curve removes the threshold: it sweeps every cut-off and plots the true positive rate against the false positive rate at each one. The AUC is the area under that curve, and it has an exact meaning — the probability that a randomly chosen positive is scored above a randomly chosen negative. Tab 2 builds the curve by hand from ten scores, tab 3 computes the AUC three ways and gets 0.76 each time, tab 4 is about what 0.76 does and does not tell you, tab 5 is why the ROC flatters imbalanced data, tab 6 extends it to three classes, tab 7 lists the papers behind it, and tab 8 has the code. <em>Use the tabs to move between sections.</em> <a href="index.html">&#8592; Back to course material</a></p>
 
 <div class="note ai-note"><b>A note on how these notes were made.</b> This page was prepared with the help of a generative AI assistant (Claude, by Anthropic) under the instructor's direction. Every number on the page was recomputed independently in code before publication, but AI-assisted material can still contain mistakes, and no page replaces the lecture or the textbook. If anything here is unclear, looks wrong, or disagrees with what was said in class, please email <a href="mailto:raihan.islam@ewubd.edu">raihan.islam@ewubd.edu</a> or raise it in class. Reported errors are fixed on the page and the reporter is credited.</div>
 
 <div class="tabbar" role="tablist" id="tabbar">
-  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>Scores, not labels</button>
+  <button class="tab-btn" role="tab" data-tab="t1"><span class="n">1</span>What an ROC curve is</button>
   <button class="tab-btn" role="tab" data-tab="t2"><span class="n">2</span>Building the ROC curve</button>
   <button class="tab-btn" role="tab" data-tab="t3"><span class="n">3</span>AUC three ways</button>
   <button class="tab-btn" role="tab" data-tab="t4"><span class="n">4</span>Reading an AUC</button>
@@ -144,31 +144,174 @@
 </div>
 
 <section class="tab-panel" id="t1">
-<h2>1. The problem the ROC curve solves</h2>
+<h2>1. What an ROC curve is</h2>
 
-<div class="slide"><div class="sh"><h3>A confusion matrix is one threshold's opinion</h3><span class="num">Continues Lecture 5</span></div><div class="body">
+<div class="slide"><div class="sh"><h3>Definition</h3><span class="num">Start here</span></div><div class="body">
+<p>An <b>ROC curve</b> (receiver operating characteristic curve) is a picture of how a classifier trades two kinds of mistake against each other. A classifier that outputs a score can be turned into a yes/no decision at any cut-off; each cut-off catches some fraction of the real positives and wrongly flags some fraction of the real negatives. Plot those two fractions against each other for every possible cut-off and you have the curve. It describes the classifier as a whole, not any one decision rule made from it.</p>
+<p>The <b>AUC</b> (area under the ROC curve) compresses the curve to a single number between 0 and 1: 0.5 is what random guessing gets, 1.0 is a perfect classifier. It has an exact meaning, proved in tab 3: the probability that a randomly chosen positive instance is scored higher than a randomly chosen negative one.</p>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>Where it came from</h3><span class="num">Origin</span></div><div class="body">
+<p>The name is the giveaway. A "receiver" is a radio receiver; its "operating characteristic" is how its output behaves as the operator turns the sensitivity knob. During the Second World War, radar operators had to decide whether a blip on the screen was an enemy aircraft or noise. Turn the gain up and you detect more aircraft but also see more phantom blips; turn it down and you miss both. Engineers plotted the detection rate against the false-alarm rate as the gain varied, and the resulting curve described the receiver itself, independent of whatever setting the operator chose on a given night.</p>
+<figure><svg class="fig" viewBox="0 0 820 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A radar operator, two settings of the gain knob, and what the scope shows at each">
+<rect x="0" y="0" width="820" height="400" fill="#f7f4f0"/>
+<ellipse cx="95" cy="290" rx="70" ry="14" fill="#d9d2ca"/>
+<path d="M43 292 Q41 224 95 220 Q149 224 147 292 Z" fill="#233343"/>
+<circle cx="95" cy="182" r="28" fill="#233343"/>
+<path d="M65 180 Q95 138 125 180" fill="none" stroke="#BD582C" stroke-width="6"/>
+<rect x="57" y="168" width="12" height="22" rx="4" fill="#BD582C"/><rect x="121" y="168" width="12" height="22" rx="4" fill="#BD582C"/>
+<text x="95" y="386" text-anchor="middle" font-size="11.5" fill="#233343">the radar operator</text>
+<circle cx="360" cy="165" r="102" fill="#2a2f2a"/>
+<circle cx="360" cy="165" r="92" fill="#0b2a14"/>
+<circle cx="360" cy="165" r="30.4" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<circle cx="360" cy="165" r="60.7" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<circle cx="360" cy="165" r="92.0" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<line x1="268" y1="165" x2="452" y2="165" stroke="#1f5a2e"/><line x1="360" y1="73" x2="360" y2="257" stroke="#1f5a2e"/>
+<path d="M360 165 L435.4 112.2 A92 92 0 0 0 392.4 78.9 Z" fill="#6ee07a" fill-opacity=".18"/>
+<line x1="360" y1="165" x2="435.4" y2="112.2" stroke="#8ff59a" stroke-width="2"/>
+<ellipse cx="312.5" cy="147.7" rx="7" ry="4" fill="#b8ffbe"/>
+<ellipse cx="312.5" cy="147.7" rx="11" ry="7" fill="#b8ffbe" fill-opacity=".25"/>
+<ellipse cx="396.8" cy="101.3" rx="5" ry="3" fill="#2f7a3a"/>
+<ellipse cx="365.6" cy="196.7" rx="5" ry="3" fill="#2f7a3a"/>
+<text x="360" y="51" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#233343">Gain turned down</text>
+<circle cx="360" cy="297" r="16" fill="#3b3b3b" stroke="#111" stroke-width="2"/>
+<line x1="360" y1="297" x2="351.3" y2="287.3" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+<text x="336" y="302" text-anchor="end" font-size="10" fill="#555">LOW</text><text x="384" y="302" font-size="10" fill="#555">HIGH</text>
+<text x="360" y="329" text-anchor="middle" font-size="10.5" fill="#555">gain</text>
+<text x="360" y="351" text-anchor="middle" font-size="11" fill="#BD582C" font-weight="bold">1 of 3 aircraft seen · 0 false echoes</text>
+<circle cx="640" cy="165" r="102" fill="#2a2f2a"/>
+<circle cx="640" cy="165" r="92" fill="#0b2a14"/>
+<circle cx="640" cy="165" r="30.4" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<circle cx="640" cy="165" r="60.7" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<circle cx="640" cy="165" r="92.0" fill="none" stroke="#1f5a2e" stroke-width="1"/>
+<line x1="548" y1="165" x2="732" y2="165" stroke="#1f5a2e"/><line x1="640" y1="73" x2="640" y2="257" stroke="#1f5a2e"/>
+<path d="M640 165 L715.4 112.2 A92 92 0 0 0 672.4 78.9 Z" fill="#6ee07a" fill-opacity=".18"/>
+<line x1="640" y1="165" x2="715.4" y2="112.2" stroke="#8ff59a" stroke-width="2"/>
+<ellipse cx="592.5" cy="147.7" rx="7" ry="4" fill="#b8ffbe"/>
+<ellipse cx="592.5" cy="147.7" rx="11" ry="7" fill="#b8ffbe" fill-opacity=".25"/>
+<ellipse cx="676.8" cy="101.3" rx="7" ry="4" fill="#b8ffbe"/>
+<ellipse cx="676.8" cy="101.3" rx="11" ry="7" fill="#b8ffbe" fill-opacity=".25"/>
+<ellipse cx="645.6" cy="196.7" rx="7" ry="4" fill="#b8ffbe"/>
+<ellipse cx="645.6" cy="196.7" rx="11" ry="7" fill="#b8ffbe" fill-opacity=".25"/>
+<circle cx="595.4" cy="147.4" r="2.7" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="591.1" cy="162.6" r="2.3" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="612.3" cy="162.9" r="2.4" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="701.1" cy="206.0" r="2.0" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="647.6" cy="145.8" r="2.4" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="656.9" cy="163.1" r="2.8" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="592.8" cy="123.1" r="1.8" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="625.3" cy="162.4" r="1.7" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="641.4" cy="193.1" r="1.6" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="594.6" cy="182.8" r="2.6" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="606.3" cy="124.1" r="2.2" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="578.5" cy="181.9" r="1.9" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="729.0" cy="162.6" r="2.6" fill="#9fe8a6" fill-opacity=".85"/>
+<circle cx="613.2" cy="226.6" r="1.9" fill="#9fe8a6" fill-opacity=".85"/>
+<text x="640" y="51" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#233343">Gain turned up</text>
+<circle cx="640" cy="297" r="16" fill="#3b3b3b" stroke="#111" stroke-width="2"/>
+<line x1="640" y1="297" x2="649.7" y2="288.3" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+<text x="616" y="302" text-anchor="end" font-size="10" fill="#555">LOW</text><text x="664" y="302" font-size="10" fill="#555">HIGH</text>
+<text x="640" y="329" text-anchor="middle" font-size="10.5" fill="#555">gain</text>
+<text x="640" y="351" text-anchor="middle" font-size="11" fill="#BD582C" font-weight="bold">3 of 3 aircraft seen · 14 false echoes</text>
+<text x="500" y="386" text-anchor="middle" font-size="11" fill="#444">Same sky, same aircraft (three real echoes), two settings of one knob. Each setting is one point on the receiver's operating-characteristic curve.</text>
+</svg><figcaption>The radar story as a trade-off. Turning the gain knob up finds all three aircraft and fourteen phantom echoes; turning it down finds one aircraft and no phantoms. "Fraction of real aircraft seen" is the y-axis of the next block; "fraction of noise called aircraft" is the x-axis.</figcaption></figure>
+<figure id="radar-photo"><img src="assets/ml04b/radar-operator.jpg" alt="A Second World War radar operator at a plan-position-indicator scope" style="display:block;max-width:520px;width:100%;margin:6px auto;border:1px solid var(--line);border-radius:4px" onerror="document.getElementById('radar-photo').style.display='none'"><figcaption>A wartime radar operator at a plan-position-indicator (PPI) scope. <span id="radar-credit">Photo credit to be added.</span></figcaption></figure>
+<p>That curve was made mathematical in 1954 (Peterson, Birdsall &amp; Fox), carried into psychology in the 1960s (Green &amp; Swets: a person detecting a faint tone behaves like a receiver with a threshold), into radiology in the 1980s (Hanley &amp; McNeil, who gave the area its probabilistic meaning), and into machine learning in the 1990s (Bradley; Fawcett's 2006 tutorial is the standard reference). Tab 7 has the full timeline and the papers.</p>
+<figure><svg class="fig" viewBox="0 0 820 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline of ROC and AUC">
+<line x1="40" y1="48" x2="800" y2="48" stroke="#233343" stroke-width="2"/>
+<circle cx="93.6" cy="48" r="5" fill="#233343"/>
+<text x="93.6" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1941</text>
+<text x="93.6" y="13" text-anchor="middle" font-size="10" fill="#444">Radar operators, WWII</text>
+<circle cx="209.9" cy="48" r="5" fill="#BD582C"/>
+<text x="209.9" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1954</text>
+<text x="209.9" y="91" text-anchor="middle" font-size="10" fill="#444">Peterson, Birdsall & Fox</text>
+<circle cx="317.2" cy="48" r="5" fill="#233343"/>
+<text x="317.2" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1966</text>
+<text x="317.2" y="13" text-anchor="middle" font-size="10" fill="#444">Green & Swets</text>
+<circle cx="460.2" cy="48" r="5" fill="#BD582C"/>
+<text x="460.2" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1982</text>
+<text x="460.2" y="91" text-anchor="middle" font-size="10" fill="#444">Hanley & McNeil</text>
+<circle cx="513.9" cy="48" r="5" fill="#233343"/>
+<text x="513.9" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1988</text>
+<text x="513.9" y="13" text-anchor="middle" font-size="10" fill="#444">DeLong et al.</text>
+<circle cx="594.4" cy="48" r="5" fill="#233343"/>
+<text x="594.4" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">1997</text>
+<text x="594.4" y="91" text-anchor="middle" font-size="10" fill="#444">Bradley</text>
+<circle cx="674.8" cy="48" r="5" fill="#BD582C"/>
+<text x="674.8" y="26" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">2006</text>
+<text x="674.8" y="13" text-anchor="middle" font-size="10" fill="#444">Fawcett</text>
+<circle cx="755.3" cy="48" r="5" fill="#233343"/>
+<text x="755.3" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">2015</text>
+<text x="755.3" y="91" text-anchor="middle" font-size="10" fill="#444">Saito & Rehmsmeier</text>
+</svg><figcaption>Eighty years of the same curve: radar, psychophysics, medicine, machine learning.</figcaption></figure>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The two axes</h3><span class="num">Read this before anything else</span></div><div class="body">
+<p>Both axes are rates between 0 and 1, built from the four counts of a confusion matrix (Lecture 5): true positives \(TP\), false negatives \(FN\), false positives \(FP\), true negatives \(TN\). Write \(P=TP+FN\) for the number of real positives and \(N=FP+TN\) for the number of real negatives.</p>
+<div class="two">
+<div class="card"><h4>y-axis: true positive rate (TPR)</h4>
+<div class="formula">\[ \text{TPR}=\frac{TP}{TP+FN}=\frac{TP}{P} \]</div>
+<p>Of the instances that really are positive, what fraction did the classifier flag? Also called <b>recall</b>, <b>sensitivity</b>, or (in radar) the <b>hit rate</b>. Higher is better. In the radar story: of the real aircraft, how many did the operator see?</p></div>
+<div class="card"><h4>x-axis: false positive rate (FPR)</h4>
+<div class="formula">\[ \text{FPR}=\frac{FP}{FP+TN}=\frac{FP}{N} \]</div>
+<p>Of the instances that really are negative, what fraction did the classifier wrongly flag? Equal to \(1-\)<b>specificity</b>; in radar, the <b>false-alarm rate</b>. Lower is better. Of the noise blips, how many did the operator call aircraft?</p></div>
+</div>
+<figure><svg class="fig" viewBox="0 0 530 394" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of an ROC plot">
+<rect x="50" y="22" width="330" height="330" fill="#fff" stroke="#999"/>
+<line x1="50.0" y1="22" x2="50.0" y2="352" stroke="#eee"/><line x1="50" y1="352.0" x2="380" y2="352.0" stroke="#eee"/>
+<text x="50.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0</text><text x="45" y="355.5" text-anchor="end" font-size="10.5" fill="#555">0</text>
+<line x1="116.0" y1="22" x2="116.0" y2="352" stroke="#eee"/><line x1="50" y1="286.0" x2="380" y2="286.0" stroke="#eee"/>
+<text x="116.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.2</text><text x="45" y="289.5" text-anchor="end" font-size="10.5" fill="#555">0.2</text>
+<line x1="182.0" y1="22" x2="182.0" y2="352" stroke="#eee"/><line x1="50" y1="220.0" x2="380" y2="220.0" stroke="#eee"/>
+<text x="182.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.4</text><text x="45" y="223.5" text-anchor="end" font-size="10.5" fill="#555">0.4</text>
+<line x1="248.0" y1="22" x2="248.0" y2="352" stroke="#eee"/><line x1="50" y1="154.0" x2="380" y2="154.0" stroke="#eee"/>
+<text x="248.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.6</text><text x="45" y="157.5" text-anchor="end" font-size="10.5" fill="#555">0.6</text>
+<line x1="314.0" y1="22" x2="314.0" y2="352" stroke="#eee"/><line x1="50" y1="88.0" x2="380" y2="88.0" stroke="#eee"/>
+<text x="314.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">0.8</text><text x="45" y="91.5" text-anchor="end" font-size="10.5" fill="#555">0.8</text>
+<line x1="380.0" y1="22" x2="380.0" y2="352" stroke="#eee"/><line x1="50" y1="22.0" x2="380" y2="22.0" stroke="#eee"/>
+<text x="380.0" y="366" text-anchor="middle" font-size="10.5" fill="#555">1</text><text x="45" y="25.5" text-anchor="end" font-size="10.5" fill="#555">1</text>
+<text x="215.0" y="382" text-anchor="middle" font-size="11.5" fill="#233343">False positive rate (FPR)</text>
+<text transform="translate(20 187) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#233343">True positive rate (TPR)</text>
+<line x1="50" y1="352" x2="380" y2="22" stroke="#888" stroke-width="1.6" stroke-dasharray="5 4"/>
+<text x="248.0" y="187.0" font-size="10.5" fill="#888" transform="rotate(-45 248.0 187.0)">random guessing, AUC = 0.5</text>
+<path d="M50.0 352.0 L51.6 305.5 L53.3 284.6 L55.0 269.0 L56.6 256.3 L58.2 245.5 L59.9 235.9 L61.5 227.4 L63.2 219.7 L64.8 212.6 L66.5 206.0 L68.2 199.9 L69.8 194.2 L71.5 188.9 L73.1 183.8 L74.8 179.0 L76.4 174.5 L78.0 170.2 L79.7 166.1 L81.3 162.2 L83.0 158.5 L84.7 154.9 L86.3 151.4 L88.0 148.1 L89.6 145.0 L91.2 141.9 L92.9 138.9 L94.6 136.1 L96.2 133.3 L97.8 130.7 L99.5 128.1 L101.2 125.6 L102.8 123.2 L104.5 120.8 L106.1 118.6 L107.8 116.3 L109.4 114.2 L111.0 112.1 L112.7 110.1 L114.4 108.1 L116.0 106.2 L117.6 104.3 L119.3 102.5 L121.0 100.7 L122.6 99.0 L124.2 97.3 L125.9 95.7 L127.5 94.1 L129.2 92.5 L130.8 91.0 L132.5 89.5 L134.2 88.0 L135.8 86.6 L137.4 85.2 L139.1 83.9 L140.8 82.5 L142.4 81.2 L144.1 80.0 L145.7 78.7 L147.3 77.5 L149.0 76.3 L150.6 75.2 L152.3 74.0 L153.9 72.9 L155.6 71.8 L157.2 70.7 L158.9 69.7 L160.6 68.7 L162.2 67.7 L163.8 66.7 L165.5 65.7 L167.1 64.8 L168.8 63.9 L170.4 62.9 L172.1 62.1 L173.8 61.2 L175.4 60.3 L177.1 59.5 L178.7 58.7 L180.3 57.9 L182.0 57.1 L183.7 56.3 L185.3 55.5 L186.9 54.8 L188.6 54.1 L190.2 53.3 L191.9 52.6 L193.6 51.9 L195.2 51.3 L196.8 50.6 L198.5 49.9 L200.2 49.3 L201.8 48.7 L203.5 48.1 L205.1 47.4 L206.8 46.9 L208.4 46.3 L210.0 45.7 L211.7 45.1 L213.3 44.6 L215.0 44.0 L216.7 43.5 L218.3 43.0 L220.0 42.5 L221.6 42.0 L223.2 41.5 L224.9 41.0 L226.6 40.5 L228.2 40.1 L229.9 39.6 L231.5 39.2 L233.2 38.7 L234.8 38.3 L236.4 37.9 L238.1 37.5 L239.7 37.0 L241.4 36.6 L243.0 36.3 L244.7 35.9 L246.3 35.5 L248.0 35.1 L249.7 34.8 L251.3 34.4 L252.9 34.1 L254.6 33.7 L256.2 33.4 L257.9 33.1 L259.6 32.7 L261.2 32.4 L262.9 32.1 L264.5 31.8 L266.1 31.5 L267.8 31.2 L269.5 30.9 L271.1 30.6 L272.8 30.4 L274.4 30.1 L276.1 29.8 L277.7 29.6 L279.4 29.3 L281.0 29.1 L282.6 28.8 L284.3 28.6 L285.9 28.4 L287.6 28.1 L289.2 27.9 L290.9 27.7 L292.5 27.5 L294.2 27.3 L295.9 27.1 L297.5 26.9 L299.1 26.7 L300.8 26.5 L302.5 26.3 L304.1 26.2 L305.8 26.0 L307.4 25.8 L309.1 25.6 L310.7 25.5 L312.4 25.3 L314.0 25.2 L315.7 25.0 L317.3 24.9 L318.9 24.7 L320.6 24.6 L322.2 24.5 L323.9 24.3 L325.6 24.2 L327.2 24.1 L328.8 24.0 L330.5 23.8 L332.1 23.7 L333.8 23.6 L335.4 23.5 L337.1 23.4 L338.8 23.3 L340.4 23.2 L342.1 23.1 L343.7 23.1 L345.4 23.0 L347.0 22.9 L348.7 22.8 L350.3 22.7 L351.9 22.7 L353.6 22.6 L355.2 22.5 L356.9 22.5 L358.6 22.4 L360.2 22.4 L361.8 22.3 L363.5 22.3 L365.1 22.2 L366.8 22.2 L368.4 22.2 L370.1 22.1 L371.8 22.1 L373.4 22.1 L375.1 22.0 L376.7 22.0 L378.4 22.0 L380.0 22.0" fill="none" stroke="#233343" stroke-width="2.6"/>
+<text x="188.6" y="88.0" font-size="11" font-weight="bold" fill="#233343">a classifier's ROC curve</text>
+<circle cx="50" cy="22" r="6" fill="#3C7A5A" stroke="#fff" stroke-width="1.5"/>
+<text x="46" y="14" font-size="10.5" fill="#3C7A5A" font-weight="bold">(0, 1) top-left corner = perfect: every positive caught, no false alarm</text>
+<circle cx="116.0" cy="106.2" r="6" fill="#BD582C" stroke="#fff" stroke-width="1.5"/>
+<line x1="116.0" y1="106.2" x2="116.0" y2="352" stroke="#BD582C" stroke-dasharray="3 3"/><line x1="116.0" y1="106.2" x2="50" y2="106.2" stroke="#BD582C" stroke-dasharray="3 3"/>
+<text x="124.0" y="122.2" font-size="10.5" fill="#BD582C">one threshold:</text><text x="124.0" y="135.2" font-size="10.5" fill="#BD582C">FPR = 0.20, TPR = 0.74</text>
+<text x="254.6" y="279.4" font-size="10.5" fill="#999">below the line: ranking backwards</text>
+<text x="392" y="36" font-size="10.5" fill="#233343" font-weight="bold">up</text><text x="392" y="49" font-size="10" fill="#444">= more positives found</text>
+<text x="392" y="340" font-size="10.5" fill="#233343" font-weight="bold">right</text><text x="392" y="353" font-size="10" fill="#444">= more false alarms</text>
+</svg><figcaption>Anatomy of an ROC plot. Every threshold gives one (FPR, TPR) point; the curve is all of them. Up is good, right is bad.</figcaption></figure>
+<table class="dt"><thead><tr><th>Where on the plot</th><th>What it means</th></tr></thead><tbody>
+<tr><td>Bottom-left corner (0, 0)</td><td>Threshold so high that nothing is flagged: no false alarms, but no positives found either.</td></tr>
+<tr><td>Top-right corner (1, 1)</td><td>Threshold so low that everything is flagged: every positive found, every negative wrongly flagged.</td></tr>
+<tr><td>Top-left corner (0, 1)</td><td>Perfect: every positive found with zero false alarms. Real curves bend towards this corner; the closer, the better.</td></tr>
+<tr><td>The diagonal from (0, 0) to (1, 1)</td><td>Random guessing. Flag a random fraction \(q\) of everything and both rates equal \(q\). A curve on this line carries no information.</td></tr>
+<tr><td>Below the diagonal</td><td>Worse than guessing, which means the scores are ranked backwards. Invert them and the curve reflects above the line.</td></tr>
+<tr><td>A point at (0.2, 0.8)</td><td>At this threshold the classifier finds 80% of the positives and falsely flags 20% of the negatives.</td></tr>
+</tbody></table>
+<div class="note"><b>Why these two rates and not, say, precision.</b> TPR is normalised by the positives only and FPR by the negatives only. Neither depends on how many of each class there are, so the curve looks the same whether positives are 50% or 1% of the data. Precision \(TP/(TP+FP)\) mixes the two classes in its denominator and does change with the class ratio. That choice is the ROC's main strength (tab 3) and its main blind spot (tab 5).</div>
+</div></div>
+
+<div class="slide"><div class="sh"><h3>The problem it solves: a confusion matrix is one threshold's opinion</h3><span class="num">Continues Lecture 5</span></div><div class="body">
 <p>Logistic regression, a neural network, a random forest, a boosted ensemble: all of them produce a number for each input before they produce a class. Call it the <b>score</b> \(s(x)\). The hard label is a second step,</p>
 <div class="formula">\[ \hat y(x)=\begin{cases}1 & s(x)\ge\tau\\ 0 & s(x)<\tau\end{cases} \]</div>
 <p>and everything in Lecture 5 — TP, FP, FN, TN, and therefore accuracy, precision, recall, F1 — is a function of \(\tau\). Software hides this by defaulting to \(\tau=0.5\). There is nothing special about 0.5. It is the right threshold only if a false positive and a false negative cost the same and the training data had the same class balance as the deployment data, and both of those are usually false.</p>
 <div class="two">
-<div class="card"><h4>What goes wrong</h4><ul>
+<div class="card"><h4>What goes wrong with one threshold</h4><ul>
 <li>Two models are compared at \(\tau=0.5\). Model A has higher F1. At \(\tau=0.3\) model B would have had higher F1. Which is better?</li>
 <li>A screening test is tuned so that recall is 0.95. A reader cannot tell whether that required accepting a 10% or a 60% false positive rate.</li>
 <li>A paper reports accuracy 0.97 on data that is 97% negative (the accuracy paradox from Lecture 5, tab 3).</li>
 </ul></div>
-<div class="card"><h4>What the ROC curve does</h4><ul>
-<li>Evaluates the <i>ranking</i> the scores induce, over every threshold at once.</li>
-<li>Shows the whole trade-off between catching positives and admitting false alarms, so the reader can choose the operating point, not the author.</li>
-<li>Is unchanged by class balance (tab 5 shows exactly why, and why that is also its weakness).</li>
+<div class="card"><h4>What the curve gives instead</h4><ul>
+<li>The <i>ranking</i> the scores induce, evaluated over every threshold at once.</li>
+<li>The whole trade-off between catching positives and admitting false alarms, so the reader chooses the operating point, not the author.</li>
+<li>A comparison that does not change when the class balance changes.</li>
 </ul></div>
 </div>
-</div></div>
-
-<div class="slide"><div class="sh"><h3>The two rates</h3><span class="num">Definitions</span></div><div class="body">
-<p>Two of the four rates that can be formed from a confusion matrix are the axes of the ROC plot:</p>
-<div class="formula">\[ \text{TPR}=\frac{TP}{TP+FN}=\frac{TP}{P}\ (\text{recall, sensitivity, hit rate}),\qquad \text{FPR}=\frac{FP}{FP+TN}=\frac{FP}{N}\ (=1-\text{specificity, false-alarm rate}). \]</div>
-<p>\(P\) and \(N\) are the numbers of actual positives and actual negatives. Each rate is normalised by its <i>own</i> class: TPR by the positives only, FPR by the negatives only. That is the whole reason the curve is insensitive to how many of each there are. Precision, by contrast, mixes the classes in its denominator (\(TP+FP\)), which is why it reacts to imbalance and the ROC does not.</p>
-<div class="note"><b>Reading a point.</b> A point at (FPR, TPR) = (0.2, 0.8) says: at this threshold the model catches 80% of the positives and wrongly flags 20% of the negatives. The top-left corner (0, 1) is a perfect classifier. The diagonal from (0, 0) to (1, 1) is what random guessing achieves — flag a random fraction \(q\) of everything and both rates equal \(q\). Below the diagonal the model is ranking backwards; invert its scores and it is above.</div>
 </div></div>
 
 <div class="slide"><div class="sh"><h3>What you need before you can draw one</h3><span class="num">Prerequisites</span></div><div class="body">
@@ -592,9 +735,9 @@
 </section>
 
 <section class="tab-panel" id="t7">
-<h2>7. Where the ROC curve came from</h2>
+<h2>7. History and the papers</h2>
 
-<div class="slide"><div class="sh"><h3>Radar, then psychology, then medicine, then machine learning</h3><span class="num">Timeline</span></div><div class="body">
+<div class="slide"><div class="sh"><h3>The papers, in order</h3><span class="num">Timeline</span></div><div class="body">
 <figure><svg class="fig" viewBox="0 0 820 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline of ROC and AUC">
 <line x1="40" y1="48" x2="800" y2="48" stroke="#233343" stroke-width="2"/>
 <circle cx="93.6" cy="48" r="5" fill="#233343"/>
@@ -622,7 +765,7 @@
 <text x="755.3" y="78" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#233343">2015</text>
 <text x="755.3" y="91" text-anchor="middle" font-size="10" fill="#444">Saito & Rehmsmeier</text>
 </svg></figure>
-<p>The name is the giveaway. A "receiver" is a radio receiver; its "operating characteristic" is how its output behaves as the operator turns the sensitivity knob. During the Second World War, radar operators had to decide whether a blip on the screen was an aircraft or noise. Turn the gain up and you catch more aircraft and more noise; turn it down and you miss both. Engineers plotted the two rates against each other as the gain varied, and the resulting curve described the receiver, independent of the setting chosen on any particular night.</p>
+<p>Tab 1 told the radar story. This tab is the paper trail: who turned the curve into mathematics, who gave the area its meaning, and who brought it into machine learning.</p>
 <dl class="timeline-list">
 <dt>1954 — Peterson, Birdsall &amp; Fox, "The theory of signal detectability"</dt><dd>The curve becomes mathematics: the optimal detector is a likelihood-ratio test, and sweeping its threshold traces an ROC curve that is concave and lies above the chance line. The intuition that a curve <i>characterises</i> a detector and a point <i>characterises</i> a decision dates from here.</dd>
 <dt>1966 — Green &amp; Swets, <i>Signal Detection Theory and Psychophysics</i></dt><dd>The same mathematics applied to people: a subject deciding whether a faint tone was present behaves like a receiver with a threshold. Sensitivity (\(d'\)) and bias are separated, which is the psychological version of "ranking versus threshold".</dd>
